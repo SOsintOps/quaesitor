@@ -6,6 +6,8 @@ backup/
 fonti/
 # configurazione del chatbot: contiene la chiave API e l'indirizzo del proxy
 chatbot.conf
+# configurazione dei servizi online (chiave API OpenSanctions)
+services.conf
 # log del launcher e del server (percorsi locali)
 *.log
 

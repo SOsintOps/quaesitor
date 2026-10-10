@@ -1,0 +1,10 @@
+name1,type1,relation,arrow,name2,type2,ftm_schema1,ftm_schema2,ftm_edge,address1,address2,alias1,alias2,authority1,bankName1,birthDate1,birthDate2,city1,country1,full1,iban1,jurisdiction1,jurisdiction2,name1,name2,nationality1,number1,phone1,program1,registrationNumber1,registrationNumber2,startDate1
+Mario Rossi,person,"owns (percentage 60, startDate 2015-01-01)",->,Acme Logistics Ltd,organization,Person,Company,Ownership,,"Via Roma 1, Milano",,,,,1970-05-01,,,,,,,it,Mario Rossi,Acme Logistics Ltd,it,,+39 333 1234567,,,IT01234567890,
+Offshore Holdings SA,organization,owns (percentage 40),->,Acme Logistics Ltd,organization,Company,Company,Ownership,,"Via Roma 1, Milano",,,,,,,,,,,pa,it,Offshore Holdings SA,Acme Logistics Ltd,,,,,,IT01234567890,
+张伟,person,directs (role CEO),->,Offshore Holdings SA,organization,Person,Company,Directorship,,,Zhang Wei,,,,1982-11-03,,,,,,,pa,张伟,Offshore Holdings SA,,,,,,,
+Mario Rossi,person,related to (relationship brother-in-law),<->,张伟,person,Person,Person,Family,,,,Zhang Wei,,,1970-05-01,1982-11-03,,,,,,,Mario Rossi,张伟,it,,+39 333 1234567,,,,
+Acme Logistics Ltd,organization,"paid (amount 250000, currency EUR, date 2025-03-02)",->,Offshore Holdings SA,organization,Company,Company,Payment,"Via Roma 1, Milano",,,,,,,,,,,,it,pa,Acme Logistics Ltd,Offshore Holdings SA,,,,,IT01234567890,,
+"Via Roma 1, Milano",place,,,,,Address,,,,,,,,,,,Milano,,"Via Roma 1, Milano",,,,"Via Roma 1, Milano",,,,,,,,
+IT60X0542811101000000123456,bankaccount,,,,,BankAccount,,,,,,,,Banca Test,,,,,,IT60X0542811101000000123456,,,IT60X0542811101000000123456,,,,,,,,
+YA1234567,document,holder,->,Mario Rossi,person,Passport,Person,,,,,,,,,,,it,,,,,YA1234567,Mario Rossi,,YA1234567,,,,,
+SDN,text,entity,->,Offshore Holdings SA,organization,Sanction,Company,,,,,,OFAC,,,,,,,,,,SDN,Offshore Holdings SA,,,,SDN,,,2024-01-10

@@ -11,3 +11,4 @@ Pillow>=10.0
 pytesseract>=0.3.10
 # facoltativo: traslitterazione di qualità migliore (richiede le librerie ICU)
 # PyICU
+regex>=2024.0          # patch 0002: \p{L}\p{M} per le scritture indiane, thai e giapponese

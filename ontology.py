@@ -23,6 +23,8 @@ Ogni tipo descrive in un solo posto:
 
 Tipi di campo: text, number, date, select (options), check.
 """
+# "Quot homines, tot sententiae." (Terence, Phormio)
+# As many opinions as there are men.
 import re
 import unicodedata
 
@@ -385,7 +387,27 @@ TYPES = {
         "ai": 'property: real estate (flats, garages, warehouses, land). fields: tipo, comune, '
               'indirizzo, catasto (land registry data), descrizione.',
     },
+    "sighting": {
+        "label": "Avvistamento aereo", "en": "Aircraft sighting", "group": "Volo",
+        "icon": "image", "color": "#0e7490",
+        "fields": [
+            F("callsign", "Callsign / volo", en="Callsign / flight", ph="es. AZA123"),
+            F("icao24", "ICAO24 (hex)", en="ICAO24 (hex)"),
+            F("tipo", "Tipo aeromobile", en="Aircraft type", ph="es. A320"),
+            F("quando", "Istante stimato (UTC)", en="Estimated time (UTC)"),
+            F("azimut", "Azimut (deg)", "number", en="Azimuth (deg)"),
+            F("elevazione", "Elevazione (deg)", "number", en="Elevation (deg)"),
+            F("confidenza", "Confidenza", "select", ["alta", "media", "bassa"], "Confidence"),
+            F("descrizione", "Descrizione", en="Description"),
+        ],
+        "ident": ["callsign", "quando"],
+        "label_fmt": ["callsign", "tipo", "quando"], "value": "callsign",
+        "ai": 'sighting: an aircraft seen in a photograph. fields: callsign, icao24, tipo, quando, azimut, elevazione, confidenza, descrizione.',
+    },
 }
+
+from ontology_ftm import FTM_TYPES
+TYPES.update(FTM_TYPES)
 
 # icona per sostanza (piu' riconoscibile della pillola generica)
 DRUG_ICONS = {
@@ -412,6 +434,7 @@ BASE_ICONS = {
 
 # nomi con cui l'utente o l'AI indicano i tipi (import CSV, AI)
 ALIASES = {
+    "sighting": {"avvistamento", "sighting", "aereo", "aircraft", "volo", "flight"},
     "weapon": {"arma", "armi", "weapon", "pistola", "fucile", "revolver", "firearm", "gun", "rifle"},
     "explosive": {"esplosivo", "esplosivi", "ordigno", "bomba", "explosive", "explosives"},
     "ammo": {"munizioni", "munizione", "cartucce", "proiettili", "ammo", "ammunition"},
@@ -548,7 +571,14 @@ def label_of(ntype, fields):
                 parts.append(str(v))
         elif not any(f["key"] == item for f in TYPES[ntype]["fields"]):
             parts.append(item)                           # testo fisso ("Munizioni")
-    lab = " ".join(p for p in parts if p).strip()
+    # niente ripetizioni: per gli schemi FtM la didascalia puo' ricadere due
+    # volte sullo stesso valore (es. conto senza nome: nome = IBAN = IBAN)
+    seen, uniq = set(), []
+    for p in parts:
+        if p and p.casefold() not in seen:
+            seen.add(p.casefold())
+            uniq.append(p)
+    lab = " ".join(uniq).strip()
     return lab or TYPES[ntype]["label"]
 
 

@@ -10,6 +10,8 @@ usate. Da rilanciare quando si aggiorna una dipendenza:
 
     .venv\\Scripts\\python.exe scripts\\make_licenses.py
 """
+# "Manus manum lavat." (Seneca, Apocolocyntosis)
+# One hand washes the other.
 import io
 import json
 import os
@@ -80,7 +82,7 @@ def add(id_, name, version, license_, holder, url, role_it, role_en, file, group
 
 
 # ----------------------------------------------------------- il programma ---
-add("osint-graph", "OSInt Graph", "", "GNU GPL v3 con clausole aggiuntive (attribuzione, nome e logo)",
+add("osint-graph", "Quaesitor (fork of OSInt Graph)", "", "GNU GPL v3 con clausole aggiuntive (attribuzione, nome e logo)",
     "Copyright (C) 2025-2026 Andrea Cumini", "https://www.osintinfo.net",
     "Il programma: licenza e termini aggiuntivi", "The program: license and additional terms",
     wr("NOTICE.txt", rd(os.path.join(ROOT, "NOTICE"))), "program")
@@ -128,7 +130,7 @@ sponsored by any of these companies.
 """), "assets")
 add("panchang", "Panchang (carattere del logo)", "", "Fontshare Free Font License (solo contorni: il font non è distribuito)",
     "Indian Type Foundry", "https://www.fontshare.com/fonts/panchang",
-    "Logo «OSInt Graph» e icona «OG»", "“OSInt Graph” logo and “OG” icon",
+    "Carattere del logo originale di OSInt Graph (Quaesitor usa un wordmark provvisorio, font di sistema)", "Typeface of the original OSInt Graph logo (Quaesitor uses a provisional wordmark in a system font)",
     wr("panchang.txt", """Panchang - a typeface by Indian Type Foundry (ITF)
 https://www.fontshare.com/fonts/panchang
 
@@ -209,7 +211,7 @@ with io.open(os.path.join(OUT, "index.json"), "w", encoding="utf-8", newline="\n
 
 # --------------------------------------------------- THIRD-PARTY-NOTICES.md --
 lines = ["# Third-party notices", "",
-         "OSInt Graph is free software under the GNU GPL version 3 (see LICENSE and NOTICE).",
+         "Quaesitor, a fork of OSInt Graph by Andrea Cumini, is free software under the GNU GPL version 3 (see LICENSE and NOTICE).",
          "It includes or uses the following third-party components. The full license",
          "texts are in `static/licenses/` and can be read from the program itself",
          "(link «Licenze» in the left panel).", "",

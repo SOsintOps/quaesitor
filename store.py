@@ -29,6 +29,8 @@ salvano per DIFFERENZA rispetto a quanto letto (save_annotations): si scrivono
 solo le righe cambiate, in una transazione. Cosi' due richieste ravvicinate
 che toccano cose diverse non si sovrascrivono a vicenda.
 """
+# "Veritas filia temporis." (Aulus Gellius, Noctes Atticae)
+# Truth is the daughter of time.
 import os
 import json
 import time
@@ -83,6 +85,14 @@ CREATE TABLE IF NOT EXISTS views (
     count INTEGER NOT NULL,
     data  TEXT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS ftm_ids (
+    ftm_id     TEXT PRIMARY KEY,          -- id dell'entita' Follow the Money
+    node_id    TEXT NOT NULL,             -- nodo del grafo che la rappresenta
+    schema     TEXT NOT NULL DEFAULT '',
+    dataset    TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL
+);
+CREATE INDEX IF NOT EXISTS ftm_ids_node ON ftm_ids(node_id);
 """
 
 SCHEMA_GLOBAL = """
@@ -663,6 +673,46 @@ def translit_delete(word):
         return n
 
 
+# ------------------------------------------- entita' Follow the Money ---
+def ftm_map():
+    """{id FtM: id nodo} del caso corrente (per re-import ed export)."""
+    rows = conn().execute("SELECT ftm_id, node_id FROM ftm_ids").fetchall()
+    return {r["ftm_id"]: r["node_id"] for r in rows}
+
+
+def ftm_by_node():
+    """{id nodo: (id FtM, schema, dataset)}: per l'export."""
+    rows = conn().execute("SELECT ftm_id, node_id, schema, dataset FROM ftm_ids").fetchall()
+    return {r["node_id"]: (r["ftm_id"], r["schema"], r["dataset"]) for r in rows}
+
+
+def ftm_set(items):
+    """items: iterable di (ftm_id, node_id, schema, dataset). Sovrascrive."""
+    items = list(items)
+    if not items:
+        return 0
+    with tx() as c:
+        c.executemany("INSERT INTO ftm_ids(ftm_id, node_id, schema, dataset, updated_at) "
+                      "VALUES(?, ?, ?, ?, ?) ON CONFLICT(ftm_id) DO UPDATE SET "
+                      "node_id = excluded.node_id, schema = excluded.schema, "
+                      "dataset = excluded.dataset, updated_at = excluded.updated_at",
+                      [(a, b, c_ or "", d or "", _now()) for a, b, c_, d in items])
+    return len(items)
+
+
+def ftm_forget_nodes(node_ids):
+    node_ids = [str(x) for x in node_ids if x]
+    if not node_ids:
+        return 0
+    with tx() as c:
+        n = 0
+        for i in range(0, len(node_ids), 500):
+            chunk = node_ids[i:i + 500]
+            n += c.execute("DELETE FROM ftm_ids WHERE node_id IN (%s)" % ",".join("?" * len(chunk)),
+                           chunk).rowcount
+    return n
+
+
 # ------------------------------------------- JSON importati da app terze ---
 def add_import(anchor, anchor_label, filename, content, records, dossier=False,
                anchor_ntype="generic", anchor_platform="generic"):
@@ -706,7 +756,7 @@ def delete_imports_of(anchors):
 
 def iter_imports():
     """Righe dei JSON importati (dict), nell'ordine di importazione."""
-    rows = conn().execute("SELECT anchor, anchor_label, anchor_ntype, anchor_platform, "
+    rows = conn().execute("SELECT id, anchor, anchor_label, anchor_ntype, anchor_platform, "
                           "filename, content, dossier FROM imports ORDER BY imported_at, id").fetchall()
     for r in rows:
         yield dict(r)

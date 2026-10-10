@@ -1,6 +1,6 @@
 # Third-party notices
 
-OSInt Graph is free software under the GNU GPL version 3 (see LICENSE and NOTICE).
+Quaesitor, a fork of OSInt Graph by Andrea Cumini, is free software under the GNU GPL version 3 (see LICENSE and NOTICE).
 It includes or uses the following third-party components. The full license
 texts are in `static/licenses/` and can be read from the program itself
 (link «Licenze» in the left panel).
@@ -31,6 +31,7 @@ texts are in `static/licenses/` and can be read from the program itself
 | [et_xmlfile](https://pypi.org/project/et_xmlfile/) | 2.0.0 | MIT |  | XML writing (openpyxl dependency) |
 | [Pillow](https://pypi.org/project/pillow/) | 12.3.0 | MIT-CMU (HPND) |  | Images: thumbnails and OCR |
 | [pytesseract](https://pypi.org/project/pytesseract/) | 0.3.13 | Apache-2.0 |  | Bridge to Tesseract for OCR |
+| [regex](https://pypi.org/project/regex/) | 2024+ | Apache-2.0 |  | Unicode letter and combining-mark classes (\p{L}\p{M}) for identity keys of Indic, Thai and Japanese names (this fork) |
 | [Python](https://www.python.org) | 3.11.9 | PSF License | Python Software Foundation | Interpreter embedded in the executable |
 | [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) | 5.3.3 | Apache-2.0 | Tesseract contributors (Google, Ray Smith e altri) | Text recognition in images. Downloaded separately into tools/tesseract (not bundled) (not bundled) |
 | [Leptonica](http://www.leptonica.org) | 1.83 | BSD-2-Clause | Copyright (C) 2001 Leptonica | Image library used by Tesseract (downloaded with it) (not bundled) |

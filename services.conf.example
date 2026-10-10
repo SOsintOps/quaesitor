@@ -1,0 +1,28 @@
+# services.conf - servizi online facoltativi. Copia questo file come
+# services.conf accanto al programma. NON pubblicarlo: contiene la chiave API.
+# Ogni voce puo' essere sovrascritta da una variabile d'ambiente SERVICES_<NOME>.
+#
+# OpenSanctions (API yente): ricerca di persone e societa' sanzionate, PEP,
+# interessi. Spento = nessuna chiamata, mai. Acceso = i NOMI cercati escono
+# dal computer verso l'endpoint indicato.
+opensanctions_enabled = false
+# api.opensanctions.org richiede una chiave (https://www.opensanctions.org/api/);
+# in alternativa un'istanza yente propria, es. http://127.0.0.1:8000
+opensanctions_endpoint = https://api.opensanctions.org
+opensanctions_api_key =
+# dataset interrogato: default (tutto), sanctions, peps, ...
+opensanctions_dataset = default
+opensanctions_timeout = 20
+
+# Epieos (api.epieos.com): ricerca inversa di email e telefoni su decine di
+# servizi. A PAGAMENTO: ogni ricerca consuma crediti e viene sempre confermata
+# dall'interfaccia (moduli scelti, crediti residui). Spento = nessuna chiamata.
+# Acceso = l'email o il numero cercato esce dal computer verso l'endpoint.
+epieos_enabled = false
+epieos_endpoint = https://api.epieos.com
+# chiave dalla sezione API di epieos.com
+epieos_api_key =
+# pack interrogato (quelli disponibili per la chiave: «Leggi lo schema» in Configura)
+epieos_pack = osinter
+# una ricerca puo' durare fino a due minuti
+epieos_timeout = 120

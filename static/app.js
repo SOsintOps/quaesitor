@@ -9,6 +9,8 @@
  * any later version, with the additional terms in the file NOTICE.
  * See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
  */
+// "Fallaces sunt rerum species." (Seneca, De Beneficiis)
+// The appearances of things are deceptive.
 /* ================= HELPERS DOM ================= */
 const $ = s => document.querySelector(s);
 const on = (sel, evt, fn) => {
@@ -505,6 +507,13 @@ const BEND_CURVES = ['unbundled-bezier', 'segments', 'round-segments'];   // con
 function buildEdgeProps(box) {
   const p = box.dataset.prefix;
   box.innerHTML = `
+    <label class="af-lb" for="${p}-edge-ftm" data-i18n="edge.ftm"></label>
+    <select id="${p}-edge-ftm">
+      <option value="">${esc(t('edge.ftmNone'))}</option>
+      ${Object.keys(FTM_EDGES).sort((a, b) => ftmEdgeLabel(a).localeCompare(ftmEdgeLabel(b)))
+        .map(k => `<option value="${esc(k)}">${esc(ftmEdgeLabel(k))} · ${esc(ftmEdgeVerb(k))}</option>`).join('')}
+    </select>
+    <div id="${p}-edge-ftm-fields" class="ep-ftm"></div>
     <label class="af-lb" for="${p}-edge-label" data-i18n="add.edgeName"></label>
     <input id="${p}-edge-label" autocomplete="off" maxlength="300" data-i18n-ph="add.edgeNamePh">
     <label class="af-lb" for="${p}-edge-shape" data-i18n="add.edgeShape"></label>
@@ -556,6 +565,10 @@ function buildEdgeProps(box) {
   const upd = () => updateEdgePreview(p);
   box.addEventListener('input', upd);
   box.addEventListener('change', upd);
+  box.querySelector(`#${p}-edge-ftm`).addEventListener('change', e => {
+    renderFtmEdgeFields(p, e.target.value, {});
+    $(`#${p}-edge-label`).placeholder = e.target.value ? ftmEdgeVerb(e.target.value) + ' (…)' : t('add.edgeNamePh');
+  });
 
   // Anteprima interattiva: è l'unico comando per le frecce. Un clic sulla metà
   // del nodo di partenza mette o toglie la punta verso quel nodo (freccia
@@ -591,6 +604,34 @@ function buildEdgeProps(box) {
     upd();
   });
 }
+/* ---- relazioni Follow the Money sui collegamenti (window.FTM_EDGES) ---- */
+const FTM_EDGES = window.FTM_EDGES || {};
+const ftmLabelIn = (labels, fallback) => (labels && labels[LANG]) || fallback;
+const ftmEdgeLabel = k => FTM_EDGES[k] ? ftmLabelIn(FTM_EDGES[k].labels, FTM_EDGES[k].label) : k;
+const ftmEdgeVerb = k => FTM_EDGES[k] ? (LANG === 'it' ? FTM_EDGES[k].verb_it : FTM_EDGES[k].verb) : '';
+function ftmEdgeFieldLabel(k, key) {
+  const f = ((FTM_EDGES[k] || {}).fields || []).find(x => x.key === key);
+  return f ? ftmLabelIn(f.labels, f.label) : key;
+}
+function renderFtmEdgeFields(p, schema, values) {
+  const box = $(`#${p}-edge-ftm-fields`);
+  if (!box) return;
+  const e = FTM_EDGES[schema];
+  box.hidden = !e;
+  if (!e) { box.innerHTML = ''; return; }
+  const v = values || {};
+  box.innerHTML = e.fields.map(f => `
+    <div class="af-of"><label class="af-lb" for="${p}-ftm-${f.key}">${esc(ftmLabelIn(f.labels, f.label))}</label>
+      <input id="${p}-ftm-${f.key}" data-ftmk="${esc(f.key)}" type="${f.type === 'date' ? 'date' : 'text'}"
+             autocomplete="off" maxlength="300" value="${esc(v[f.key] || '')}"></div>`).join('');
+}
+function readFtmEdgeProps(p) {
+  const out = {};
+  document.querySelectorAll(`#${p}-edge-ftm-fields [data-ftmk]`).forEach(i => {
+    if (i.value.trim()) out[i.dataset.ftmk] = i.value.trim();
+  });
+  return out;
+}
 document.querySelectorAll('.edge-props').forEach(buildEdgeProps);
 
 /* Stato delle frecce di una finestra: vive sull'anteprima (data-arrow), che è
@@ -612,8 +653,10 @@ function readEdgeProps(p) {
     curve,
     lstyle: $(`#${p}-edge-lstyle`).value,
     color: $(`#${p}-edge-color-def`).checked ? '' : $(`#${p}-edge-color`).value,
-    width: parseFloat($(`#${p}-edge-width`).value) || 0
+    width: parseFloat($(`#${p}-edge-width`).value) || 0,
+    ftm: ($(`#${p}-edge-ftm`) && $(`#${p}-edge-ftm`).value) || '',
   };
+  v.ftm_props = v.ftm ? readFtmEdgeProps(p) : {};
   if (BEND_CURVES.includes(curve)) v.bend = parseInt($(`#${p}-edge-bend`).value, 10) || 0;
   return v;
 }
@@ -633,6 +676,12 @@ function writeEdgeProps(p, props) {
   }
   $(`#${p}-edge-color`).value = v.color || EDGE_DEFAULT_COLOR;
   $(`#${p}-edge-color-def`).checked = !v.color;
+  const fs = $(`#${p}-edge-ftm`);
+  if (fs) {
+    fs.value = FTM_EDGES[v.ftm] ? v.ftm : '';
+    renderFtmEdgeFields(p, fs.value, v.ftm_props || {});
+    $(`#${p}-edge-label`).placeholder = fs.value ? ftmEdgeVerb(fs.value) + ' (…)' : t('add.edgeNamePh');
+  }
   updateEdgePreview(p);
 }
 
@@ -641,7 +690,8 @@ const edgePropsOf = e => ({
   label: e.data('label') || '', arrow: e.data('arrow') || 'none',
   curve: e.data('curve') || 'bezier', lstyle: e.data('lstyle') || '',
   color: e.data('color') || '', width: e.data('width') || 0,
-  bend: e.data('bend') ?? EDGE_DEFAULT_BEND
+  bend: e.data('bend') ?? EDGE_DEFAULT_BEND,
+  ftm: e.data('ftm') || '', ftm_props: e.data('ftm_props') || {}
 });
 
 /* Applica le proprietà a un arco del grafo: le chiavi vuote si tolgono, così
@@ -952,6 +1002,7 @@ async function load() {
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     g = await r.json();
     if (g.error) throw new Error(g.error);
+    if (g.translit_mode) TRANSLIT_MODE = g.translit_mode;
   } catch (err) {
     console.error('Caricamento fallito:', err);
     $('#stat').textContent = t('stat.loadError', { e: err.message });
@@ -979,7 +1030,7 @@ async function load() {
 
     indexNode(n);      // indice di ricerca (etichetta, alias, note E schede)
 
-    els.push({ data: { ...n, icon: iconFor(n), color: TYPE_COLOR[n.ntype] || TYPE_COLOR.generic, disp: n.label } });
+    els.push({ data: { ...n, icon: iconFor(n), color: TYPE_COLOR[n.ntype] || TYPE_COLOR.generic, disp: dispOf(n) } });
   }
   g.edges.forEach(e => els.push({ data: { ...e, rel: e.rel || '' } }));
 
@@ -992,6 +1043,17 @@ async function load() {
    Rilegge le cartelle dei target e allinea il grafo VIVO: aggiunge i nodi
    nuovi, toglie quelli spariti, aggiorna quelli cambiati. La vista corrente
    (nodi aperti, posizioni, zoom) resta intatta. */
+/* Etichetta disegnata sul nodo: con la traslitterazione come attributo
+   (translit_mode = 'attribute') la forma latina sta sotto il nome. */
+let TRANSLIT_MODE = 'attribute';
+function dispOf(n) {
+  const r = n.roman;
+  if (TRANSLIT_MODE === 'attribute' && r && r.toLowerCase() !== String(n.label || '').toLowerCase()) {
+    return `${n.label}\n${r}`;
+  }
+  return n.label;
+}
+
 function indexNode(d) {
   let hay = `${d.label} ${d.id} ${d.platform} ${d.ntype} ${d.roman || ''} ` +
             `${d.script || ''} ${(d.aliases || []).join(' ')} ` +
@@ -1026,6 +1088,7 @@ function rebuildIndex() {
    nuovi, toglie quelli spariti (anche quelli confluiti in un'altra scheda dopo
    una rinomina) e aggiorna quelli cambiati. La vista corrente resta intatta. */
 function applyGraphData(g) {
+  if (g.translit_mode) TRANSLIT_MODE = g.translit_mode;
   {
     const deg = {};
     g.edges.forEach(e => { deg[e.source] = (deg[e.source] || 0) + 1;
@@ -1059,7 +1122,7 @@ function applyGraphData(g) {
         ['url', 'edited', 'note'].forEach(k => { if (!(k in d)) ex.removeData(k); });
         ex.data('renamed', !!d.renamed);                // ripristinata: torna false
         ex.data('label_orig', d.label_orig || '');
-        ex.data('disp', d.label);
+        ex.data('disp', dispOf(d));
         ex.data('icon', iconFor(d));
         ex.data('color', TYPE_COLOR[d.ntype] || TYPE_COLOR.generic);
         ex.toggleClass('noted', !!d.note);
@@ -1204,8 +1267,8 @@ function render(els) {
         'font-weight': '600',
         'text-valign': 'bottom',
         'text-margin-y': 5,
-        'text-wrap': 'ellipsis',
-        'text-max-width': 90,
+        'text-wrap': 'wrap',
+        'text-max-width': 110,
         'text-outline-color': '#ffffff',
         'text-outline-width': 3,
         'min-zoomed-font-size': 7
@@ -1595,9 +1658,11 @@ function searchNodes(q) {
   const query = q.trim();
   if (!cy || !query) { list.innerHTML = ''; DIST = new Map(); hideResults(); return; }
   // servono almeno 3 caratteri: con 1-2 i risultati sarebbero migliaia
-  if (query.length < MIN_SEARCH) {
+  // con gli ideogrammi bastano due caratteri (i nomi cinesi ne hanno spesso due)
+  const minChars = /[\u3400-\u9FFF\uF900-\uFAFF]/.test(query) ? 2 : MIN_SEARCH;
+  if (query.length < minChars) {
     DIST = new Map(); lastMatches = [];
-    list.innerHTML = `<li class="no-res">${esc(t('search.minChars', { n: MIN_SEARCH }))}</li>`;
+    list.innerHTML = `<li class="no-res">${esc(t('search.minChars', { n: minChars }))}</li>`;
     list.style.display = 'block';
     return;
   }
@@ -2135,8 +2200,11 @@ function showEdgeTip(e) {
   if (!box || !e) return;
   const d = e.data();
   const s = e.source().data('label'), tg = e.target().data('label');
-  box.innerHTML = `<small>${esc(t('edge.tipKind'))}${d.rel ? ' · ' + esc(d.rel) : ''}</small>` +
-    (d.label ? `<b>${esc(d.label)}</b>` : '') +
+  const fp = d.ftm && d.ftm_props ? Object.entries(d.ftm_props)
+    .map(([k, v]) => `${esc(ftmEdgeFieldLabel(d.ftm, k))}: ${esc(v)}`).join(' · ') : '';
+  box.innerHTML = `<small>${esc(t('edge.tipKind'))}${d.rel ? ' · ' + esc(d.rel) : ''}` +
+    (d.ftm ? ` · FtM ${esc(ftmEdgeLabel(d.ftm))}` : '') + `</small>` +
+    (d.label ? `<b>${esc(d.label)}</b>` : '') + (fp ? `<small>${fp}</small>` : '') +
     `<i>${esc(s)} ${ARROW_SYM[d.arrow || 'none']} ${esc(tg)}</i>` +
     `<u>${esc(t('edge.tipHint'))}</u>`;
   box.style.display = 'block';
@@ -2352,6 +2420,12 @@ function openModal(node) {
   $('#modal-exp').textContent = expanded.has(d.id) ? t('modal.collapse') : t('modal.expand');
   if ($('#modal-src')) { $('#modal-src').hidden = true; $('#modal-src-res').innerHTML = ''; }
   if ($('#modal-src-btn')) $('#modal-src-btn').hidden = !srcState.indexed;
+  if ($('#modal-osa')) $('#modal-osa').hidden = !(osaConf && osaConf.ready && OSA_SCHEMA_OF_TYPE[d.ntype]);
+  if ($('#modal-ep')) {
+    const can = epConf && epConf.ready && (d.ntype === 'email' || d.ntype === 'phone');
+    $('#modal-ep').hidden = !can;
+    if (can) $('#modal-ep').textContent = (epSearches[d.id] || []).length ? t('modal.epUpdate') : t('modal.ep');
+  }
   $('#modal').hidden = false;
   $('#modal-body').scrollTop = 0;
 }
@@ -2501,6 +2575,14 @@ function bodyFor(node, opts = {}) {
   // Nota dell'utente, ben visibile in cima
   if (d.note) {
     h += `<div class="d-note"><b>${esc(t('card.note'))}</b><div>${esc(d.note).replace(/\n/g, '<br>')}</div></div>`;
+  }
+
+  // forma latina dell'etichetta (traslitterazione come attributo del nodo)
+  if (d.roman && d.roman.toLowerCase() !== String(d.label || '').toLowerCase()) {
+    h += `<div class="d-ren"><b>${esc(t('card.roman'))}</b>` +
+         `<span class="cp" data-cp="${esc(d.roman)}" title="${esc(t('cp.hint'))}">${esc(d.roman)}</span>` +
+         (d.roman_manual ? ` <span class="dict-src dict-src-manual">${esc(t('dict.srcManual'))}</span>` : '') +
+         `</div>`;
   }
 
   // Etichetta cambiata a mano: si mostra sempre quella dei dati di origine
@@ -2830,7 +2912,7 @@ function renderOntoFields(kind) {
   const box = $('#add-onto-row');
   const o = ONTO[kind];
   box.dataset.kind = kind;
-  box.innerHTML = o.fields.map(f => {
+  box.innerHTML = o.fields.filter(f => !f.hidden).map(f => {
     const id = `onto-f-${f.key}`;
     const lab = ot(f.label);
     if (f.type === 'check') {
@@ -3087,7 +3169,7 @@ function addNodeToCy(nodeData) {
   n.size = n.ntype === 'target' ? 50 : n.ntype === 'photo' ? 46
          : n.ntype === 'account' ? 32 : (n.bridge ? 26 : 22);
   cy.add({ group: 'nodes', data: Object.assign({}, n, {
-    icon: iconFor(n), color: TYPE_COLOR[n.ntype] || TYPE_COLOR.generic, disp: n.label
+    icon: iconFor(n), color: TYPE_COLOR[n.ntype] || TYPE_COLOR.generic, disp: dispOf(n)
   }) });
 
   // indice di ricerca (etichetta, id, piattaforma, alias, nota)
@@ -3210,7 +3292,7 @@ function makeDraggable(id) {
   new MutationObserver(clamp).observe(modal, { attributes: true, attributeFilter: ['hidden'] });
 }
 ['modal', 'addmodal', 'linkmodal', 'edgemodal', 'editmodal', 'impmodal', 'aimodal',
- 'casemodal', 'manmodal', 'delmodal', 'srcmodal', 'licmodal'].forEach(makeDraggable);
+ 'casemodal', 'manmodal', 'dictmodal', 'ftmmodal', 'osamodal', 'delmodal', 'srcmodal', 'licmodal'].forEach(makeDraggable);
 on('#add-type', 'change', syncAddType);
 on('#add-value', 'input', updateAddPreview);
 on('#add-name', 'input', updateAddPreview);
@@ -3392,6 +3474,25 @@ function fillImpTypeSelects() {
 
 function readImportFile(file) {
   if (!file) return;
+  if (/\.json$/i.test(file.name)) {
+    // una risposta Epieos salvata ({"result": {...}}) va al suo import;
+    // tutto il resto sono entita' Follow the Money
+    const fr = new FileReader();
+    fr.onload = () => {
+      let obj = null;
+      try { obj = JSON.parse(fr.result); } catch (_) { obj = null; }
+      $('#impmodal').hidden = true;
+      if (isEpieosJson(obj)) epImportFile(file.name, fr.result, obj);
+      else openFtmImport(file);
+    };
+    fr.readAsText(file);
+    return;
+  }
+  if (/\.(jsonl|ftm|ndjson)$/i.test(file.name)) {      // entita' Follow the Money
+    $('#impmodal').hidden = true;
+    openFtmImport(file);
+    return;
+  }
   const r = new FileReader();
   r.onload = () => { impFile = { filename: file.name, data: r.result }; loadImportColumns(); };
   r.readAsDataURL(file);
@@ -3415,7 +3516,8 @@ async function loadImportColumns() {
   // diventano campi aggiuntivi del nodo 1 (cosi' nessun valore va perso)
   impMapping = {};
   impCols.columns.forEach(c => {
-    impMapping[c.index] = c.auto || (impCols.header && c.name ? `extra1:${c.name}` : '');
+    // colonna libera: va al nodo 2 se il nome finisce per 2 (es. 'jurisdiction2'), altrimenti al nodo 1
+    impMapping[c.index] = c.auto || (impCols.header && c.name ? `extra${/2$/.test(c.name) ? '2' : '1'}:${c.name}` : '');
   });
   renderImportMapping();
 }
@@ -3574,6 +3676,182 @@ async function commitImport() {
 }
 
 on('#importData', 'click', openImport);
+
+/* ---- esportazione del caso in Follow the Money (righe JSON) ---- */
+on('#exportFtm', 'click', async () => {
+  if (!requireCase()) return;
+  const visible = cy ? cy.nodes().map(n => n.id()) : [];
+  let ids = null;
+  if (visible.length && confirm(t('ftm.exportAsk', { n: visible.length }))) ids = visible;
+  const btn = $('#exportFtm');
+  btn.disabled = true;
+  try {
+    const r = await fetch('/api/ftm/export', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+                                                body: JSON.stringify(ids ? { ids } : {}) });
+    if (!r.ok) {
+      let msg = `HTTP ${r.status}`;
+      try { msg = (await r.json()).error || msg; } catch (_) {}
+      throw new Error(msg);
+    }
+    const blob = await r.blob();
+    const sum = JSON.parse(r.headers.get('X-Ftm-Summary') || '{}');
+    const cd = r.headers.get('Content-Disposition') || '';
+    const m = cd.match(/filename=([^;]+)/);
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = m ? m[1].trim() : 'caso.ftm.json';
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+    const skipped = Object.entries(sum.skipped || {}).map(([k, v]) => `${k} ${v}`).join(', ');
+    $('#stat').textContent = t('ftm.exported', { nodes: sum.nodes || 0, links: sum.links || 0,
+      prop: sum.as_property || 0, skipped: skipped || '—' });
+  } catch (err) {
+    alert(t('err.opFailed', { e: err.message }));
+  } finally { btn.disabled = false; }
+});
+
+/* ================= IMPORTAZIONE FOLLOW THE MONEY =================
+   File di entita' FtM anche grandi: ispezione (conteggi per schema), filtri,
+   importazione in background con avanzamento (/api/ftm/*). */
+let ftmFile = null, ftmInfo = null;
+const FTM_WARN_NODES = 5000;
+
+function ftmStep(n) {
+  document.querySelectorAll('#ftmmodal .imp-step').forEach(el => {
+    const k = +el.dataset.step;
+    el.classList.toggle('on', k === n);
+    el.classList.toggle('done', k < n);
+  });
+  for (const k of [1, 2, 3]) $(`#ftm-step${k}`).hidden = k !== n;
+  $('#ftmmodal-back').hidden = n !== 2;
+  $('#ftmmodal-go').hidden = n !== 2;
+  $('#ftmmodal-done').hidden = n !== 3;
+}
+
+function openFtmImport(file) {
+  if (!requireCase()) return;
+  ftmFile = null; ftmInfo = null;
+  $('#ftm-file').value = '';
+  $('#ftm-drop-txt').textContent = t('ftm.drop');
+  $('#ftm-schemas').innerHTML = ''; $('#ftm-sum').textContent = ''; $('#ftm-warn').textContent = '';
+  $('#ftm-result').textContent = ''; $('#ftm-prog-txt').textContent = ''; $('#ftm-bar-fill').style.width = '0';
+  ftmStep(1);
+  $('#ftmmodal').hidden = false;
+  if (file) readFtmFile(file);
+}
+
+function readFtmFile(file) {
+  if (!file) return;
+  const r = new FileReader();
+  r.onload = () => { ftmFile = { filename: file.name, data: r.result }; inspectFtm(); };
+  r.readAsDataURL(file);
+  $('#ftm-drop-txt').textContent = file.name;
+}
+
+async function inspectFtm() {
+  if (!ftmFile) return;
+  $('#ftm-sum').textContent = t('err.loading');
+  ftmStep(2);
+  try {
+    ftmInfo = await apiPost('/api/ftm/inspect', ftmFile);
+  } catch (err) {
+    ftmStep(1);
+    $('#ftm-drop-txt').textContent = `⚠ ${err.message}`;
+    ftmFile = null;
+    return;
+  }
+  const ds = Object.keys(ftmInfo.datasets || {});
+  $('#ftm-sum').textContent = t('ftm.sumLine', { n: ftmInfo.entities, nodes: ftmInfo.nodes,
+    edges: ftmInfo.edges, ds: ds.length ? ds.join(', ') : '—' });
+  $('#ftm-dataset').value = ds.length === 1 ? ds[0] : (ftmFile.filename || '').replace(/\.[^.]+$/, '');
+  const entries = Object.entries(ftmInfo.schemas || {}).sort((a, b) => b[1] - a[1]);
+  $('#ftm-schemas').innerHTML = entries.map(([sc, n]) => {
+    const typ = (ftmInfo.native || {})[sc] || 'text';
+    const o = ONTO[typ];
+    const as = o ? ontoLabel(o) : t('add.kind.' + typ, {}) === 'add.kind.' + typ ? typ : t('add.kind.' + typ);
+    return `<label><input type="checkbox" data-schema="${esc(sc)}" checked> ${esc((ftmInfo.labels || {})[sc] || sc)}` +
+           ` <i>${esc(t('ftm.asType'))} ${esc(as)}</i><small>${n}</small></label>`;
+  }).join('') +
+  `<div class="jm-msg"><button type="button" class="mini" id="ftm-all">${esc(t('ftm.all'))}</button> ` +
+  `<button type="button" class="mini" id="ftm-none">${esc(t('ftm.none'))}</button></div>`;
+  ftmWarn();
+}
+
+function ftmSelectedSchemas() {
+  return [...document.querySelectorAll('#ftm-schemas input[data-schema]:checked')].map(i => i.dataset.schema);
+}
+
+function ftmWarn() {
+  if (!ftmInfo) return;
+  const sel = new Set(ftmSelectedSchemas());
+  let n = 0;
+  for (const [sc, c] of Object.entries(ftmInfo.schemas || {})) if (sel.has(sc)) n += c;
+  const max = parseInt($('#ftm-max').value || '0', 10) || 0;
+  if (max) n = Math.min(n, max);
+  $('#ftm-warn').textContent = (n > FTM_WARN_NODES && !$('#ftm-text').value.trim())
+    ? t('ftm.warnBig', { n: FTM_WARN_NODES }) : '';
+  $('#ftmmodal-go').disabled = !sel.size;
+}
+
+async function runFtmImport() {
+  if (!ftmFile) return;
+  const payload = Object.assign({}, ftmFile, {
+    schemas: ftmSelectedSchemas(), text: $('#ftm-text').value.trim(),
+    max_entities: parseInt($('#ftm-max').value || '0', 10) || 0,
+    connected_only: $('#ftm-connected').checked, dataset: $('#ftm-dataset').value.trim(),
+  });
+  ftmStep(3);
+  $('#ftm-prog-txt').textContent = t('ftm.stageParse');
+  $('#ftmmodal-done').disabled = true;
+  try {
+    await apiPost('/api/ftm/import', payload);
+    for (;;) {
+      await sleep(400);
+      const r = await fetch('/api/ftm/progress');
+      const p = await r.json();
+      if (p.stage === 'filter') $('#ftm-prog-txt').textContent = t('ftm.stageFilter');
+      if (p.stage === 'import' && p.total) {
+        $('#ftm-prog-txt').textContent = t('ftm.stageImport', { i: p.done, n: p.total });
+        $('#ftm-bar-fill').style.width = Math.round(100 * p.done / p.total) + '%';
+      }
+      if (p.finished) {
+        if (p.error) throw new Error(p.error);
+        $('#ftm-bar-fill').style.width = '100%';
+        $('#ftm-result').textContent = t('ftm.result', { nodes: p.nodes, links: p.links,
+          updated: p.updated, same: p.same_links, errors: p.errors });
+        $('#stat').textContent = $('#ftm-result').textContent;
+        await reloadData();
+        break;
+      }
+    }
+  } catch (err) {
+    $('#ftm-result').textContent = t('ftm.failed', { e: err.message });
+  } finally {
+    $('#ftmmodal-done').disabled = false;
+  }
+}
+
+on('#ftmmodal-close', 'click', () => { $('#ftmmodal').hidden = true; });
+on('#ftmmodal-done', 'click', () => { $('#ftmmodal').hidden = true; });
+on('#ftmmodal', 'click', e => { if (e.target.id === 'ftmmodal' && !dragEnd('ftmmodal')) $('#ftmmodal').hidden = true; });
+on('#ftm-drop', 'click', () => $('#ftm-file').click());
+on('#ftm-file', 'change', e => readFtmFile(e.target.files && e.target.files[0]));
+on('#ftm-drop', 'dragover', e => { e.preventDefault(); $('#ftm-drop').classList.add('over'); });
+on('#ftm-drop', 'dragleave', () => $('#ftm-drop').classList.remove('over'));
+on('#ftm-drop', 'drop', e => {
+  e.preventDefault(); $('#ftm-drop').classList.remove('over');
+  readFtmFile(e.dataTransfer.files && e.dataTransfer.files[0]);
+});
+on('#ftmmodal-back', 'click', () => ftmStep(1));
+on('#ftmmodal-go', 'click', runFtmImport);
+on('#ftm-schemas', 'change', ftmWarn);
+on('#ftm-schemas', 'click', e => {
+  if (e.target.id === 'ftm-all' || e.target.id === 'ftm-none') {
+    document.querySelectorAll('#ftm-schemas input[data-schema]').forEach(i => { i.checked = e.target.id === 'ftm-all'; });
+    ftmWarn();
+  }
+});
+on('#ftm-max', 'input', ftmWarn);
+on('#ftm-text', 'input', ftmWarn);
 
 on('#modal-ai', 'click', () => { if (modalNode) { openAdd(modalNode); setAiMode(true); } });
 on('#impmodal-close', 'click', () => { $('#impmodal').hidden = true; });
@@ -3784,6 +4062,429 @@ async function testAiConfig() {
 }
 
 on('#aiSettings', 'click', openAiConfig);
+
+/* ================= OPENSANCTIONS =================
+   Ricerca online (API yente) e importazione delle corrispondenze come entita'
+   FtM. Spento = nessuna chiamata; l'interruttore chiede conferma. */
+let osaConf = null, osaLast = [];
+
+function syncOsaSide() {
+  const c = osaConf || {};
+  const sw = $('#osaSwitch'), st = $('#osaSideStatus');
+  if (sw) sw.checked = !!c.enabled;
+  if (st) {
+    st.textContent = !c.enabled ? t('osa.off') : !c.endpoint ? t('osa.noEndpoint')
+      : c.has_key ? t('osa.on', { ep: c.endpoint.replace(/^https?:\/\//, '') }) : t('osa.noKey');
+  }
+  const q = $('#osaQuery'), b = $('#osaSearch');
+  if (q) q.disabled = !c.ready;
+  if (b) b.disabled = !c.ready;
+}
+
+async function loadOsaConf() {
+  try {
+    const r = await fetch('/api/osa/config');
+    osaConf = r.ok ? await r.json() : null;
+  } catch (_) { osaConf = null; }
+  syncOsaSide();
+}
+
+on('#osaSwitch', 'change', async e => {
+  const want = e.target.checked;
+  if (want && !confirm(t('osa.warn'))) { e.target.checked = false; return; }
+  try {
+    osaConf = await apiPost('/api/osa/config', { enabled: want });
+    $('#stat').textContent = want ? t('osa.switchedOn') : t('osa.switchedOff');
+  } catch (err) {
+    alert(t('err.opFailed', { e: err.message }));
+  }
+  syncOsaSide();
+});
+
+function openOsaConfig() {
+  const c = osaConf || {};
+  $('#osac-enabled').checked = !!c.enabled;
+  $('#osac-endpoint').value = c.endpoint || '';
+  $('#osac-key').value = ''; $('#osac-key').type = 'password';
+  $('#osac-key').placeholder = c.has_key ? t('aicfg.keyKeep', { h: c.key_hint }) : t('aicfg.keyNone');
+  $('#osac-dataset').value = c.dataset || 'default';
+  $('#osac-timeout').value = c.timeout || 20;
+  const r = $('#osac-test-res'); r.textContent = ''; r.className = 'aic-test';
+  $('#osamodal').hidden = false;
+}
+function osaConfPayload() {
+  const p = { enabled: $('#osac-enabled').checked, endpoint: $('#osac-endpoint').value.trim(),
+              dataset: $('#osac-dataset').value.trim(), timeout: $('#osac-timeout').value };
+  const k = $('#osac-key').value.trim();
+  if (k) p.api_key = k;
+  return p;
+}
+async function saveOsaConfig() {
+  const btn = $('#osamodal-save');
+  btn.disabled = true;
+  try {
+    if ($('#osac-enabled').checked && !(osaConf && osaConf.enabled) && !confirm(t('osa.warn'))) return;
+    osaConf = await apiPost('/api/osa/config', osaConfPayload());
+    syncOsaSide();
+    $('#osamodal').hidden = true;
+    $('#stat').textContent = t('osacfg.saved');
+  } catch (err) {
+    alert(t('err.opFailed', { e: err.message }));
+  } finally { btn.disabled = false; }
+}
+async function testOsaConfig() {
+  const r = $('#osac-test-res'), btn = $('#osamodal-test');
+  btn.disabled = true; r.className = 'aic-test'; r.textContent = t('aicfg.testing');
+  try {
+    osaConf = await apiPost('/api/osa/config', osaConfPayload());
+    syncOsaSide();
+    $('#osac-key').value = '';
+    $('#osac-key').placeholder = osaConf.has_key ? t('aicfg.keyKeep', { h: osaConf.key_hint }) : t('aicfg.keyNone');
+    const j = await apiPost('/api/osa/test', {});
+    r.className = 'aic-test ok'; r.textContent = t('osacfg.testOk', { n: j.total ?? '?' });
+  } catch (err) {
+    r.className = 'aic-test err'; r.textContent = t('osacfg.testErr', { e: err.message });
+  } finally { btn.disabled = false; }
+}
+on('#osaSettings', 'click', openOsaConfig);
+on('#osamodal-save', 'click', saveOsaConfig);
+on('#osamodal-test', 'click', testOsaConfig);
+on('#osamodal-close', 'click', () => { $('#osamodal').hidden = true; });
+on('#osamodal', 'click', e => { if (e.target.id === 'osamodal' && !dragEnd('osamodal')) $('#osamodal').hidden = true; });
+on('#osac-key-eye', 'click', () => { const k = $('#osac-key'); k.type = k.type === 'password' ? 'text' : 'password'; });
+
+function renderOsaResults(q, rows, total) {
+  const box = $('#osaResults');
+  osaLast = rows || [];
+  if (!osaLast.length) { box.innerHTML = `<div class="osa-empty">${esc(t('osa.none', { q }))}</div>`; return; }
+  box.innerHTML = `<div class="osa-empty">${esc(t('osa.total', { n: total ?? osaLast.length, q, shown: osaLast.length }))}</div>` +
+    osaLast.map((r, i) => `
+      <div class="osa-r" data-i="${i}">
+        <b dir="auto">${esc(r.caption || r.id)}</b>
+        <button type="button" class="mini" data-osaadd="${esc(r.id)}">${esc(t('osa.add'))}</button>
+        <small>${esc(r.schema)}${r.birth ? ' · ' + esc(r.birth) : ''}${r.score != null ? ' · ' + Math.round(r.score * 100) + '%' : ''}</small>
+        <div class="osa-tags">${(r.countries || []).map(c => `<span>${esc(c)}</span>`).join('')}
+          ${(r.topics || []).map(c => `<span class="topic">${esc(c)}</span>`).join('')}
+          ${(r.datasets || []).slice(0, 2).map(c => `<span>${esc(c)}</span>`).join('')}</div>
+      </div>`).join('');
+}
+
+async function osaSearch(q, schema) {
+  q = (q || '').trim();
+  if (q.length < 2) return;
+  $('#osaQuery').value = q;
+  $('#osaResults').innerHTML = `<div class="osa-empty">${esc(t('osa.searching'))}</div>`;
+  try {
+    const r = await fetch(`/api/osa/search?q=${encodeURIComponent(q)}&schema=${encodeURIComponent(schema || '')}&limit=20`);
+    const j = await r.json();
+    if (j.error) throw new Error(j.error);
+    renderOsaResults(q, j.results, j.total);
+  } catch (err) {
+    $('#osaResults').innerHTML = `<div class="osa-err">${esc(err.message)}</div>`;
+  }
+}
+on('#osaSearch', 'click', () => osaSearch($('#osaQuery').value));
+on('#osaQuery', 'keydown', e => { if (e.key === 'Enter') { e.preventDefault(); osaSearch($('#osaQuery').value); } });
+on('#osaResults', 'click', async e => {
+  const b = e.target.closest('[data-osaadd]');
+  if (!b || !requireCase()) return;
+  b.disabled = true; const old = b.textContent; b.textContent = t('osa.adding');
+  try {
+    const j = await apiPost('/api/osa/import', { ids: [b.dataset.osaadd] });
+    $('#stat').textContent = t('osa.added', { e: j.entities, nodes: j.nodes, links: j.links, updated: j.updated });
+    await reloadData();
+    b.textContent = '✓';
+  } catch (err) {
+    alert(t('err.opFailed', { e: err.message }));
+    b.disabled = false; b.textContent = old;
+  }
+});
+
+/* dalla scheda di una persona o societa': cerca il nome su OpenSanctions */
+const OSA_SCHEMA_OF_TYPE = { name: 'Person', target: 'Person', organization: 'Company', company: 'Company',
+  ftmorganization: 'Organization', publicbody: 'PublicBody', legalentity: 'LegalEntity', vessel: 'Vessel', airplane: 'Airplane' };
+on('#modal-osa', 'click', () => {
+  if (!modalNode) return;
+  const d = modalNode.data();
+  const name = (d.label_orig || d.label || '').replace(/\s*\(\d{2}\/\d{2}\/\d{4}\)\s*$/, '');
+  closeModal();
+  const box = $('#osaResults');
+  if (box) box.scrollIntoView({ block: 'nearest' });
+  osaSearch(name, OSA_SCHEMA_OF_TYPE[d.ntype] || '');
+});
+loadOsaConf();
+
+/* ======================= EPIEOS (ricerca a pagamento) ======================= */
+let epConf = null, epSearches = {}, epPending = null;
+const EP_MODULES_KNOWN = ['flickr', 'notion', 'gravatar', 'trello', 'hibp', 'foursquare', 'etsy', 'chess', 'substack',
+  'mapstr', 'dropbox', 'google', 'holehe', 'skype', 'plex', 'linkedin', 'nikerunclub', 'fitbit', 'github', 'duolingo',
+  'adobe', 'runkeeper', 'runtastic', 'samsung', 'strava', 'vivino', 'facebook', 'protonmail', 'phonechecker'];
+
+function isEpieosJson(obj) {
+  if (!obj || typeof obj !== 'object') return false;
+  if (obj.epieos && typeof obj.epieos === 'object' && obj.epieos.result) return true;
+  const r = obj.result;
+  if (!r || typeof r !== 'object' || Array.isArray(r)) return false;
+  const keys = Object.keys(r);
+  return keys.length > 0 && keys.every(k => EP_MODULES_KNOWN.includes(k));
+}
+
+/* email o telefono? ('' = non riconoscibile) */
+function epKindOf(q) {
+  q = (q || '').trim();
+  if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(q)) return 'email';
+  if (/^\+?[0-9][0-9\s().\-]{5,}$/.test(q)) return 'phone';
+  return '';
+}
+
+function epCreditsText(c) {
+  return (c && c.credits != null) ? t('ep.credits', { n: c.credits }) : t('ep.creditsUnknown');
+}
+
+function syncEpSide() {
+  const c = epConf || {};
+  const sw = $('#epSwitch'), st = $('#epSideStatus');
+  if (sw) sw.checked = !!c.enabled;
+  if (st) {
+    st.textContent = !c.enabled ? t('ep.off') : !c.has_key ? t('ep.noKey')
+      : t('ep.on', { ep: (c.endpoint || '').replace(/^https?:\/\//, ''), pack: c.pack || 'osinter', cr: epCreditsText(c) });
+    st.className = 'ai-side-st ' + (c.ready ? 'ok' : 'off');
+  }
+  const q = $('#epQuery'), b = $('#epSearch');
+  if (q) q.disabled = !c.ready;
+  if (b) b.disabled = !c.ready;
+  renderEpSearches();
+}
+
+async function loadEpConf() {
+  try {
+    const r = await fetch('/api/epieos/config');
+    epConf = r.ok ? await r.json() : null;
+  } catch (_) { epConf = null; }
+  await loadEpSearches();
+  syncEpSide();
+}
+
+async function loadEpSearches() {
+  try {
+    const r = await fetch('/api/epieos/searches');
+    epSearches = r.ok ? await r.json() : {};
+  } catch (_) { epSearches = {}; }
+}
+
+/* elenco delle ricerche salvate nel caso (clic = apre il nodo) */
+function renderEpSearches() {
+  const box = $('#epResults');
+  if (!box) return;
+  const rows = [];
+  Object.entries(epSearches).forEach(([anchor, list]) => list.forEach(s => rows.push({ anchor, ...s })));
+  if (!rows.length) { box.innerHTML = ''; return; }
+  rows.sort((x, y) => (y.fetched_at || '').localeCompare(x.fetched_at || ''));
+  box.innerHTML = rows.slice(0, 30).map(s => `
+    <div class="ep-r cp-node" data-node="${esc(s.anchor)}" title="${esc(t('ep.openNode'))}">
+      <b dir="auto">${esc(s.query)}</b>
+      <small>${esc(s.kind)} · ${esc(s.pack || '')} · ${esc(t('ep.modulesFound', { n: (s.modules || []).length }))}${s.fetched_at ? ' · ' + esc(s.fetched_at) : ''}</small>
+    </div>`).join('');
+}
+on('#epResults', 'click', e => {
+  const r = e.target.closest('[data-node]');
+  if (!r || !cy) return;
+  const n = cy.getElementById(r.dataset.node);
+  if (n && n.length) { cy.animate({ center: { eles: n }, zoom: Math.max(cy.zoom(), 1.2) }, { duration: 300 }); openModal(n); }
+});
+
+on('#epSwitch', 'change', async e => {
+  const want = e.target.checked;
+  if (want && !confirm(t('ep.warn'))) { e.target.checked = false; return; }
+  try {
+    epConf = await apiPost('/api/epieos/config', { enabled: want });
+    $('#stat').textContent = want ? t('ep.switchedOn') : t('ep.switchedOff');
+  } catch (err) {
+    alert(t('err.opFailed', { e: err.message }));
+  }
+  syncEpSide();
+});
+
+function renderEpPacks(packs) {
+  const box = $('#epc-packs'), dl = $('#epc-pack-list');
+  if (!box) return;
+  if (dl) dl.innerHTML = (packs || []).map(p => `<option value="${esc(p.pack)}">`).join('');
+  if (!packs || !packs.length) { box.innerHTML = `<span>${esc(t('epcfg.noPacks'))}</span>`; return; }
+  box.innerHTML = packs.map(p => `<div><b>${esc(p.pack)}</b> · ` +
+    Object.entries(p.kinds || {}).map(([k, mods]) => `${esc(k)}: ${mods.length}`).join(' · ') +
+    `<div class="ep-mods">${Object.entries(p.kinds || {}).map(([k, mods]) =>
+      mods.map(m => `<span class="tag">${esc(k === 'phone' ? '☎ ' : '✉ ')}${esc(m)}</span>`).join('')).join('')}</div></div>`).join('');
+}
+
+function openEpConfig() {
+  const c = epConf || {};
+  $('#epc-enabled').checked = !!c.enabled;
+  $('#epc-endpoint').value = c.endpoint || '';
+  $('#epc-key').value = ''; $('#epc-key').type = 'password';
+  $('#epc-key').placeholder = c.has_key ? t('aicfg.keyKeep', { h: c.key_hint }) : t('aicfg.keyNone');
+  $('#epc-pack').value = c.pack || 'osinter';
+  $('#epc-timeout').value = c.timeout || 120;
+  renderEpPacks(c.packs);
+  const r = $('#epc-test-res'); r.textContent = c.credits != null ? epCreditsText(c) : ''; r.className = 'aic-test';
+  $('#epmodal').hidden = false;
+}
+function epConfPayload() {
+  const p = { enabled: $('#epc-enabled').checked, endpoint: $('#epc-endpoint').value.trim(),
+              pack: $('#epc-pack').value.trim(), timeout: $('#epc-timeout').value };
+  const k = $('#epc-key').value.trim();
+  if (k) p.api_key = k;
+  return p;
+}
+async function saveEpConfig() {
+  const btn = $('#epmodal-save');
+  btn.disabled = true;
+  try {
+    if ($('#epc-enabled').checked && !(epConf && epConf.enabled) && !confirm(t('ep.warn'))) return;
+    epConf = await apiPost('/api/epieos/config', epConfPayload());
+    $('#stat').textContent = t('epcfg.saved');
+    $('#epmodal').hidden = true;
+  } catch (err) {
+    alert(t('err.opFailed', { e: err.message }));
+  } finally { btn.disabled = false; syncEpSide(); }
+}
+/* GET /schema: pack e moduli disponibili per la chiave (gratis) */
+async function readEpSchema() {
+  const r = $('#epc-test-res'), btn = $('#epmodal-schema');
+  btn.disabled = true; r.className = 'aic-test'; r.textContent = '…';
+  try {
+    epConf = await apiPost('/api/epieos/config', epConfPayload());
+    $('#epc-key').value = '';
+    $('#epc-key').placeholder = epConf.has_key ? t('aicfg.keyKeep', { h: epConf.key_hint }) : t('aicfg.keyNone');
+    const j = await apiPost('/api/epieos/schema', {});
+    epConf.packs = j.packs || [];
+    if (j.credits != null) epConf.credits = j.credits;
+    renderEpPacks(epConf.packs);
+    r.className = 'aic-test ok'; r.textContent = t('epcfg.schemaOk', { n: epConf.packs.length });
+  } catch (err) {
+    r.className = 'aic-test err'; r.textContent = t('epcfg.schemaErr', { e: err.message });
+  } finally { btn.disabled = false; syncEpSide(); }
+}
+on('#epSettings', 'click', openEpConfig);
+on('#epmodal-save', 'click', saveEpConfig);
+on('#epmodal-schema', 'click', readEpSchema);
+on('#epmodal-close', 'click', () => { $('#epmodal').hidden = true; });
+on('#epmodal', 'click', e => { if (e.target.id === 'epmodal' && !dragEnd('epmodal')) $('#epmodal').hidden = true; });
+on('#epc-key-eye', 'click', () => { const k = $('#epc-key'); k.type = k.type === 'password' ? 'text' : 'password'; });
+
+/* moduli del pack per il tipo di identificativo: dallo schema letto con la
+   chiave, altrimenti l'elenco noto del pack osinter */
+function epModulesFor(kind) {
+  const c = epConf || {};
+  const p = (c.packs || []).find(x => x.pack === (c.pack || 'osinter'));
+  const mods = p && p.kinds && p.kinds[kind];
+  return (mods && mods.length) ? mods : ((c.modules || {})[kind] || []);
+}
+
+/* finestra di conferma: identificativo, moduli (deselezionabili), crediti.
+   Nessuna ricerca parte senza il clic su «Cerca». */
+function epConfirm(query, kind, anchor) {
+  epPending = { query, kind, anchor };
+  $('#epconfirm-query').textContent = query;
+  $('#epconfirm-kind').textContent = kind === 'email' ? t('ep.kindEmail') : t('ep.kindPhone');
+  const c = epConf || {};
+  const again = (epSearches[anchor] || []).some(s => s.kind === kind);
+  $('#epconfirm-cost').textContent = t('ep.confirmCost', { pack: c.pack || 'osinter', cr: epCreditsText(c) }) +
+    (again ? ' ' + t('ep.confirmAgain') : '');
+  const mods = epModulesFor(kind);
+  $('#epconfirm-mods').innerHTML = mods.map(m =>
+    `<label><input type="checkbox" value="${esc(m)}" checked> ${esc(m)}</label>`).join('');
+  const r = $('#epconfirm-res'); r.textContent = ''; r.className = 'aic-test';
+  $('#epconfirm-run').disabled = false;
+  $('#epconfirm').hidden = false;
+}
+on('#epconfirm-all', 'click', () => $('#epconfirm-mods').querySelectorAll('input').forEach(i => { i.checked = true; }));
+on('#epconfirm-none', 'click', () => $('#epconfirm-mods').querySelectorAll('input').forEach(i => { i.checked = false; }));
+on('#epconfirm-close', 'click', () => { $('#epconfirm').hidden = true; epPending = null; });
+on('#epconfirm-cancel', 'click', () => { $('#epconfirm').hidden = true; epPending = null; });
+on('#epconfirm', 'click', e => { if (e.target.id === 'epconfirm' && !dragEnd('epconfirm')) { $('#epconfirm').hidden = true; epPending = null; } });
+on('#epconfirm-run', 'click', async () => {
+  if (!epPending) return;
+  const all = [...$('#epconfirm-mods').querySelectorAll('input')];
+  const chosen = all.filter(i => i.checked).map(i => i.value);
+  const r = $('#epconfirm-res');
+  if (!chosen.length) { r.className = 'aic-test err'; r.textContent = t('ep.noModules'); return; }
+  const body = { query: epPending.query, kind: epPending.kind, anchor: epPending.anchor };
+  if (chosen.length < all.length) body.modules = chosen;
+  const btn = $('#epconfirm-run');
+  btn.disabled = true; r.className = 'aic-test'; r.textContent = t('ep.searching');
+  try {
+    const j = await apiPost('/api/epieos/search', body);
+    if (epConf) epConf.credits = j.credits;
+    $('#epconfirm').hidden = true; epPending = null;
+    await loadEpSearches();
+    await reloadData();
+    syncEpSide();
+    $('#stat').textContent = t('ep.done', { q: j.query, m: (j.modules || []).length, r: j.records, cr: epCreditsText(epConf) });
+  } catch (err) {
+    r.className = 'aic-test err'; r.textContent = err.message;
+    btn.disabled = false;
+    loadEpConf();                                 // i crediti potrebbero essere cambiati
+  }
+});
+
+/* casella laterale: crea (o ritrova) il nodo dell'identificativo e chiede conferma */
+async function epSearchFromBox(q) {
+  q = (q || '').trim();
+  const kind = epKindOf(q);
+  if (!kind) { $('#stat').textContent = t('ep.badQuery'); return; }
+  if (!requireCase()) return;
+  try {
+    const j = await apiPost('/api/node/add', { ntype: kind, value: q });
+    await reloadData();
+    epConfirm(q, kind, j.id);
+  } catch (err) {
+    alert(t('err.opFailed', { e: err.message }));
+  }
+}
+on('#epSearch', 'click', () => epSearchFromBox($('#epQuery').value));
+on('#epQuery', 'keydown', e => { if (e.key === 'Enter') { e.preventDefault(); epSearchFromBox($('#epQuery').value); } });
+
+/* dalla scheda di una email o di un telefono */
+on('#modal-ep', 'click', () => {
+  if (!modalNode) return;
+  const d = modalNode.data();
+  const kind = d.ntype === 'email' ? 'email' : d.ntype === 'phone' ? 'phone' : '';
+  if (!kind) return;
+  const q = d.ntype === 'email' ? (d.label_orig || d.label) : (d.label_orig || d.label);
+  closeModal();
+  epConfirm((q || '').trim(), kind, d.id);
+});
+
+/* file JSON con una risposta Epieos salvata: nessuna chiamata, nessun credito */
+async function epImportFile(filename, text, obj) {
+  if (!requireCase()) return;
+  const w = obj.epieos || {};
+  let q = w.query || '';
+  if (!q) {
+    const mods = Object.values(obj.result || {});
+    const m = mods.find(x => x && typeof x === 'object' && x.query);
+    q = m ? String(m.query) : '';
+  }
+  if (!q) {
+    const mm = /(?:export|ricerca|search|lookup)[ _-]+(.+)\.json$/i.exec(filename);
+    q = mm ? mm[1] : '';
+  }
+  q = (q || '').trim();
+  const kind = w.kind || epKindOf(q);
+  if (!q || !kind) { alert(t('ep.fileNoQuery')); return; }
+  if (!confirm(t('ep.fileImport', { q, f: filename }))) return;
+  try {
+    const n = await apiPost('/api/node/add', { ntype: kind, value: q });
+    const j = await apiPost('/api/epieos/import', { anchor: n.id, filename, content: text, query: q, kind });
+    await loadEpSearches();
+    await reloadData();
+    syncEpSide();
+    $('#stat').textContent = t('ep.imported', { q: j.query, m: (j.modules || []).length, r: j.records });
+  } catch (err) {
+    alert(t('err.opFailed', { e: err.message }));
+  }
+}
+loadEpConf();
 on('#aimodal-save', 'click', saveAiConfig);
 on('#aimodal-test', 'click', testAiConfig);
 on('#aimodal-close', 'click', () => { $('#aimodal').hidden = true; });
@@ -3923,6 +4624,173 @@ on('#man-filter', 'input', () => { manShowAll = false; renderManual(); });
 on('#man-showall', 'click', () => { manShowAll = !manShowAll; renderManual(); });
 on('#manmodal-close', 'click', () => { $('#manmodal').hidden = true; });
 on('#manmodal', 'click', e => { if (e.target.id === 'manmodal' && !dragEnd('manmodal')) $('#manmodal').hidden = true; });
+
+/* ================= DIZIONARIO DI TRASLITTERAZIONE =================
+   Elenco delle parole non latine (in sospeso, a mano, dall'AI) con la forma
+   latina modificabile in riga. Ogni salvataggio cambia translit_version sul
+   server: il grafo si ricostruisce e i nodi latini si aggiornano (reloadData). */
+const DICT_LIMIT = 200;
+let dictRows = [], dictOffset = 0, dictMore = false, dictTimer = null;
+let dictLast = { counts: {}, engine: '' };          // per ridisegnare al cambio lingua
+
+async function openDict() {
+  const box = $('#dictmodal');
+  if (!box) return;
+  box.hidden = false;
+  dictOffset = 0;
+  await loadDict(false);
+  if ($('#dict-filter')) $('#dict-filter').focus();
+}
+
+async function loadDict(append) {
+  const q = (($('#dict-filter') && $('#dict-filter').value) || '').trim();
+  const src = ($('#dict-source') && $('#dict-source').value) || '';
+  const url = `/api/translit/words?q=${encodeURIComponent(q)}&source=${encodeURIComponent(src)}` +
+              `&limit=${DICT_LIMIT}&offset=${dictOffset}`;
+  if (!append) $('#dictmodal-body').innerHTML = `<div class="empty">${esc(t('err.loading'))}</div>`;
+  try {
+    const r = await fetch(url);
+    if (r.status === 404) throw new Error(t('err.restartServer'));
+    const j = await r.json();
+    if (j.error) throw new Error(j.error);
+    dictRows = append ? dictRows.concat(j.rows || []) : (j.rows || []);
+    dictMore = !!j.more;
+    renderDict(j.counts || {}, j.engine || '');
+  } catch (err) {
+    $('#dictmodal-body').innerHTML = `<div class="empty">${esc(t('err.generic', { e: err.message }))}</div>`;
+  }
+}
+
+const DICT_SRC_KEY = { manual: 'dict.srcManual', ai: 'dict.srcAi', pending: 'dict.srcPending' };
+
+function renderDict(counts, engine) {
+  dictLast = { counts: counts || {}, engine: engine || '' };
+  $('#dictmodal-sub').textContent = t('dict.sub', {
+    p: counts.pending || 0, m: counts.manual || 0, a: counts.ai || 0, engine: engine || '—' });
+  const more = $('#dict-more');
+  if (more) more.hidden = !dictMore;
+  if (!dictRows.length) {
+    $('#dictmodal-body').innerHTML = `<div class="empty">${esc(t('dict.empty'))}</div>`;
+    return;
+  }
+  $('#dictmodal-body').innerHTML = dictRows.map(r => `
+    <div class="dict-row" data-word="${esc(r.word)}">
+      <div class="dict-word" dir="auto">${esc(r.word)}<span class="dict-script">${esc((r.script || '').toLowerCase())}</span></div>
+      <input class="dict-val" value="${esc(r.value || '')}" autocomplete="off" spellcheck="false"
+             placeholder="${esc(r.auto ? t('dict.autoPh', { v: r.auto }) : '')}">
+      <span class="dict-src dict-src-${esc(r.source)}">${esc(t(DICT_SRC_KEY[r.source] || 'dict.srcPending'))}</span>
+      <button class="mini" data-dictsave title="${esc(t('dict.save'))}">💾</button>
+      <button class="mini danger" data-dictdel title="${esc(t('dict.delete'))}">🗑</button>
+    </div>`).join('');
+}
+
+async function dictSave(rowEl) {
+  const word = rowEl.dataset.word;
+  const inp = rowEl.querySelector('.dict-val');
+  const value = (inp.value || '').trim();
+  const r = dictRows.find(x => x.word === word);
+  if (r && (r.value || '') === value) return;          // niente da salvare
+  inp.disabled = true;
+  try {
+    const j = await apiPost('/api/translit/set', { word, value });
+    if (r) { r.value = j.value; r.source = j.source; }
+    const badge = rowEl.querySelector('.dict-src');
+    badge.className = `dict-src dict-src-${j.source}`;
+    badge.textContent = t(DICT_SRC_KEY[j.source]);
+    rowEl.classList.add('saved');
+    setTimeout(() => rowEl.classList.remove('saved'), 1200);
+    $('#stat').textContent = value ? t('dict.saved', { w: word, v: value }) : t('dict.cleared', { w: word });
+    await reloadData();                                // i nodi latini vanno rifatti
+    refreshTranslitBtn();
+  } catch (err) {
+    alert(t('err.generic', { e: err.message }));
+  } finally {
+    inp.disabled = false;
+  }
+}
+
+on('#showDict', 'click', openDict);
+
+/* interruttore "nodi latini separati": attributo del nodo (predefinito) o
+   nodi gemelli come nell'originale; impostazione globale sul server */
+async function syncTranslitModeSwitch() {
+  const sw = $('#translitNodes');
+  if (!sw) return;
+  try {
+    const r = await fetch('/api/translit/mode');
+    const j = await r.json();
+    TRANSLIT_MODE = j.mode || 'attribute';
+    sw.checked = TRANSLIT_MODE === 'nodes';
+  } catch (_) { /* server vecchio: resta il predefinito */ }
+}
+on('#translitNodes', 'change', async e => {
+  const mode = e.target.checked ? 'nodes' : 'attribute';
+  try {
+    const j = await apiPost('/api/translit/mode', { mode });
+    TRANSLIT_MODE = j.mode;
+    $('#stat').textContent = t(mode === 'nodes' ? 'translit.modeNodesOn' : 'translit.modeNodesOff');
+    await reloadData();
+    if (cy) cy.nodes().forEach(n => n.data('disp', dispOf(n.data())));
+  } catch (err) {
+    alert(t('err.opFailed', { e: err.message }));
+    e.target.checked = !e.target.checked;
+  }
+});
+syncTranslitModeSwitch();
+on('#dictmodal-close', 'click', () => { $('#dictmodal').hidden = true; });
+on('#dictmodal', 'click', e => { if (e.target.id === 'dictmodal' && !dragEnd('dictmodal')) $('#dictmodal').hidden = true; });
+on('#dict-filter', 'input', () => {
+  clearTimeout(dictTimer);
+  dictTimer = setTimeout(() => { dictOffset = 0; loadDict(false); }, 250);
+});
+on('#dict-source', 'change', () => { dictOffset = 0; loadDict(false); });
+on('#dict-more', 'click', () => { dictOffset += DICT_LIMIT; loadDict(true); });
+on('#dict-collect', 'click', async () => {
+  try {
+    const j = await apiPost('/api/translit/collect', {});
+    $('#stat').textContent = t('dict.collectDone', { n: j.added, t: j.total });
+    dictOffset = 0;
+    await loadDict(false);
+    refreshTranslitBtn();
+  } catch (err) { alert(t('err.generic', { e: err.message })); }
+});
+on('#dict-export', 'click', () => { window.open('/api/translit/export', '_blank'); });
+on('#dict-import', 'change', async e => {
+  const f = e.target.files && e.target.files[0];
+  if (!f) return;
+  try {
+    const text = await f.text();
+    const j = await apiPost('/api/translit/import', { text });
+    $('#stat').textContent = t('dict.imported', { n: j.imported, s: j.skipped });
+    if (j.errors && j.errors.length) console.warn('dizionario, righe scartate:', j.errors);
+    dictOffset = 0;
+    await loadDict(false);
+    await reloadData();
+    refreshTranslitBtn();
+  } catch (err) { alert(t('err.generic', { e: err.message })); }
+  finally { e.target.value = ''; }
+});
+on('#dictmodal-body', 'click', async e => {
+  const row = e.target.closest('.dict-row');
+  if (!row) return;
+  if (e.target.closest('[data-dictsave]')) { await dictSave(row); return; }
+  if (e.target.closest('[data-dictdel]')) {
+    if (!confirm(t('dict.confirmDel', { w: row.dataset.word }))) return;
+    try {
+      await apiPost('/api/translit/delete', { word: row.dataset.word });
+      dictRows = dictRows.filter(x => x.word !== row.dataset.word);
+      row.remove();
+      if (!dictRows.length) renderDict({}, '');
+      await reloadData();
+      refreshTranslitBtn();
+    } catch (err) { alert(t('err.generic', { e: err.message })); }
+  }
+});
+on('#dictmodal-body', 'keydown', e => {
+  if (e.key !== 'Enter' || !e.target.classList.contains('dict-val')) return;
+  e.preventDefault();
+  dictSave(e.target.closest('.dict-row'));
+});
 
 on('#manmodal-body', 'click', async e => {
   const delNode = e.target.closest('[data-delnode]');
@@ -4248,6 +5116,12 @@ function onLangChange() {
   if (sel && sel.value !== LANG) sel.value = LANG;   // tiene allineato il selettore
   document.querySelectorAll('.edge-props').forEach(b => updateEdgePreview(b.dataset.prefix));
   fillOntoOptions();                               // tipi investigativi nella lingua scelta
+  if (typeof syncOsaSide === 'function') syncOsaSide();   // stato OpenSanctions nella lingua scelta
+  if (typeof syncEpSide === 'function') syncEpSide();     // stato Epieos nella lingua scelta
+  document.querySelectorAll('select[id$="-edge-ftm"]').forEach(sel => {   // relazioni FtM
+    [...sel.options].forEach(o => { o.textContent = o.value ? `${ftmEdgeLabel(o.value)} · ${ftmEdgeVerb(o.value)}` : t('edge.ftmNone'); });
+  });
+  if ($('#dictmodal') && !$('#dictmodal').hidden) renderDict(dictLast.counts, dictLast.engine);
   loadGStyle();                                    // forme dei collegamenti
   if ($('#add-onto-row')) $('#add-onto-row').dataset.kind = '';
   if (!cy) {
@@ -5360,6 +6234,9 @@ document.addEventListener('keydown', e => {
   else if (!$('#edgemodal').hidden) closeEdgeModal();
   else if (!$('#linkmodal').hidden) $('#linkmodal').hidden = true;
   else if (!$('#addmodal').hidden) $('#addmodal').hidden = true;
+  else if (!$('#osamodal').hidden) $('#osamodal').hidden = true;
+  else if (!$('#ftmmodal').hidden) $('#ftmmodal').hidden = true;
+  else if (!$('#dictmodal').hidden) $('#dictmodal').hidden = true;
   else if (!$('#manmodal').hidden) $('#manmodal').hidden = true;
   else if (!$('#delmodal').hidden) $('#delmodal').hidden = true;
   else closeModal();

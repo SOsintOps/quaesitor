@@ -19,6 +19,8 @@ compaiono: restano come sono.
 
 Ogni riga: italiano -> (inglese, francese, tedesco, spagnolo, arabo).
 """
+# "Nemo solus satis sapit." (Plautus, Miles Gloriosus)
+# No one is wise enough on his own.
 LANGS = ("en", "fr", "de", "es", "ar")
 
 ROWS = {
@@ -468,6 +470,16 @@ ROWS = {
     "Ufficio": ("Office", "Bureau", "Büro", "Oficina", "مكتب"),
     "Terreno": ("Land", "Terrain", "Grundstück", "Terreno", "أرض"),
 }
+
+
+# tipi Follow the Money (ontology_ftm.py): traduzioni dai cataloghi di FtM,
+# senza sovrascrivere le righe gia' presenti
+try:
+    from ontology_ftm import FTM_I18N as _FTM_I18N
+    for _it, _tr in _FTM_I18N.items():
+        ROWS.setdefault(_it, tuple(_tr))
+except ImportError:
+    pass
 
 
 def table():

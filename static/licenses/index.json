@@ -1,7 +1,7 @@
 [
  {
   "id": "osint-graph",
-  "name": "OSInt Graph",
+  "name": "Quaesitor (fork of OSInt Graph)",
   "version": "",
   "license": "GNU GPL v3 con clausole aggiuntive (attribuzione, nome e logo)",
   "copyright": "Copyright (C) 2025-2026 Andrea Cumini",
@@ -127,8 +127,8 @@
   "copyright": "Indian Type Foundry",
   "url": "https://www.fontshare.com/fonts/panchang",
   "role": {
-   "it": "Logo «OSInt Graph» e icona «OG»",
-   "en": "“OSInt Graph” logo and “OG” icon"
+   "it": "Carattere del logo originale di OSInt Graph (Quaesitor usa un wordmark provvisorio, font di sistema)",
+   "en": "Typeface of the original OSInt Graph logo (Quaesitor uses a provisional wordmark in a system font)"
   },
   "file": "panchang.txt",
   "group": "assets",

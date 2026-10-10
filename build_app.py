@@ -32,13 +32,13 @@ Cosa fa:
     LICENSE, NOTICE, THIRD-PARTY-NOTICES.md e chatbot.conf.example.
 
 Opzioni:
-  --name NOME   nome dell'eseguibile (default: OSIntGraph)
+  --name NOME   nome dell'eseguibile (default: Quaesitor)
   --noconsole   nasconde la finestra console (solo browser). Di default la
                 console resta visibile: mostra l'indirizzo, i log ed è il modo
                 per fermare il server (Ctrl+C o chiudendo la finestra).
   --keep        non cancella build/ e il file .spec al termine
 
-Risultato:  dist/OSIntGraph.exe  (Windows)   /   dist/OSIntGraph  (Linux)
+Risultato:  dist/Quaesitor.exe  (Windows)   /   dist/Quaesitor  (Linux)
             + LICENSE, NOTICE, THIRD-PARTY-NOTICES.md, chatbot.conf.example
 
 Uso dell'eseguibile:
@@ -52,6 +52,8 @@ AI (facoltativa):
   chatbot.conf.example). Con l'interruttore «AI attiva» spento l'app non si
   collega a niente e usa soltanto la traslitterazione locale.
 """
+# "Concordia res parvae crescunt, discordia maximae dilabuntur." (Sallust, Bellum Iugurthinum)
+# Through concord small things grow; through discord the greatest fall apart.
 import importlib
 import os
 import shutil
@@ -64,7 +66,7 @@ SEP = os.pathsep                      # ';' su Windows, ':' su Linux/Mac
 ICON = os.path.join(ROOT, "static", "icon.ico")
 
 # file da distribuire ACCANTO all'eseguibile
-DIST_FILES = ["LICENSE", "NOTICE", "THIRD-PARTY-NOTICES.md", "chatbot.conf.example"]
+DIST_FILES = ["LICENSE", "NOTICE", "THIRD-PARTY-NOTICES.md", "chatbot.conf.example", "services.conf.example"]
 
 # librerie necessarie (requirements.txt): modulo da importare -> pacchetto pip
 REQUIRED = {
@@ -101,7 +103,7 @@ def main():
     argv = sys.argv[1:]
     noconsole = "--noconsole" in argv
     keep = "--keep" in argv
-    name = "OSIntGraph"
+    name = "Quaesitor"
     if "--name" in argv:
         i = argv.index("--name")
         if i + 1 < len(argv):
@@ -118,6 +120,7 @@ def main():
         # risorse dell'app dentro l'eseguibile (percorsi relativi: si gira da ROOT)
         "--add-data", f"templates{SEP}templates",
         "--add-data", f"static{SEP}static",
+        "--add-data", f"ftm_schema.json{SEP}.",
         # la console mostra i log ed è il modo per fermare il server;
         # --noconsole la nasconde (l'opzione conta solo su Windows)
         ("--windowed" if noconsole else "--console"),

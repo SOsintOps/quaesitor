@@ -26,6 +26,8 @@ attiva l'OCR: nella sezione Fonti comparirà "OCR attivo".
 Lo stesso download si puo' avviare dall'interfaccia (pulsante «Scarica
 Tesseract» nella sezione Fonti): app.py usa setup_windows() di questo modulo.
 """
+# "Errare humanum est, perseverare autem diabolicum." (attributed to Seneca)
+# To err is human; to persist in error is diabolical.
 import os
 import io
 import sys

@@ -24,6 +24,8 @@ L'indice lo salva il chiamante (nel database dell'app) così sopravvive ai riavv
 La ricerca è per sottostringa (parziale) o per parola intera (totale), senza
 distinzione di maiuscole/accenti, e restituisce anteprime di contesto.
 """
+# "Mendacem memorem esse oportet." (Quintilian, Institutio Oratoria)
+# A liar needs a good memory.
 import os
 import re
 import io
@@ -309,7 +311,7 @@ def folder_candidates(index, base_dir, default_folder=None):
 
     fonti = default_folder or (os.path.join(base_dir, "fonti") if base_dir else None)
     if fonti:
-        originale = (index.get("folder") or "").replace("/", os.sep).rstrip("\/")
+        originale = (index.get("folder") or "").replace("/", os.sep).rstrip("\\/")
         nome = os.path.basename(originale)
         if nome:
             aggiungi(os.path.join(fonti, nome))
@@ -438,6 +440,15 @@ PHONE_QUERY = re.compile(r"^[\d\s.\-()+/]+$")   # query fatta solo di cifre e se
 _SEP = r"[\s.\-()/]*"                            # separatori ammessi tra le cifre
 
 
+_HAN = re.compile(r"[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]")
+
+
+def _has_han(s):
+    """Ideogrammi cinesi/giapponesi: il testo non ha spazi fra le parole, quindi
+    il modo 'parola intera' non ha confini da cercare e si cerca la sequenza."""
+    return bool(_HAN.search(str(s or "")))
+
+
 def build_matcher(nq, mode):
     """Costruisce la regex di ricerca sul testo normalizzato (1:1 col testo
     originale). Se la query è un NUMERO, le cifre possono essere separate da
@@ -450,7 +461,7 @@ def build_matcher(nq, mode):
             pat = r"(?<!\d)" + pat + r"(?!\d)"           # confini di numero
         return re.compile(pat)
     esc = re.escape(nq)
-    if mode == "total":
+    if mode == "total" and not _has_han(nq):
         return re.compile(r"(?<!\w)" + esc + r"(?!\w)")
     return re.compile(esc)
 
@@ -523,7 +534,7 @@ def _combo_regex(words, mode):
     (separate da spazi/punteggiatura). Per una sola parola, in modo 'total'
     aggiunge i confini di parola."""
     core = _WORDSEP.join(_term_core(w) for w in words)
-    if mode == "total" and len(words) == 1:
+    if mode == "total" and len(words) == 1 and not _has_han(words[0]):
         core = r"(?<!\w)" + core + r"(?!\w)"
     return re.compile(core)
 

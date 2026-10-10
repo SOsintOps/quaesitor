@@ -1,0 +1,2 @@
+# i file batch di Windows vanno con fine riga CRLF anche se committati da Linux
+*.bat text eol=crlf

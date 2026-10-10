@@ -1,0 +1,208 @@
+{
+ "result": {
+  "skype": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "accounts": [
+    {
+     "photo": "https://img.example.com/avatar.jpg",
+     "name": "John Doe",
+     "id": "12345",
+     "country": "Italy",
+     "country_code": "country_code_x",
+     "state": "MI",
+     "city": "Milano",
+     "contact_type": "contact_type_x",
+     "gender": "male",
+     "birthday": "birthday_x"
+    }
+   ],
+   "query": "+39 333 1234567"
+  },
+  "phonechecker": {
+   "found": "true",
+   "websites": [
+    "spotify.com",
+    "twitter.com",
+    "instagram.com"
+   ],
+   "query": "+39 333 1234567"
+  },
+  "hibp": {
+   "found": "true",
+   "leaks": [
+    "LinkedIn",
+    "Adobe",
+    "Canva"
+   ],
+   "query": "+39 333 1234567"
+  },
+  "foursquare": {
+   "id": "12345",
+   "photo": "https://img.example.com/avatar.jpg",
+   "first_name": "John",
+   "last_name": "Doe",
+   "gender": "male",
+   "address": "Via Roma 1",
+   "city": "Milano",
+   "state": "MI",
+   "country": "Italy",
+   "home_city": "Roma",
+   "profile": "https://service.example.com/johndoe",
+   "bio": "bio di prova",
+   "contact": {
+    "twitter": "@johndoe",
+    "phone": "+39 333 1234567"
+   },
+   "query": "+39 333 1234567"
+  },
+  "substack": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "id": "12345",
+   "name": "John Doe",
+   "profile_url": "https://service.example.com/johndoe",
+   "score": "score_x",
+   "contact": {
+    "twitter": "@johndoe",
+    "phone": "+39 333 1234567"
+   },
+   "handle": "johndoe",
+   "reader_installed_at": "reader_installed_at_x",
+   "is_presubscribed": "is_presubscribed_x",
+   "is_subscribed": "is_subscribed_x",
+   "bestseller_tier": "bestseller_tier_x",
+   "primary_publication_id": "primary_publication_id_x",
+   "has_posts": "has_posts_x",
+   "has_activity": "has_activity_x",
+   "has_likes": "has_likes_x",
+   "bio": "bio di prova",
+   "subscriber_count": "subscriber_count_x",
+   "user_links": [
+    {
+     "id": "12345",
+     "value": "+39 333 1234567",
+     "url": "https://service.example.com/johndoe",
+     "type": "individual",
+     "label": "label_x"
+    }
+   ],
+   "query": "+39 333 1234567"
+  },
+  "mapstr": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "profile_url": "https://service.example.com/johndoe",
+   "user_id": "777",
+   "alias": "jdoe",
+   "description": "description_x",
+   "first_name": "John",
+   "last_name": "Doe",
+   "country_code": "country_code_x",
+   "language_code": "language_code_x",
+   "google_account_id": "google_account_id_x",
+   "created_at": "2020-01-01",
+   "updated_at": "updated_at_x",
+   "links": {
+    "twitter": "@johndoe",
+    "phone": "+39 333 1234567"
+   },
+   "followees_count": "followees_count_x",
+   "followers_count": "followers_count_x",
+   "total_places_count": "total_places_count_x",
+   "deeplink": "deeplink_x",
+   "run_count": "run_count_x",
+   "type": "individual",
+   "places_count": "places_count_x",
+   "club": "club_x",
+   "paid_maps": "paid_maps_x",
+   "query": "+39 333 1234567"
+  },
+  "duolingo": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "login": "johndoe",
+   "name": "John Doe",
+   "id": "12345",
+   "creation_date": "2020-01-01",
+   "creation_date_raw": "creation_date_raw_x",
+   "learning_language": "learning_language_x",
+   "from_language": "from_language_x",
+   "activity_15_days": "activity_15_days_x",
+   "profile": "https://service.example.com/johndoe",
+   "streak": "streak_x",
+   "total_xp": "total_xp_x",
+   "has_plus": "has_plus_x",
+   "courses": [
+    {
+     "author_id": "author_id_x",
+     "title": "CEO",
+     "learning_language": "learning_language_x",
+     "xp": "xp_x",
+     "health_enabled": "health_enabled_x",
+     "from_language": "from_language_x",
+     "crowns": "crowns_x",
+     "id": "12345"
+    }
+   ],
+   "query": "+39 333 1234567"
+  },
+  "facebook": {
+   "name": "John Doe",
+   "auth_method": "password",
+   "contactpoints": [
+    {
+     "type": "phone",
+     "value": "+39 333 9876543"
+    },
+    {
+     "type": "email",
+     "value": "jd.alt@example.com"
+    }
+   ],
+   "other_accounts": [
+    {
+     "name": "Jane Doe",
+     "auth_method": "password",
+     "contactpoints": [
+      {
+       "type": "email",
+       "value": "jane@example.com"
+      }
+     ]
+    }
+   ],
+   "query": "+39 333 1234567"
+  },
+  "chess": {
+   "exists": "true",
+   "photo": "https://img.example.com/avatar.jpg",
+   "uuid": "9f1c-2b",
+   "name": "John Doe",
+   "id": "12345",
+   "country_id": "country_id_x",
+   "member_url": "https://service.example.com/johndoe",
+   "last_login_date": "last_login_date_x",
+   "username": "johndoe",
+   "points": "points_x",
+   "first_name": "John",
+   "last_name": "Doe",
+   "country_name": "Italy",
+   "member_since": "member_since_x",
+   "about": "about_x",
+   "best_rating": "best_rating_x",
+   "best_rating_type": "best_rating_type_x",
+   "is_online": "is_online_x",
+   "is_in_livechess": "is_in_livechess_x",
+   "online_status": "online_status_x",
+   "is_enabled": "is_enabled_x",
+   "membership_level": "membership_level_x",
+   "membership_code": "membership_code_x",
+   "user_id": "777",
+   "has_image": "has_image_x",
+   "flair_code": "flair_code_x",
+   "premium_status": "premium_status_x",
+   "user_can_receive_gift": "user_can_receive_gift_x",
+   "status": "active",
+   "status_at": "status_at_x",
+   "updated_at": "updated_at_x",
+   "query": "+39 333 1234567"
+  }
+ }
+}

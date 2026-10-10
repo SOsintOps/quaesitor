@@ -1,0 +1,13 @@
+{"id":"p1","schema":"Person","properties":{"name":["Mario Rossi"],"birthDate":["1970-05-01"],"nationality":["it"],"phone":["+39 333 1234567"]}}
+{"id":"p2","schema":"Person","properties":{"name":["张伟"],"alias":["Zhang Wei"],"birthDate":["1982-11-03"]}}
+{"id":"c1","schema":"Company","properties":{"name":["Acme Logistics Ltd"],"registrationNumber":["IT01234567890"],"jurisdiction":["it"],"address":["Via Roma 1, Milano"]}}
+{"id":"c2","schema":"Company","properties":{"name":["Offshore Holdings SA"],"jurisdiction":["pa"]}}
+{"id":"a1","schema":"Address","properties":{"full":["Via Roma 1, Milano"],"city":["Milano"]}}
+{"id":"b1","schema":"BankAccount","properties":{"iban":["IT60X0542811101000000123456"],"bankName":["Banca Test"]}}
+{"id":"pass1","schema":"Passport","properties":{"number":["YA1234567"],"holder":["p1"],"country":["it"]}}
+{"id":"s1","schema":"Sanction","properties":{"entity":["c2"],"authority":["OFAC"],"program":["SDN"],"startDate":["2024-01-10"]}}
+{"id":"o1","schema":"Ownership","properties":{"owner":["p1"],"asset":["c1"],"percentage":["60"],"startDate":["2015-01-01"]}}
+{"id":"o2","schema":"Ownership","properties":{"owner":["c2"],"asset":["c1"],"percentage":["40"]}}
+{"id":"d1","schema":"Directorship","properties":{"director":["p2"],"organization":["c2"],"role":["CEO"]}}
+{"id":"f1","schema":"Family","properties":{"person":["p1"],"relative":["p2"],"relationship":["brother-in-law"]}}
+{"id":"pay1","schema":"Payment","properties":{"payer":["c1"],"beneficiary":["c2"],"amount":["250000"],"currency":["EUR"],"date":["2025-03-02"]}}

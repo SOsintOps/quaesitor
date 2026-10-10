@@ -1,0 +1,591 @@
+{
+ "result": {
+  "flickr": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "accounts": [
+    {
+     "id": "12345",
+     "profile": "https://service.example.com/johndoe",
+     "username": "johndoe",
+     "realname": "John Doe",
+     "followers_count": "followers_count_x",
+     "date_joined": {
+      "data": "data_x",
+      "data_raw": "data_raw_x",
+      "export_meta_type": "export_meta_type_x"
+     }
+    }
+   ],
+   "query": "john.doe@example.com"
+  },
+  "notion": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "id": "12345",
+   "version": "version_x",
+   "email": "john.doe@example.com",
+   "given_name": "John",
+   "family_name": "Doe",
+   "onboarding_completed": "onboarding_completed_x",
+   "reverify": "reverify_x",
+   "name": "John Doe",
+   "role": "owner",
+   "query": "john.doe@example.com"
+  },
+  "gravatar": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "accounts": [
+    {
+     "id": "12345",
+     "hash": "hash_x",
+     "profile_url": "https://service.example.com/johndoe",
+     "preferred_username": "johndoe",
+     "display_name": "John Doe",
+     "name": "John Doe",
+     "last_profile_edit": "last_profile_edit_x",
+     "hidden_avatar": "hidden_avatar_x",
+     "pronouns": "pronouns_x",
+     "about_me": "about_me_x",
+     "current_location": "current_location_x",
+     "phone_numbers": [
+      {
+       "type": "individual",
+       "value": "+39 333 1234567"
+      }
+     ],
+     "accounts": [
+      {
+       "domain": "twitter.com",
+       "display": "@johndoe",
+       "url": "https://service.example.com/johndoe",
+       "icon_url": "icon_url_x",
+       "userid": "4242",
+       "verified": "true",
+       "name": "John Doe",
+       "shortname": "twitter"
+      }
+     ],
+     "currency": [
+      {
+       "type": "individual",
+       "value": "+39 333 1234567"
+      }
+     ],
+     "urls": [
+      {
+       "title": "CEO",
+       "value": "+39 333 1234567"
+      }
+     ]
+    }
+   ],
+   "query": "john.doe@example.com"
+  },
+  "trello": {
+   "id": "12345",
+   "photo": "https://img.example.com/avatar.jpg",
+   "bio": "bio di prova",
+   "confirmed": "true",
+   "full_name": "John Doe",
+   "id_enterprise": "id_enterprise_x",
+   "id_enterprises_deactivated": "id_enterprises_deactivated_x",
+   "id_member_referrer": "id_member_referrer_x",
+   "id_prem_orgs_admin": "id_prem_orgs_admin_x",
+   "initials": "initials_x",
+   "member_type": "member_type_x",
+   "url": "https://service.example.com/johndoe",
+   "username": "johndoe",
+   "status": "active",
+   "email": "john.doe@example.com",
+   "gravatar_hash": "gravatar_hash_x",
+   "products": [
+    "products_x"
+   ],
+   "id_boards": [
+    "id_boards_x"
+   ],
+   "id_organizations": [
+    "id_organizations_x"
+   ],
+   "premium_features": [
+    "premium_features_x"
+   ],
+   "query": "john.doe@example.com"
+  },
+  "hibp": {
+   "found": "true",
+   "leaks": [
+    "LinkedIn",
+    "Adobe",
+    "Canva"
+   ],
+   "query": "john.doe@example.com"
+  },
+  "foursquare": {
+   "id": "12345",
+   "photo": "https://img.example.com/avatar.jpg",
+   "first_name": "John",
+   "last_name": "Doe",
+   "gender": "male",
+   "address": "Via Roma 1",
+   "city": "Milano",
+   "state": "MI",
+   "country": "Italy",
+   "home_city": "Roma",
+   "profile": "https://service.example.com/johndoe",
+   "bio": "bio di prova",
+   "contact": {
+    "twitter": "@johndoe",
+    "phone": "+39 333 1234567"
+   },
+   "query": "john.doe@example.com"
+  },
+  "etsy": {
+   "id": "12345",
+   "photo": "https://img.example.com/avatar.jpg",
+   "profile_url": "https://service.example.com/johndoe",
+   "favorite_shops": "favorite_shops_x",
+   "login_name": "johndoe",
+   "bio": "bio di prova",
+   "gender": "male",
+   "location": "Milano, Italy",
+   "is_seller": "is_seller_x",
+   "shop_url": "shop_url_x",
+   "created_at": "2020-01-01",
+   "updated_at": "updated_at_x",
+   "followers": "followers_x",
+   "following": "following_x",
+   "display_name": "John Doe",
+   "real_name": "John Doe",
+   "first_name": "John",
+   "last_name": "Doe",
+   "query": "john.doe@example.com"
+  },
+  "chess": {
+   "exists": "true",
+   "photo": "https://img.example.com/avatar.jpg",
+   "uuid": "9f1c-2b",
+   "name": "John Doe",
+   "id": "12345",
+   "country_id": "country_id_x",
+   "member_url": "https://service.example.com/johndoe",
+   "last_login_date": "last_login_date_x",
+   "username": "johndoe",
+   "points": "points_x",
+   "first_name": "John",
+   "last_name": "Doe",
+   "country_name": "Italy",
+   "member_since": "member_since_x",
+   "about": "about_x",
+   "best_rating": "best_rating_x",
+   "best_rating_type": "best_rating_type_x",
+   "is_online": "is_online_x",
+   "is_in_livechess": "is_in_livechess_x",
+   "online_status": "online_status_x",
+   "is_enabled": "is_enabled_x",
+   "membership_level": "membership_level_x",
+   "membership_code": "membership_code_x",
+   "user_id": "777",
+   "has_image": "has_image_x",
+   "flair_code": "flair_code_x",
+   "premium_status": "premium_status_x",
+   "user_can_receive_gift": "user_can_receive_gift_x",
+   "status": "active",
+   "status_at": "status_at_x",
+   "updated_at": "updated_at_x",
+   "query": "john.doe@example.com"
+  },
+  "substack": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "id": "12345",
+   "name": "John Doe",
+   "profile_url": "https://service.example.com/johndoe",
+   "score": "score_x",
+   "contact": {
+    "twitter": "@johndoe",
+    "phone": "+39 333 1234567"
+   },
+   "handle": "johndoe",
+   "reader_installed_at": "reader_installed_at_x",
+   "is_presubscribed": "is_presubscribed_x",
+   "is_subscribed": "is_subscribed_x",
+   "bestseller_tier": "bestseller_tier_x",
+   "primary_publication_id": "primary_publication_id_x",
+   "has_posts": "has_posts_x",
+   "has_activity": "has_activity_x",
+   "has_likes": "has_likes_x",
+   "bio": "bio di prova",
+   "subscriber_count": "subscriber_count_x",
+   "user_links": [
+    {
+     "id": "12345",
+     "value": "+39 333 1234567",
+     "url": "https://service.example.com/johndoe",
+     "type": "individual",
+     "label": "label_x"
+    }
+   ],
+   "query": "john.doe@example.com"
+  },
+  "mapstr": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "profile_url": "https://service.example.com/johndoe",
+   "user_id": "777",
+   "alias": "jdoe",
+   "description": "description_x",
+   "first_name": "John",
+   "last_name": "Doe",
+   "country_code": "country_code_x",
+   "language_code": "language_code_x",
+   "google_account_id": "google_account_id_x",
+   "created_at": "2020-01-01",
+   "updated_at": "updated_at_x",
+   "links": {
+    "twitter": "@johndoe",
+    "phone": "+39 333 1234567"
+   },
+   "followees_count": "followees_count_x",
+   "followers_count": "followers_count_x",
+   "total_places_count": "total_places_count_x",
+   "deeplink": "deeplink_x",
+   "run_count": "run_count_x",
+   "type": "individual",
+   "places_count": "places_count_x",
+   "club": "club_x",
+   "paid_maps": "paid_maps_x",
+   "query": "john.doe@example.com"
+  },
+  "dropbox": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "photo_last_update": "photo_last_update_x",
+   "id": "12345",
+   "display_name": "John Doe",
+   "email": "john.doe@example.com",
+   "email_verified": "email_verified_x",
+   "disabled": "disabled_x",
+   "is_team": "is_team_x",
+   "team_id": "team_id_x",
+   "is_alias": "is_alias_x",
+   "paired_account": {
+    "id": "12345",
+    "photo": "https://img.example.com/avatar.jpg",
+    "display_name": "John Doe",
+    "email": "john.doe@example.com",
+    "email_verified": "email_verified_x",
+    "disabled": "disabled_x"
+   },
+   "query": "john.doe@example.com"
+  },
+  "google": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "name": "John Doe",
+   "id": "12345",
+   "last_update": "last_update_x",
+   "services": {
+    "google_maps": "google_maps_x",
+    "google_calendar": "google_calendar_x",
+    "google_plus_archive": "google_plus_archive_x",
+    "others": [
+     "others_x"
+    ]
+   },
+   "query": "john.doe@example.com"
+  },
+  "holehe": {
+   "found": "true",
+   "websites": [
+    "spotify.com",
+    "twitter.com",
+    "instagram.com"
+   ],
+   "query": "john.doe@example.com"
+  },
+  "skype": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "accounts": [
+    {
+     "photo": "https://img.example.com/avatar.jpg",
+     "name": "John Doe",
+     "id": "12345",
+     "country": "Italy",
+     "country_code": "country_code_x",
+     "state": "MI",
+     "city": "Milano",
+     "contact_type": "contact_type_x",
+     "gender": "male",
+     "birthday": "birthday_x"
+    }
+   ],
+   "query": "john.doe@example.com"
+  },
+  "plex": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "id": "12345",
+   "profile_url": "https://service.example.com/johndoe",
+   "username": "johndoe",
+   "display_name": "John Doe",
+   "bio": "bio di prova",
+   "last_avatar_edit": "last_avatar_edit_x",
+   "location": "Milano, Italy",
+   "url": "https://service.example.com/johndoe",
+   "query": "john.doe@example.com"
+  },
+  "linkedin": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "id": "12345",
+   "url": "https://service.example.com/johndoe",
+   "is_public": "true",
+   "first_name": "John",
+   "last_name": "Doe",
+   "location": "Milano, Italy",
+   "locale": "locale_x",
+   "connection_count": "connection_count_x",
+   "connection_count_obfuscated": "connection_count_obfuscated_x",
+   "headline": "CEO at Acme",
+   "company_name": "Acme Ltd",
+   "companies": [
+    {
+     "name": "Acme Ltd",
+     "title": "CEO",
+     "period": "2019 - oggi"
+    }
+   ],
+   "schools": [
+    {
+     "name": "Politecnico di Milano",
+     "field": "Informatica",
+     "period": "2019 - oggi"
+    }
+   ],
+   "query": "john.doe@example.com"
+  },
+  "nikerunclub": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "name": "John Doe",
+   "id": "12345",
+   "screen_name": "johndoe",
+   "social_visibility": "social_visibility_x",
+   "social_allowtagging": "social_allowtagging_x",
+   "location_visibility": "location_visibility_x",
+   "profile": "https://service.example.com/johndoe",
+   "query": "john.doe@example.com"
+  },
+  "fitbit": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "profile": "https://service.example.com/johndoe",
+   "name": "John Doe",
+   "id": "12345",
+   "friends": [
+    {
+     "name": "John Doe",
+     "id": "12345"
+    }
+   ],
+   "query": "john.doe@example.com"
+  },
+  "github": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "login": "johndoe",
+   "id": "12345",
+   "type": "individual",
+   "name": "John Doe",
+   "company": "company_x",
+   "blog": "blog_x",
+   "site_admin": "site_admin_x",
+   "location": "Milano, Italy",
+   "email": "john.doe@example.com",
+   "hireable": "hireable_x",
+   "bio": "bio di prova",
+   "gravatar_id": "gravatar_id_x",
+   "twitter_username": "twitter_username_x",
+   "public_repos": "public_repos_x",
+   "public_gists": "public_gists_x",
+   "followers": "followers_x",
+   "following": "following_x",
+   "creation_date": "2020-01-01",
+   "creation_date_raw": "creation_date_raw_x",
+   "update_date": "update_date_x",
+   "update_date_raw": "update_date_raw_x",
+   "profile": "https://service.example.com/johndoe",
+   "query": "john.doe@example.com"
+  },
+  "duolingo": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "login": "johndoe",
+   "name": "John Doe",
+   "id": "12345",
+   "creation_date": "2020-01-01",
+   "creation_date_raw": "creation_date_raw_x",
+   "learning_language": "learning_language_x",
+   "from_language": "from_language_x",
+   "activity_15_days": "activity_15_days_x",
+   "profile": "https://service.example.com/johndoe",
+   "streak": "streak_x",
+   "total_xp": "total_xp_x",
+   "has_plus": "has_plus_x",
+   "courses": [
+    {
+     "author_id": "author_id_x",
+     "title": "CEO",
+     "learning_language": "learning_language_x",
+     "xp": "xp_x",
+     "health_enabled": "health_enabled_x",
+     "from_language": "from_language_x",
+     "crowns": "crowns_x",
+     "id": "12345"
+    }
+   ],
+   "query": "john.doe@example.com"
+  },
+  "adobe": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "type": "individual",
+   "status": "active",
+   "authentication_methods": [
+    "authentication_methods_x"
+   ],
+   "query": "john.doe@example.com"
+  },
+  "runkeeper": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "name": "John Doe",
+   "username": "johndoe",
+   "id": "12345",
+   "profile_url": "https://service.example.com/johndoe",
+   "created_at": "2020-01-01",
+   "photo_last_modified": "photo_last_modified_x",
+   "facebook_temporary_id": "facebook_temporary_id_x",
+   "use_facebook_pic": "use_facebook_pic_x",
+   "activities": "activities_x",
+   "privacy_level": "privacy_level_x",
+   "total_distance": "total_distance_x",
+   "distance_units": "distance_units_x",
+   "follower_count": "follower_count_x",
+   "followed_count": "followed_count_x",
+   "is_elite": "is_elite_x",
+   "query": "john.doe@example.com"
+  },
+  "runtastic": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "name": "John Doe",
+   "country": "Italy",
+   "profile": "https://service.example.com/johndoe",
+   "id": "12345",
+   "guid": "g-1",
+   "registered_at": "registered_at_x",
+   "follower_count": "follower_count_x",
+   "following_count": "following_count_x",
+   "background_image_url": "background_image_url_x",
+   "is_premium": "is_premium_x",
+   "profile_access": "profile_access_x",
+   "bio": "bio di prova",
+   "devices": [
+    {
+     "vendor": "vendor_x",
+     "name": "John Doe",
+     "os_version": "os_version_x"
+    }
+   ],
+   "query": "john.doe@example.com"
+  },
+  "samsung": {
+   "exists": "true",
+   "phones": [
+    "+39 333 1234567"
+   ],
+   "accounts": [
+    {
+     "type": "email",
+     "value": "john.doe@example.com"
+    }
+   ],
+   "recovery_methods": [
+    {
+     "id": "1",
+     "type": "phone",
+     "value": "+39 333 0000001",
+     "created_at": "2021"
+    }
+   ],
+   "security_questions": [
+    {
+     "id": "12345",
+     "question": "question_x"
+    }
+   ],
+   "customized_service_modification": "customized_service_modification_x",
+   "country": "Italy",
+   "receives_news_email": "receives_news_email_x",
+   "twofactor_activated": "twofactor_activated_x",
+   "query": "john.doe@example.com"
+  },
+  "strava": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "name": "John Doe",
+   "country": "Italy",
+   "username": "johndoe",
+   "state": "MI",
+   "premium": "premium_x",
+   "bio": "bio di prova",
+   "city": "Milano",
+   "sex": "sex_x",
+   "creation_date": "2020-01-01",
+   "creation_date_raw": "creation_date_raw_x",
+   "update_date": "update_date_x",
+   "update_date_raw": "update_date_raw_x",
+   "id": "12345",
+   "profile": "https://service.example.com/johndoe",
+   "facebook_temporary_id": "facebook_temporary_id_x",
+   "query": "john.doe@example.com"
+  },
+  "vivino": {
+   "photo": "https://img.example.com/avatar.jpg",
+   "background_photo": "background_photo_x",
+   "profile": "https://service.example.com/johndoe",
+   "name": "John Doe",
+   "username": "johndoe",
+   "id": "12345",
+   "language": "language_x",
+   "is_premium": "is_premium_x",
+   "last_activity": "last_activity_x",
+   "followers_count": "followers_count_x",
+   "followings_count": "followings_count_x",
+   "ratings_count": "ratings_count_x",
+   "reviews_count": "reviews_count_x",
+   "query": "john.doe@example.com"
+  },
+  "facebook": {
+   "name": "John Doe",
+   "auth_method": "password",
+   "contactpoints": [
+    {
+     "type": "phone",
+     "value": "+39 333 9876543"
+    },
+    {
+     "type": "email",
+     "value": "jd.alt@example.com"
+    }
+   ],
+   "other_accounts": [
+    {
+     "name": "Jane Doe",
+     "auth_method": "password",
+     "contactpoints": [
+      {
+       "type": "email",
+       "value": "jane@example.com"
+      }
+     ]
+    }
+   ],
+   "query": "john.doe@example.com"
+  },
+  "protonmail": {
+   "pgp_key": "-----BEGIN PGP-----",
+   "type_of_pgp_key": "type_of_pgp_key_x",
+   "pgp_key_creation_date": "pgp_key_creation_date_x",
+   "catch_all_email": "false",
+   "query": "john.doe@example.com"
+  }
+ }
+}

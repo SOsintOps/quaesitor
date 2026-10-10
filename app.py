@@ -8,6 +8,8 @@
 # any later version, with the additional terms in the file NOTICE.
 # See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
 
+# "Homo sum, humani nihil a me alienum puto." (Terence, Heauton Timorumenos)
+# I am human: nothing human is alien to me.
 import json
 import os
 import threading
@@ -20,6 +22,7 @@ import unicodedata
 import urllib.error
 import urllib.request
 import uuid
+import regex as _rx                 # \p{L}\p{M}: lettere e segni combinanti di ogni scrittura
 from datetime import datetime
 from urllib.parse import quote
 from flask import (Flask, jsonify, render_template, request,
@@ -263,11 +266,17 @@ _CIVICO_FINE = re.compile(
 _CIVICO_INIZIO = re.compile(r"^(\d{1,5}[a-z]?)[\s,]+(\D.*)$", re.I)
 
 
+_LATIN_DIACRITICS = _rx.compile(r"[\u0300-\u036F]")   # solo i diacritici latini/cirillici/greci
+
+
 def _fold(s):
-    """minuscole, senza accenti e segni, spazi compattati."""
+    """minuscole, senza accenti latini, spazi compattati. I segni combinanti
+    delle scritture indiane, thai e giapponese (vocali, virama, dakuten) sono
+    parte della parola e restano: toglierli spezzava e confondeva i nomi."""
     s = unicodedata.normalize("NFKD", str(s or "")).casefold()
-    s = "".join(c for c in s if not unicodedata.combining(c))
-    s = re.sub(r"[^\w/]+", " ", s)
+    s = _LATIN_DIACRITICS.sub("", s)
+    s = unicodedata.normalize("NFC", s)
+    s = _rx.sub(r"[^\p{L}\p{M}\p{N}_/]+", " ", s)
     return re.sub(r"\s+", " ", s).strip()
 
 
@@ -499,9 +508,9 @@ NAME_STOP = {
 # ==================== ROMANIZZAZIONE ====================
 # Scritture "ambigue": abjad senza vocali brevi. Nessun motore automatico può
 # restituire un nome leggibile (محمد = m-h-m-d), servono i dizionari manuali.
-AMBIGUOUS_SCRIPTS = {"ARABIC", "HEBREW", "SYRIAC", "THAANA"}
+AMBIGUOUS_SCRIPTS = {"ARABIC", "HEBREW", "SYRIAC", "THAANA", "CJK"}   # CJK: lettura dei kanji ambigua
 
-WORD_RE = re.compile(r"[^\W\d_]+", re.UNICODE)
+WORD_RE = _rx.compile(r"[\p{L}\p{M}]+")   # lettere + segni combinanti (devanagari, thai, kana con dakuten)
 
 try:                                    # PyICU: qualità migliore, tutti gli alfabeti
     import icu
@@ -911,6 +920,12 @@ def _clean(s):
 
 
 _auto_cache = {}
+_HAN_RE = _rx.compile(r"^\p{Han}+$")
+
+
+def _is_han(word):
+    """Solo ideogrammi (cinese, o kanji senza kana)."""
+    return bool(_HAN_RE.match(str(word or "")))
 
 
 def _auto(word):
@@ -920,7 +935,12 @@ def _auto(word):
     if not _romanize_raw:
         return ""
     try:
-        out = _clean(_romanize_raw(word))
+        if _is_han(word):
+            # cinese: una sillaba per carattere, separate da spazi ("Zhang Wei",
+            # non "ZhangWei"); vale per entrambi i motori (ICU e anyascii)
+            out = " ".join(_clean(_romanize_raw(ch)) for ch in word)
+        else:
+            out = _clean(_romanize_raw(word))
     except Exception:
         out = ""
     out = " ".join(p.capitalize() if p.islower() else p for p in out.split())
@@ -964,6 +984,21 @@ def slug(s):
     return re.sub(r"[^a-z0-9]+", "-", str(s).lower()).strip("-") or "x"
 
 
+TRANSLIT_MODES = ("attribute", "nodes")
+
+
+def translit_mode():
+    """'attribute' (predefinito in questo fork): la forma latina e' un attributo
+    del nodo (campo 'roman': seconda riga dell'etichetta, riga della scheda,
+    ricerca); 'nodes': come nell'originale, un nodo latino gemello collegato
+    all'originale. Impostazione globale, nell'archivio (meta)."""
+    try:
+        m = store.get_gmeta("translit_mode", "attribute")
+    except Exception:
+        m = "attribute"
+    return m if m in TRANSLIT_MODES else "attribute"
+
+
 def add_translit(graph, only=None, offline=False):
     """Aggiunge un nodo latino per ogni etichetta in alfabeto non occidentale,
     collegato all'originale con un arco 'translit'. Idempotente.
@@ -993,6 +1028,7 @@ def add_translit(graph, only=None, offline=False):
     existing = {n["id"]: n for n in graph["nodes"]}
     edge_keys = {e["id"] for e in graph["edges"]}
     added = 0
+    mode = translit_mode()
 
     for n in list(graph["nodes"]):
         if n.get("ntype") == "latin":
@@ -1011,6 +1047,8 @@ def add_translit(graph, only=None, offline=False):
         n["roman_manual"] = manual
 
         if slug(rom) == slug(n.get("label")):
+            continue
+        if mode == "attribute":                # niente nodo gemello: basta 'roman'
             continue
 
         lid = "latin:" + slug(rom)
@@ -1480,7 +1518,10 @@ def build_graph():
                 items = sorted(items, key=lambda t: (bool(OPAQUE_ID.match(t[1] or "")), t[0]))
                 canon_ident, canon_val = items[0]
                 aid = "acct:" + canon_ident.strip().lower()
-                add_node(aid, label=ident_label(canon_val, label), ntype="account",
+                # profilo da un'API (Epieos): l'etichetta e' il nome del profilo,
+                # l'userid resta l'identita' e sta nella scheda
+                lab = str(label) if schema.startswith("epieos:") and label else ident_label(canon_val, label)
+                add_node(aid, label=lab, ntype="account",
                          platform=svc or platform, image=img,
                          sources=[coll], record=record)
                 # TUTTI gli identificativi del gruppo puntano a questo nodo: schede
@@ -1549,6 +1590,41 @@ def build_graph():
         if not on_target:
             anchor = search_anchor(fn, tid) or tid
 
+        # --- violazioni di dati (hibp), siti con un account (holehe,
+        #     phonechecker), organizzazioni (linkedin): estensioni Epieos
+        extra_ids = []
+        for br in (rec.get("breaches") or []):
+            name = re.sub(r"\s+", " ", str(br)).strip()
+            if not name:
+                continue
+            bid = "breach:" + slug(name)
+            add_node(bid, label=name, ntype="breach", platform="breach", sources=[coll],
+                     record={"collection": coll, "images": [], "links": [],
+                             "raw": {"violazione": name, "fonte": coll}})
+            extra_ids.append((bid, "breach"))
+        qkey = slug(str(rec.get("query") or target))
+        for site in (rec.get("websites") or []):
+            site = str(site).strip().lower()
+            if not site:
+                continue
+            svc = re.sub(r"^www\.", "", site)
+            svc_key = re.sub(r"\.(com|net|org|it|io|tv|co|app|me)$", "", svc)
+            sid = f"acct:{svc_key}:{qkey}"
+            add_node(sid, label=svc, ntype="account", platform=norm_platform(svc_key),
+                     sources=[coll], record={"collection": coll, "images": [], "links": [],
+                                             "raw": {"sito": site, "registrato": str(rec.get("query") or "")}})
+            extra_ids.append((sid, "registered"))
+        for org in (rec.get("organizations") or []):
+            if not isinstance(org, dict) or not str(org.get("name") or "").strip():
+                continue
+            fields = {"nome": str(org["name"]).strip()}
+            oid = "organization:" + onto.ident_of("organization", fields)
+            add_node(oid, label=fields["nome"], ntype="organization", platform="organization",
+                     sources=[coll], record={"collection": coll, "images": [], "links": [],
+                                             "raw": {"Denominazione": fields["nome"],
+                                                     "Ruolo": org.get("role") or "", "Periodo": org.get("period") or ""}})
+            extra_ids.append((oid, org.get("role") or ("studente" if org.get("kind") == "school" else "organization")))
+
         # --- collegamenti
         for p in primary:
             add_edge(anchor, p, "target" if anchor == tid else "result")
@@ -1558,6 +1634,8 @@ def build_graph():
                 add_edge(p, x, "email")
             for x in user_ids:
                 add_edge(p, x, "username")
+            for x, rel in extra_ids:
+                add_edge(p, x, rel)
             for x in place_ids:
                 add_edge(p, x, "place")
 
@@ -1650,7 +1728,10 @@ def build_graph():
         add_node(tid, label=imp["anchor_label"], ntype=imp["anchor_ntype"],
                  platform=imp["anchor_platform"])
         _seed[0] = dossier                 # i nodi di questo file sono dati di partenza
-        for rec in parse_records(imp["content"]):
+        recs = parse_records(imp["content"])
+        if len(recs) == 1 and epieos.is_epieos(recs[0]):
+            recs = epieos.to_records(recs[0])      # risposta dell'API Epieos
+        for rec in recs:
             if not isinstance(rec, dict):
                 continue
             schema = str(rec.get("schema") or "").lower()
@@ -1770,8 +1851,8 @@ def _key_text(s):
     """Testo normalizzato per il confronto fra etichette (senza accenti,
     punteggiatura e differenze di maiuscole)."""
     s = unicodedata.normalize("NFKD", str(s or "")).casefold()
-    s = "".join(c for c in s if not unicodedata.combining(c))
-    s = re.sub(r"[^\w\s]+", " ", s, flags=re.UNICODE)
+    s = unicodedata.normalize("NFC", _LATIN_DIACRITICS.sub("", s))
+    s = _rx.sub(r"[^\p{L}\p{M}\p{N}_\s]+", " ", s)
     return re.sub(r"\s+", " ", s).strip()
 
 
@@ -1897,7 +1978,8 @@ def data_signature():
     """Cambia quando cambiano i dati da cui si costruisce il grafo: i JSON
     importati e il dizionario di traslitterazione (le annotazioni no: si
     applicano a ogni richiesta sopra il grafo in cache)."""
-    return (store.current_case(), store.version(), store.version("translit_version"))
+    return (store.current_case(), store.version(), store.version("translit_version"),
+            translit_mode())
 
 
 @app.route("/")
@@ -1912,7 +1994,7 @@ def index():
     ver = max(_mtime("app.js"), _mtime("style.css"), _mtime("i18n.js"))
     return render_template("index.html", asset_ver=ver, fa_icons=fa_icons(),
                            ontology=onto.public(), base_icons=onto.BASE_ICONS,
-                           onto_i18n=onto_i18n.table())
+                           onto_i18n=onto_i18n.table(), ftm_edges=ftm.edges_public())
 
 
 _FA_DIR = os.path.join(RES_DIR, "static", "vendor", "fa")
@@ -2051,6 +2133,8 @@ def media(relpath):
 # da app terze e indice dei documenti. Su disco restano solo le immagini
 # caricate (data/media) e la configurazione dell'AI (chatbot.conf).
 import store
+import ftm
+import epieos
 import ontology as onto
 import ontology_i18n as onto_i18n
 store.init(DATA_DIR)
@@ -2261,6 +2345,21 @@ def edge_props(src, prefix=""):
         bend = int(round(float(g("bend"))))
     except (TypeError, ValueError):
         bend = DEFAULT_BEND
+    # relazione Follow the Money: schema-arco + proprieta' (solo quelle previste)
+    fschema = str(g("ftm") or "").strip()
+    fprops = g("ftm_props")
+    if isinstance(fprops, str) and fprops.strip():
+        try:
+            fprops = json.loads(fprops)
+        except ValueError:
+            fprops = {}
+    if fschema not in ftm.edge_schemas():
+        fschema, fprops = "", {}
+    allowed = {f["key"] for f in ftm.edge_fields(fschema)} if fschema else set()
+    fprops = {k: re.sub(r"\s+", " ", str(v)).strip()[:300] for k, v in (fprops or {}).items()
+              if k in allowed and str(v).strip()} if isinstance(fprops, dict) else {}
+    if fschema and not label:
+        label = ftm.edge_auto_label(fschema, fprops)
     return {
         "label": label,
         "arrow": arrow if arrow in EDGE_ARROWS else "none",
@@ -2269,6 +2368,8 @@ def edge_props(src, prefix=""):
         "lstyle": lstyle if lstyle in EDGE_LSTYLES else "",
         "width": width if 0.5 <= width <= 12 else 0,
         "bend": max(-200, min(200, bend)),
+        "ftm": fschema,
+        "ftm_props": fprops,
     }
 
 
@@ -2287,6 +2388,12 @@ def _store_props(entry, props, prefix=""):
         entry[prefix + "bend"] = props["bend"]
     else:
         entry.pop(prefix + "bend", None)
+    if props.get("ftm"):
+        entry[prefix + "ftm"] = props["ftm"]
+        entry[prefix + "ftm_props"] = dict(props.get("ftm_props") or {})
+    else:
+        entry.pop(prefix + "ftm", None)
+        entry.pop(prefix + "ftm_props", None)
 
 
 def manual_edge(parent, nid, rel=None, label="", arrow="none", curve="bezier",
@@ -2305,8 +2412,11 @@ def _edge_with_props(e, p):
     """Copia dell'arco con le proprieta' grafiche: solo quelle impostate, cosi'
     lo stile predefinito (o quello del tipo di relazione) resta valido."""
     e = dict(e)
-    for k in ("label", "arrow", "curve", "color", "lstyle", "width", "bend"):
+    for k in ("label", "arrow", "curve", "color", "lstyle", "width", "bend", "ftm", "ftm_props"):
         e.pop(k, None)
+    if p.get("ftm"):
+        e["ftm"] = p["ftm"]
+        e["ftm_props"] = dict(p.get("ftm_props") or {})
     if p.get("label"):
         e["label"] = p["label"]
     if p.get("arrow") and p["arrow"] != "none":
@@ -2542,7 +2652,9 @@ def current_graph():
 @app.route("/api/graph")
 def api_graph():
     try:
-        return jsonify(current_graph())
+        g = dict(current_graph())
+        g["translit_mode"] = translit_mode()
+        return jsonify(g)
     except Exception as e:
         logging.error("Errore in /api/graph", exc_info=True)
         return jsonify({"error": str(e)}), 500
@@ -2555,7 +2667,8 @@ def api_reload():
     vuota non cambia la firma dei file, quindi la cache va invalidata a mano."""
     try:
         _cache["key"] = None
-        g = current_graph()
+        g = dict(current_graph())
+        g["translit_mode"] = translit_mode()
         logging.info(f"Dati ricaricati: {len(g['nodes'])} nodi, {len(g['edges'])} archi")
         return jsonify(g)
     except Exception as e:
@@ -2590,7 +2703,22 @@ def api_translit_status():
         "total": len(wdict),
         "down": bool(time.time() < _bot["down_until"]),
         "reason": _bot["reason"],
+        "mode": translit_mode(),
     })
+
+
+@app.route("/api/translit/mode", methods=["GET", "POST"])
+def api_translit_mode():
+    """Dove va la forma latina: 'attribute' (nel nodo) o 'nodes' (gemelli)."""
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        mode = str(data.get("mode") or "").strip()
+        if mode not in TRANSLIT_MODES:
+            return jsonify({"error": "modalita' non valida"}), 400
+        store.set_gmeta("translit_mode", mode)
+        _cache["key"] = None                   # il grafo va ricostruito
+        logging.info(f"Traslitterazione: modalita' {mode}")
+    return jsonify({"ok": True, "mode": translit_mode()})
 
 
 @app.route("/api/translit/ai", methods=["POST"])
@@ -2613,6 +2741,137 @@ def api_translit_ai():
         _cache["key"] = None                  # le etichette latine vanno rifatte
     stat["ok"] = True
     return jsonify(stat)
+
+
+# ==================== DIZIONARIO DI TRASLITTERAZIONE (a mano) ====================
+# La finestra "Dizionario" del pannello: elenco delle parole non latine viste
+# nel grafo (in sospeso, tradotte a mano, tradotte dall'AI), modifica in riga,
+# import/export CSV. Un valore scritto a mano vince sempre sul motore
+# automatico e sull'AI (store.translit_set); vuoto = torna "da tradurre".
+# Ogni modifica incrementa translit_version: il grafo si ricostruisce da solo.
+
+@app.route("/api/translit/words")
+def api_translit_words():
+    """Pagina del dizionario. Parametri: q (filtro su parola o valore),
+    source (pending | manual | ai | vuoto = tutte), limit, offset."""
+    q = str(request.args.get("q") or "").strip()[:80]
+    source = str(request.args.get("source") or "").strip()
+    if source not in ("", "pending", "manual", "ai"):
+        source = ""
+    try:
+        limit = max(1, min(int(request.args.get("limit", 200)), 2000))
+        offset = max(0, int(request.args.get("offset", 0)))
+    except ValueError:
+        limit, offset = 200, 0
+    rows = store.translit_rows(source or None, q, limit + 1, offset)
+    more = len(rows) > limit
+    rows = rows[:limit]
+    for r in rows:
+        # proposta del motore automatico, mostrata come suggerimento
+        r["auto"] = _auto(r["word"]) if not str(r.get("value") or "").strip() else ""
+    return jsonify({"rows": rows, "more": more, "offset": offset,
+                    "counts": store.translit_counts(),
+                    "engine": TRANSLIT_ENGINE or ""})
+
+
+@app.route("/api/translit/set", methods=["POST"])
+def api_translit_set():
+    """Scrive (o svuota) la traslitterazione di una parola: {word, value}."""
+    data = request.get_json(silent=True) or {}
+    word = re.sub(r"\s+", " ", str(data.get("word") or "")).strip()[:120]
+    value = re.sub(r"\s+", " ", str(data.get("value") or "")).strip()[:120]
+    if not word:
+        return jsonify({"error": "parola mancante"}), 400
+    if not script_of(word):
+        return jsonify({"error": "la parola e' gia' in caratteri latini"}), 400
+    if value and script_of(value):
+        return jsonify({"error": "la traslitterazione deve essere in caratteri latini"}), 400
+    store.translit_set(word, value)
+    logging.info(f"Dizionario: {word!r} -> {value!r}" if value else f"Dizionario: {word!r} da tradurre")
+    return jsonify({"ok": True, "word": word, "value": value,
+                    "source": "manual" if value else "pending"})
+
+
+@app.route("/api/translit/delete", methods=["POST"])
+def api_translit_delete():
+    """Toglie la parola dal dizionario: tornera' in sospeso se ricompare."""
+    data = request.get_json(silent=True) or {}
+    word = str(data.get("word") or "").strip()
+    if not word:
+        return jsonify({"error": "parola mancante"}), 400
+    n = store.translit_delete(word)
+    return jsonify({"ok": True, "deleted": n})
+
+
+@app.route("/api/translit/collect", methods=["POST"])
+def api_translit_collect():
+    """Mette in sospeso TUTTE le parole non latine presenti nel grafo (non solo
+    quelle delle scritture ambigue), cosi' si possono correggere a mano anche
+    le romanizzazioni automatiche (cinese, cirillico...)."""
+    words = set()
+    for n in current_graph().get("nodes", []):
+        if n.get("ntype") == "latin":
+            continue
+        for lab in [n.get("label")] + list(n.get("aliases") or []):
+            for w in WORD_RE.findall(str(lab or "")):
+                if script_of(w):
+                    words.add(w)
+    added = write_pending(words)
+    return jsonify({"ok": True, "added": added, "total": len(words)})
+
+
+@app.route("/api/translit/import", methods=["POST"])
+def api_translit_import():
+    """Importa un CSV 'parola;traslitterazione' (anche , o tab; con o senza
+    intestazione). Le righe diventano voci MANUALI; una riga con il valore
+    vuoto rimette la parola in sospeso. Corpo: {text} oppure {data: base64}."""
+    import csv
+    import io
+    data = request.get_json(silent=True) or {}
+    text = str(data.get("text") or "")
+    if not text and data.get("data"):
+        try:
+            text = _decode_upload(data).decode("utf-8-sig")
+        except (NodeError, UnicodeDecodeError) as e:
+            return jsonify({"error": f"file illeggibile: {e}"}), 400
+    text = text.lstrip("\ufeff")
+    if not text.strip():
+        return jsonify({"error": "file vuoto"}), 400
+    sample = text[:3000]
+    delim = max(";,\t|", key=sample.count) if any(d in sample for d in ";,\t|") else ";"
+    done, skipped, errors = 0, 0, []
+    for i, cells in enumerate(csv.reader(io.StringIO(text), delimiter=delim), 1):
+        if not cells or not str(cells[0]).strip():
+            continue
+        word = str(cells[0]).strip()
+        value = str(cells[1]).strip() if len(cells) > 1 else ""
+        if i == 1 and word.lower() in ("parola", "word", "originale", "original"):
+            continue                                    # intestazione
+        if not script_of(word) or (value and script_of(value)):
+            skipped += 1
+            if len(errors) < 10:
+                errors.append(f"riga {i}: {word} -> {value}")
+            continue
+        store.translit_set(word, value)
+        done += 1
+    logging.info(f"Dizionario: importate {done} voci, {skipped} scartate")
+    return jsonify({"ok": True, "imported": done, "skipped": skipped, "errors": errors})
+
+
+@app.route("/api/translit/export")
+def api_translit_export():
+    """Scarica tutto il dizionario come CSV (parola;traslitterazione;origine;scrittura)."""
+    import csv
+    import io
+    from flask import Response
+    out = io.StringIO()
+    w = csv.writer(out, delimiter=";", lineterminator="\n")
+    w.writerow(["parola", "traslitterazione", "origine", "scrittura", "aggiornata"])
+    for r in store.translit_rows(limit=200000):
+        w.writerow([r["word"], r["value"], r["source"], r["script"], r["updated_at"]])
+    data = "\ufeff" + out.getvalue()                  # BOM: Excel apre l'UTF-8 correttamente
+    return Response(data, mimetype="text/csv; charset=utf-8",
+                    headers={"Content-Disposition": "attachment; filename=traslitterazioni.csv"})
 
 
 @app.route("/api/note", methods=["POST"])
@@ -3192,6 +3451,7 @@ _NODE_COLS = {
     "lat": {"lat", "latitudine", "latitude"},
     "lon": {"lon", "lng", "long", "longitudine", "longitude"},
     "note": {"nota", "note", "notes", "commento", "comment"},
+    "fields": {"campi", "fields", "dati"},            # JSON dei campi di un tipo ontologico
 }
 _SIDE_ALIASES = {"1": {"da", "from", "sorgente", "source", "origine", "partenza"},
                  "2": {"a", "to", "destinazione", "destination", "arrivo", "dest"}}
@@ -3205,6 +3465,8 @@ _EDGE_COLS = {
     "lstyle": {"linea", "tipolinea", "linestyle", "stilelinea", "tratto", "line", "linetype",
                "stroke", "dash"},
     "width": {"spessore", "width", "larghezza"},
+    "ftm": {"ftmedge", "relazioneftm", "schemaarco", "ftmrelation", "ftm"},
+    "ftm_props": {"ftmprops", "proprietaarco", "proprietaftm", "ftmproperties"},
 }
 
 
@@ -3385,12 +3647,19 @@ def import_edge_props(row):
     return edge_props({"label": row.get("rel"), "arrow": arrow, "curve": curve,
                        "color": col,
                        "lstyle": next((k for k, al in _LSTYLES.items() if ls in al), ""),
-                       "width": str(row.get("width") or "").replace(",", ".")})
+                       "width": str(row.get("width") or "").replace(",", "."),
+                       "ftm": row.get("ftm"), "ftm_props": row.get("ftm_props")})
 
 
 def read_table(filename, blob):
-    """File CSV o Excel (.xlsx) -> lista di righe (liste di stringhe)."""
+    """File CSV, Excel (.xlsx) o entita' Follow the Money (JSON) -> lista di
+    righe (liste di stringhe)."""
     name = (filename or "").lower()
+    if ftm.is_ftm(name, blob):
+        try:
+            return ftm.entities_to_rows(blob, native_types=onto.TYPES)
+        except ValueError as e:
+            raise NodeError(f"file Follow the Money: {e}")
     if name.endswith((".xlsx", ".xlsm")) or blob[:2] == b"PK":
         try:
             import openpyxl
@@ -3479,7 +3748,7 @@ def plan_rows(rows):
 # "extra1:<nome>" / "extra2:<nome>", che finiscono nella scheda del nodo)
 IMPORT_NODE_KEYS = ("name", "type", "label", "url", "platform", "text", "cognome", "nascita",
                     "colore", "flag", "address", "civico", "lat", "lon", "note")
-IMPORT_EDGE_KEYS = ("rel", "arrow", "curve", "color", "lstyle", "width")
+IMPORT_EDGE_KEYS = ("rel", "arrow", "curve", "color", "lstyle", "width", "ftm", "ftm_props")
 
 
 def import_columns(table):
@@ -3557,11 +3826,62 @@ def plan_import(table, mapping=None, has_header=None, defaults=None):
     return plan_rows(rows), header
 
 
-def commit_plan(plan, skip=()):
+def _merge_entry(entry, n, spec):
+    """Re-import: aggiorna la voce esistente di un nodo (campi, colonne libere,
+    etichetta) invece di aggiungere una scheda."""
+    changed = False
+    if n["ntype"] in onto.TYPES and spec.get("fields"):
+        cur = dict(entry.get("fields") or {})
+        new = onto.clean_fields(n["ntype"], spec["fields"])
+        if any(cur.get(k) != v for k, v in new.items()):
+            cur.update(new)
+            entry["fields"] = cur
+            entry["label"] = onto.label_of(n["ntype"], cur)
+            changed = True
+    ex = spec.get("extra") if isinstance(spec.get("extra"), dict) else {}
+    if ex:
+        cur = dict(entry.get("extra") or {})
+        new = {str(k).strip()[:120]: str(v).strip()[:20000] for k, v in ex.items()
+               if str(k).strip() and str(v).strip()}
+        if any(cur.get(k) != v for k, v in new.items()):
+            cur.update(new)
+            entry["extra"] = cur
+            changed = True
+    if spec.get("note") and spec["note"] != entry.get("note"):
+        entry["note"] = str(spec["note"])[:4000]
+        changed = True
+    return changed
+
+
+def _ftm_id_of(spec):
+    """Id Follow the Money di una riga importata, se c'e'."""
+    f = spec.get("fields") if isinstance(spec.get("fields"), dict) else {}
+    if f.get("ftmId"):
+        return str(f["ftmId"])
+    ex = spec.get("extra") if isinstance(spec.get("extra"), dict) else {}
+    return str(ex.get("FtM id") or "")
+
+
+def _ftm_schema_of(spec, ntype):
+    """Schema FtM di una riga importata: dal tipo nativo o dalla scheda."""
+    sc = ftm.FTM_SCHEMA_OF.get(ntype)
+    if sc:
+        return sc
+    ex = spec.get("extra") if isinstance(spec.get("extra"), dict) else {}
+    return str(ex.get("Schema FtM") or "")
+
+
+def commit_plan(plan, skip=(), update=False, ftm_dataset=None):
     """Scrive in annotations.json i nodi e i collegamenti del piano. Righe gia'
     importate non creano doppioni (stesso nodo = stesso id; stesso collegamento
-    con lo stesso nome fra gli stessi nodi = saltato)."""
+    con lo stesso nome fra gli stessi nodi = saltato).
+    update=True (re-import Follow the Money): un nodo gia' presente viene
+    AGGIORNATO (campi, colonne libere, etichetta) invece di ricevere una scheda
+    in piu'; ftm_dataset: nome del dataset registrato con gli id FtM."""
     ann = load_annotations()
+    by_id = {str(x.get("id")): x for x in ann["added"]}
+    updated, ftm_pairs = 0, []
+    known = store.ftm_map() if update else {}       # id FtM gia' nel caso -> nodo
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     g0 = current_graph()
     have = {n["id"] for n in g0["nodes"]}
@@ -3569,6 +3889,11 @@ def commit_plan(plan, skip=()):
     in_commit, remap = set(), {}            # luoghi gia' trattati in questo import
     link_keys = {(str(l.get("a")), str(l.get("b")), str(l.get("label") or ""))
                  for l in ann["links"]}
+    # anche i collegamenti nati con un nodo aggiunto a mano (voce 'added' con
+    # 'parent'): altrimenti un re-import li creerebbe una seconda volta
+    for x in ann["added"]:
+        if x.get("parent"):
+            link_keys.add((str(x["parent"]), str(x.get("id")), str(x.get("edge_label") or "")))
     made_nodes, made_links, same_links, errors, touched = 0, 0, 0, [], []
     for it in plan:
         if it["row"] in skip:
@@ -3579,6 +3904,11 @@ def commit_plan(plan, skip=()):
         ids = []
         for n in it["nodes"]:
             nid, spec = n["id"], n["spec"]
+            if known and spec:
+                fid = _ftm_id_of(spec)
+                if fid and known.get(fid) and known[fid] != nid and (known[fid] in have or known[fid] in by_id):
+                    remap[nid] = known[fid]          # stessa entita' FtM, nodo gia' nel caso
+                    nid = known[fid]
             # stessa riga ripetuta (l'AI cita lo stesso nodo in piu' collegamenti):
             # conta una volta sola; dati diversi (due righe con la stessa targa)
             # sono schede diverse
@@ -3586,6 +3916,17 @@ def commit_plan(plan, skip=()):
             if (n["ntype"] in ("place", "vehicle") or n["ntype"] in onto.TYPES)                     and spec and firma not in in_commit:
                 in_commit.add(firma)
                 same = (same_place_id(g0, spec["value"], spec) if n["ntype"] == "place" else None)                     or remap.get(nid) or (nid if nid in have else None)
+                if same and update and same in by_id:
+                    # re-import: stesso nodo, dati aggiornati, nessuna scheda in piu'
+                    remap[nid] = same
+                    if _merge_entry(by_id[same], n, spec):
+                        updated += 1
+                    ids.append(same)
+                    touched.append(same)
+                    fid = _ftm_id_of(spec)
+                    if fid:
+                        ftm_pairs.append((fid, same, _ftm_schema_of(spec, n["ntype"]), ftm_dataset))
+                    continue
                 if same:
                     remap[nid] = same
                     # luogo / veicolo gia' presente: una scheda in piu' nel nodo
@@ -3601,11 +3942,18 @@ def commit_plan(plan, skip=()):
             nid = remap.get(nid, nid)
             ids.append(nid)
             touched.append(nid)
+            if spec is not None:
+                fid = _ftm_id_of(spec)
+                if fid:
+                    ftm_pairs.append((fid, nid, _ftm_schema_of(spec, n["ntype"]), ftm_dataset))
             if spec is None or nid in have or nid in added_ids:
+                if spec is not None and update and nid in by_id and _merge_entry(by_id[nid], n, spec):
+                    updated += 1
                 continue
             ann["deleted"] = [x for x in ann["deleted"] if str(x.get("id")) != nid]
-            ann["added"].append(new_added_entry(nid, n["label"], n["platform"],
-                                                n["ntype"], spec["value"], spec, "", now))
+            entry = new_added_entry(nid, n["label"], n["platform"], n["ntype"], spec["value"], spec, "", now)
+            ann["added"].append(entry)
+            by_id[nid] = entry
             added_ids.add(nid)
             if spec.get("note") and n["ntype"] != "text" and nid not in ann["notes"]:
                 ann["notes"][nid] = spec["note"][:4000]
@@ -3624,12 +3972,14 @@ def commit_plan(plan, skip=()):
             link_keys.add(key)
             made_links += 1
 
-    if (made_nodes or made_links) and not save_annotations(ann):
+    if (made_nodes or made_links or updated) and not save_annotations(ann):
         raise NodeError("salvataggio fallito")
+    if ftm_pairs:
+        store.ftm_set(ftm_pairs)
     if made_nodes:                               # importazione e nodi proposti dall'AI
         _translit_new_labels([x.get("label") for x in ann["added"]
                               if str(x.get("id")) in set(touched)])
-    return {"ok": True, "nodes": made_nodes, "links": made_links,
+    return {"ok": True, "nodes": made_nodes, "links": made_links, "updated": updated,
             "same_links": same_links, "errors": errors,
             "ids": list(dict.fromkeys(touched))}
 
@@ -3742,6 +4092,736 @@ def api_import_commit():
     logging.info(f"Importazione: {res['nodes']} nodi, {res['links']} collegamenti, "
                  f"{len(res['errors'])} righe con errori")
     return jsonify(res)
+
+
+# ======================= IMPORTAZIONE FOLLOW THE MONEY =======================
+# File di entita' FtM anche grandi (dataset interi): niente anteprima riga per
+# riga, ma conteggi per schema (ispezione), filtri, e importazione in un thread
+# a lotti con avanzamento. Gli id FtM finiscono nella tabella ftm_ids del caso:
+# un re-import aggiorna i nodi invece di duplicarli.
+FTM_MAX_MB = 200
+FTM_BATCH = 2000
+_ftm_job = {"running": False, "finished": False, "error": "", "done": 0, "total": 0,
+            "nodes": 0, "links": 0, "updated": 0, "same_links": 0, "errors": 0, "stage": ""}
+_ftm_lock = threading.Lock()
+
+
+def _ftm_blob(data):
+    blob = _decode_upload(data)
+    if len(blob) > FTM_MAX_MB * 1024 * 1024:
+        raise NodeError(f"file troppo grande (max {FTM_MAX_MB} MB)")
+    return blob
+
+
+def _ftm_mapping(header):
+    """Mappatura delle colonne prodotte da ftm.rows_from_entities: quelle
+    riconosciute dall'intestazione, le altre come campi liberi del nodo 1 o 2."""
+    auto = map_header(header) or {}
+    out = {}
+    for i, name in enumerate(header):
+        k = auto.get(i)
+        if k:
+            out[i] = k
+            continue
+        name = str(name)
+        side = "2" if name.endswith("2") else "1"
+        # la chiave della scheda e' il nome senza il suffisso del lato, cosi' lo
+        # stesso valore ha la stessa chiave da nodo 1 o da nodo 2 (re-import stabile)
+        out[i] = f"extra{side}:{name[:-1] if name[-1:] in '12' else name}"
+    return out
+
+
+def _run_ftm_import(blob, opts):
+    try:
+        _ftm_job["stage"] = "filter"
+        ents = ftm.filter_entities(blob, schemas=opts.get("schemas"), text=opts.get("text", ""),
+                                   max_entities=opts.get("max_entities", 0),
+                                   connected_only=opts.get("connected_only", False))
+        if not ents:
+            raise NodeError("nessuna entita' corrisponde ai filtri")
+        table = ftm.rows_from_entities(ents, native_types=onto.TYPES)
+        header, body = table[0], table[1:]
+        mapping = _ftm_mapping(header)
+        _ftm_job["total"] = len(body)
+        _ftm_job["stage"] = "import"
+        for i in range(0, len(body), FTM_BATCH):
+            batch = [header] + body[i:i + FTM_BATCH]
+            plan, _ = plan_import(batch, mapping=mapping, has_header=True)
+            res = commit_plan(plan, update=True, ftm_dataset=opts.get("dataset") or "")
+            for k in ("nodes", "links", "updated", "same_links"):
+                _ftm_job[k] += res.get(k, 0)
+            _ftm_job["errors"] += len(res.get("errors") or [])
+            _ftm_job["done"] = min(len(body), i + FTM_BATCH)
+        _cache["key"] = None
+        logging.info(f"Importazione FtM: {_ftm_job['nodes']} nodi, {_ftm_job['links']} collegamenti, "
+                     f"{_ftm_job['updated']} aggiornati")
+    except Exception as e:
+        logging.error(f"Importazione FtM fallita: {e}", exc_info=not isinstance(e, NodeError))
+        _ftm_job["error"] = str(e)
+    finally:
+        _ftm_job["running"] = False
+        _ftm_job["finished"] = True
+
+
+@app.route("/api/ftm/inspect", methods=["POST"])
+def api_ftm_inspect():
+    """Conteggi per schema e dataset di un file FtM. Corpo: {filename, data}."""
+    data = request.get_json(silent=True) or {}
+    try:
+        blob = _ftm_blob(data)
+        out = ftm.inspect(blob)
+    except (NodeError, ValueError) as e:
+        return jsonify({"error": str(e)}), 400
+    out["ok"] = True
+    out["native"] = {sc: (ftm.FTM_TYPE_OF.get(sc) or ftm.TYPE.get(sc) or "text")
+                     for sc in list(out["schemas"])}
+    return jsonify(out)
+
+
+@app.route("/api/ftm/import", methods=["POST"])
+def api_ftm_import():
+    """Avvia l'importazione in un thread. Corpo: {data, schemas: [...], text,
+    max_entities, connected_only, dataset}. Avanzamento: /api/ftm/progress."""
+    data = request.get_json(silent=True) or {}
+    try:
+        blob = _ftm_blob(data)
+    except NodeError as e:
+        return jsonify({"error": str(e)}), 400
+    if not store.current_case():
+        return jsonify({"error": "nessun caso aperto"}), 400
+    try:
+        max_entities = max(0, int(data.get("max_entities") or 0))
+    except (TypeError, ValueError):
+        max_entities = 0
+    opts = {"schemas": [str(s) for s in (data.get("schemas") or []) if str(s) in ftm.schema()],
+            "text": str(data.get("text") or "")[:200], "max_entities": max_entities,
+            "connected_only": bool(data.get("connected_only")),
+            "dataset": str(data.get("dataset") or "")[:120]}
+    with _ftm_lock:
+        if _ftm_job["running"]:
+            return jsonify({"error": "importazione gia' in corso", "running": True}), 409
+        _ftm_job.update({"running": True, "finished": False, "error": "", "done": 0, "total": 0,
+                         "nodes": 0, "links": 0, "updated": 0, "same_links": 0, "errors": 0,
+                         "stage": "parse"})
+    threading.Thread(target=_run_ftm_import, args=(blob, opts), daemon=True).start()
+    return jsonify({"started": True})
+
+
+@app.route("/api/ftm/progress")
+def api_ftm_progress():
+    return jsonify(dict(_ftm_job))
+
+
+@app.route("/api/ftm/export", methods=["GET", "POST"])
+def api_ftm_export():
+    """Il caso (o i nodi indicati in {ids}) come entita' Follow the Money, in
+    righe JSON leggibili da Aleph, OpenSanctions e dalla CLI ftm.
+    ?summary=1 ritorna solo il riepilogo (quanti nodi, quanti senza schema)."""
+    from flask import Response
+    data = request.get_json(silent=True) or {} if request.method == "POST" else {}
+    only = {str(x) for x in (data.get("ids") or [])} or None
+    g = current_graph()
+    if g.get("no_case"):
+        return jsonify({"error": "nessun caso aperto"}), 400
+    ann = load_annotations()
+    entries = {str(x.get("id")): x for x in ann["added"]}
+    ents, summary = ftm.export_entities(g, entries, store.ftm_by_node(), only)
+    new_ids = summary.pop("new_ids", [])
+    if request.args.get("summary") or data.get("summary"):
+        return jsonify(dict(summary, ok=True))
+    if new_ids:                                     # il re-import dell'export ricade sugli stessi nodi
+        store.ftm_set((f, n, sc, "export") for f, n, sc in new_ids)
+    body = "".join(json.dumps(e, ensure_ascii=False) + "\n" for e in ents)
+    name = re.sub(r"[^A-Za-z0-9_-]+", "_", (store.get_case(store.current_case()) or {}).get("name") or "caso")
+    logging.info(f"Esportazione FtM: {summary['nodes']} nodi, {summary['links']} collegamenti")
+    return Response(body, mimetype="application/json; charset=utf-8",
+                    headers={"Content-Disposition": f"attachment; filename={name}.ftm.json",
+                             "X-Ftm-Summary": json.dumps(summary)})
+
+
+# ======================= OPENSANCTIONS (ricerca online) =======================
+# Ricerca di persone e societa' su OpenSanctions (API yente: api.opensanctions.org
+# con chiave, oppure un'istanza propria) e importazione delle corrispondenze
+# come entita' Follow the Money, con le relazioni annidate.
+# E' l'UNICA funzione, insieme all'AI, che manda dati fuori dal computer:
+# spenta per impostazione predefinita (services.conf), e i nomi cercati sono
+# gli unici dati inviati.
+SERVICES_CONF = os.path.join(BASE_DIR, "services.conf")
+SERVICES_DEFAULTS = {
+    "opensanctions_enabled": "false",
+    "opensanctions_endpoint": "https://api.opensanctions.org",
+    "opensanctions_api_key": "",
+    "opensanctions_dataset": "default",
+    "opensanctions_timeout": "20",
+    "epieos_enabled": "false",
+    "epieos_endpoint": "https://api.epieos.com",
+    "epieos_api_key": "",
+    "epieos_pack": "osinter",
+    "epieos_timeout": "120",
+}
+OSA_KEYS = ("enabled", "endpoint", "api_key", "dataset", "timeout")
+EP_KEYS = ("enabled", "endpoint", "api_key", "pack", "timeout")
+
+
+def _load_kv_conf(path, defaults, env_prefix):
+    """File 'chiave = valore' (commenti con #) + variabili d'ambiente."""
+    conf = dict(defaults)
+    try:
+        with open(path, "r", encoding="utf-8-sig") as f:
+            for riga in f:
+                riga = riga.strip()
+                if not riga or riga.startswith("#"):
+                    continue
+                k, sep, v = riga.partition("=")
+                if sep:
+                    conf[k.strip().lower()] = v.strip()
+    except FileNotFoundError:
+        pass
+    except Exception as e:
+        logging.error(f"{os.path.basename(path)} illeggibile: {e}")
+    for k in list(conf):
+        env = os.environ.get(env_prefix + k.upper())
+        if env is not None:
+            conf[k] = env
+    return conf
+
+
+def _save_kv_conf(path, updates, header):
+    """Aggiorna un file 'chiave = valore' conservando commenti e ordine."""
+    eol = "\n"
+    try:
+        with open(path, "r", encoding="utf-8-sig", newline="") as f:
+            testo = f.read()
+        if "\r\n" in testo:
+            eol = "\r\n"
+        lines = testo.splitlines()
+    except FileNotFoundError:
+        lines = [header]
+    todo = dict(updates)
+    for i, riga in enumerate(lines):
+        s = riga.strip()
+        if not s or s.startswith("#") or "=" not in s:
+            continue
+        k = s.partition("=")[0].strip().lower()
+        if k in todo:
+            lines[i] = f"{k} = {todo.pop(k)}"
+    for k, v in todo.items():
+        lines.append(f"{k} = {v}")
+    with open(path, "w", encoding="utf-8", newline="") as f:
+        f.write(eol.join(lines) + eol)
+
+
+def _load_services_conf():
+    conf = _load_kv_conf(SERVICES_CONF, SERVICES_DEFAULTS, "SERVICES_")
+    conf["opensanctions_enabled"] = str(conf["opensanctions_enabled"]).strip().lower() in ("1", "true", "si", "yes", "on")
+    conf["opensanctions_endpoint"] = str(conf["opensanctions_endpoint"]).strip().rstrip("/")
+    try:
+        conf["opensanctions_timeout"] = max(3, min(120, int(float(conf["opensanctions_timeout"]))))
+    except (TypeError, ValueError):
+        conf["opensanctions_timeout"] = 20
+    conf["opensanctions_dataset"] = re.sub(r"[^a-z0-9_\-]", "", str(conf["opensanctions_dataset"]).lower()) or "default"
+    conf["epieos_enabled"] = str(conf["epieos_enabled"]).strip().lower() in ("1", "true", "si", "yes", "on")
+    conf["epieos_endpoint"] = str(conf["epieos_endpoint"]).strip().rstrip("/")
+    try:
+        conf["epieos_timeout"] = max(10, min(300, int(float(conf["epieos_timeout"]))))
+    except (TypeError, ValueError):
+        conf["epieos_timeout"] = 120
+    conf["epieos_pack"] = re.sub(r"[^a-z0-9_\-]", "", str(conf["epieos_pack"]).lower()) or "osinter"
+    return conf
+
+
+SERVICES = _load_services_conf()
+
+
+def osa_ready():
+    return bool(SERVICES["opensanctions_enabled"] and SERVICES["opensanctions_endpoint"])
+
+
+def _osa_public():
+    k = SERVICES.get("opensanctions_api_key") or ""
+    return {"enabled": bool(SERVICES["opensanctions_enabled"]), "endpoint": SERVICES["opensanctions_endpoint"],
+            "has_key": bool(k), "key_hint": ("…" + k[-4:]) if len(k) > 8 else ("•" * len(k)),
+            "dataset": SERVICES["opensanctions_dataset"], "timeout": SERVICES["opensanctions_timeout"],
+            "ready": osa_ready()}
+
+
+def _http_json(url, payload=None, headers=None, timeout=20):
+    """GET (payload None) o POST JSON. Ritorna (dati, errore)."""
+    data, err, _, _ = _http_json_full(url, payload, headers, timeout)
+    return data, err
+
+
+def _http_json_full(url, payload=None, headers=None, timeout=20, explain=None):
+    """Come _http_json ma ritorna (dati, errore, header di risposta, codice HTTP).
+    'explain' traduce i codici HTTP del servizio in messaggi chiari; il corpo
+    dell'errore (JSON {statusCode, error, message} o testo) e' allegato."""
+    body = json.dumps(payload).encode("utf-8") if payload is not None else None
+    req = urllib.request.Request(url, data=body, method="POST" if body is not None else "GET")
+    req.add_header("Accept", "application/json")
+    if body is not None:
+        req.add_header("Content-Type", "application/json")
+    for k, v in (headers or {}).items():
+        req.add_header(k, v)
+    try:
+        with urllib.request.urlopen(req, timeout=timeout) as r:
+            return json.loads(r.read().decode("utf-8", "replace")), None, dict(r.headers), r.status
+    except urllib.error.HTTPError as e:
+        detail = ""
+        try:
+            detail = e.read().decode("utf-8", "replace").strip()[:300]
+            try:
+                j = json.loads(detail)
+                if isinstance(j, dict):
+                    detail = str(j.get("message") or j.get("error") or detail)[:160]
+            except ValueError:
+                detail = detail[:160]
+        except Exception:
+            pass
+        hdrs = dict(e.headers or {})
+        text = (explain or {}).get(e.code) or ({401: "chiave API mancante o non valida",
+                                                403: "chiave API mancante o non valida"}.get(e.code, ""))
+        if text:
+            detail = text + (f" - {detail}" if detail else "")
+        return None, f"HTTP {e.code} {e.reason}" + (f" - {detail}" if detail else ""), hdrs, e.code
+    except urllib.error.URLError as e:
+        return None, f"{e.reason}", {}, 0
+    except Exception as e:
+        return None, f"{type(e).__name__}: {e}", {}, 0
+
+
+def _osa_call(path, payload=None, query=None):
+    if not osa_ready():
+        return None, "OpenSanctions disattivato (pannello OpenSanctions)"
+    url = SERVICES["opensanctions_endpoint"] + path
+    if query:
+        url += "?" + "&".join(f"{k}={quote(str(v))}" for k, v in query.items() if v not in (None, ""))
+    headers = {}
+    if SERVICES.get("opensanctions_api_key"):
+        headers["Authorization"] = "ApiKey " + SERVICES["opensanctions_api_key"]
+    return _http_json(url, payload, headers, SERVICES["opensanctions_timeout"])
+
+
+def _osa_brief(e):
+    """Un risultato ridotto all'essenziale per l'elenco."""
+    p = e.get("properties") or {}
+    return {"id": e.get("id"), "schema": e.get("schema"), "caption": e.get("caption") or (p.get("name") or [""])[0],
+            "countries": (p.get("country") or p.get("nationality") or p.get("jurisdiction") or [])[:4],
+            "topics": (p.get("topics") or [])[:4], "datasets": (e.get("datasets") or [])[:4],
+            "birth": (p.get("birthDate") or p.get("incorporationDate") or [""])[0],
+            "score": e.get("score"), "match": e.get("match")}
+
+
+def _osa_flatten(e, out):
+    """Entita' con proprieta' annidate (?nested=true) -> {id: entita'} piatto:
+    le entita' annidate diventano voci proprie, al loro posto resta l'id."""
+    if not isinstance(e, dict) or not e.get("id") or not e.get("schema"):
+        return None
+    props = {}
+    for k, vals in (e.get("properties") or {}).items():
+        flat = []
+        for v in (vals if isinstance(vals, list) else [vals]):
+            if isinstance(v, dict):
+                sub = _osa_flatten(v, out)
+                if sub:
+                    flat.append(sub)
+            elif v not in (None, ""):
+                flat.append(str(v))
+        if flat:
+            props[k] = flat
+    out[e["id"]] = {"id": e["id"], "schema": e["schema"], "properties": props,
+                    "datasets": e.get("datasets") or []}
+    return e["id"]
+
+
+@app.route("/api/osa/config", methods=["GET", "POST"])
+def api_osa_config():
+    if request.method == "GET":
+        return jsonify(_osa_public())
+    data = request.get_json(silent=True) or {}
+    up = {}
+    for k in OSA_KEYS:
+        if k not in data:
+            continue
+        v = data[k]
+        if k == "enabled":
+            up["opensanctions_enabled"] = "true" if v in (True, "true", "1", 1, "on") else "false"
+            continue
+        v = re.sub(r"[\r\n]+", " ", str(v if v is not None else "")).strip()[:500]
+        if k == "api_key" and not v and not data.get("clear_key"):
+            continue
+        if k == "endpoint" and v and not re.match(r"^https?://[^\s]+$", v, re.I):
+            return jsonify({"error": "endpoint non valido (serve http:// o https://)"}), 400
+        if k == "timeout":
+            try:
+                v = str(max(3, min(120, int(float(v)))))
+            except ValueError:
+                return jsonify({"error": "timeout non valido"}), 400
+        up["opensanctions_" + k] = v
+    try:
+        _save_kv_conf(SERVICES_CONF, up, "# services.conf - servizi online facoltativi (OpenSanctions). Non pubblicare: contiene la chiave API.")
+    except OSError as e:
+        return jsonify({"error": f"impossibile scrivere services.conf: {e}"}), 500
+    SERVICES.clear()
+    SERVICES.update(_load_services_conf())
+    logging.info(f"Configurazione OpenSanctions aggiornata: {sorted(up)}")
+    return jsonify(_osa_public())
+
+
+@app.route("/api/osa/test", methods=["POST"])
+def api_osa_test():
+    """Prova di collegamento: /healthz dell'istanza, poi una ricerca minima."""
+    data, err = _osa_call("/healthz")
+    if err:
+        return jsonify({"ok": False, "error": err}), 502
+    data, err = _osa_call(f"/search/{SERVICES['opensanctions_dataset']}", query={"q": "test", "limit": 1})
+    if err:
+        return jsonify({"ok": False, "error": err}), 502
+    return jsonify({"ok": True, "total": (data.get("total") or {}).get("value") if isinstance(data, dict) else None})
+
+
+@app.route("/api/osa/search")
+def api_osa_search():
+    """Ricerca per testo: ?q=&schema=&limit= -> elenco ridotto."""
+    q = str(request.args.get("q") or "").strip()[:200]
+    if len(q) < 2:
+        return jsonify({"error": "termine troppo corto"}), 400
+    schema = str(request.args.get("schema") or "").strip()
+    try:
+        limit = max(1, min(50, int(request.args.get("limit", 20))))
+    except ValueError:
+        limit = 20
+    data, err = _osa_call(f"/search/{SERVICES['opensanctions_dataset']}",
+                          query={"q": q, "schema": schema or None, "limit": limit})
+    if err:
+        return jsonify({"error": err}), 502
+    results = [_osa_brief(e) for e in (data.get("results") or [])]
+    return jsonify({"ok": True, "query": q, "results": results,
+                    "total": (data.get("total") or {}).get("value", len(results))})
+
+
+@app.route("/api/osa/match", methods=["POST"])
+def api_osa_match():
+    """Confronto strutturato (nome + data di nascita / paese / numero):
+    {schema, properties: {...}} -> corrispondenze con punteggio."""
+    data = request.get_json(silent=True) or {}
+    schema = str(data.get("schema") or "Person").strip()
+    props = {k: ([v] if not isinstance(v, list) else v) for k, v in (data.get("properties") or {}).items() if v}
+    if not props.get("name"):
+        return jsonify({"error": "serve almeno il nome"}), 400
+    body = {"queries": {"q1": {"schema": schema, "properties": props}}}
+    out, err = _osa_call(f"/match/{SERVICES['opensanctions_dataset']}", payload=body, query={"limit": 10})
+    if err:
+        return jsonify({"error": err}), 502
+    res = ((out.get("responses") or {}).get("q1") or {}).get("results") or []
+    return jsonify({"ok": True, "results": [_osa_brief(e) for e in res]})
+
+
+@app.route("/api/osa/import", methods=["POST"])
+def api_osa_import():
+    """Porta nel caso le entita' indicate ({ids: [...]}) con le loro relazioni
+    annidate, come un file FtM (stesso motore: id conservati, aggiornamenti)."""
+    data = request.get_json(silent=True) or {}
+    ids = [str(x) for x in (data.get("ids") or []) if str(x).strip()][:50]
+    if not ids:
+        return jsonify({"error": "nessuna entita' indicata"}), 400
+    if not store.current_case():
+        return jsonify({"error": "nessun caso aperto"}), 400
+    ents, errors, datasets = {}, [], set()
+    for eid in ids:
+        e, err = _osa_call(f"/entities/{quote(eid)}", query={"nested": "true"})
+        if err:
+            errors.append(f"{eid}: {err}")
+            continue
+        _osa_flatten(e, ents)
+        datasets.update(e.get("datasets") or [])
+    ents = {i: e for i, e in ents.items() if e["schema"] in ftm.schema()}
+    if not ents:
+        return jsonify({"error": "; ".join(errors) or "nessuna entita' ricevuta"}), 502
+    table = ftm.rows_from_entities(ents, native_types=onto.TYPES)
+    header, body = table[0], table[1:]
+    totals = {"nodes": 0, "links": 0, "updated": 0, "same_links": 0}
+    for i in range(0, len(body), FTM_BATCH):
+        plan, _ = plan_import([header] + body[i:i + FTM_BATCH], mapping=_ftm_mapping(header), has_header=True)
+        res = commit_plan(plan, update=True, ftm_dataset=",".join(sorted(datasets))[:120] or "opensanctions")
+        for k in totals:
+            totals[k] += res.get(k, 0)
+    _cache["key"] = None
+    logging.info(f"OpenSanctions: importate {len(ents)} entita' -> {totals['nodes']} nodi, {totals['links']} collegamenti")
+    return jsonify(dict(totals, ok=True, entities=len(ents), errors=errors))
+
+
+# ============================== EPIEOS (API) ==============================
+# Ricerca inversa di email e telefoni su decine di servizi (api.epieos.com).
+# A PAGAMENTO: ogni ricerca consuma crediti, quindi non e' mai automatica e
+# l'interfaccia chiede conferma ogni volta. Spenta per impostazione predefinita;
+# accesa, l'UNICO dato che esce dal computer e' l'identificativo cercato.
+# La risposta viene salvata tale e quale nell'archivio del caso (come un
+# export JSON) e tradotta in nodi dall'adattatore epieos.py.
+EP_STATE = {"credits": None, "credits_at": "", "ratelimit": {}}
+EP_EXPLAIN = {
+    400: "richiesta non valida",
+    401: "chiave API mancante o non valida",
+    402: "crediti esauriti",
+    403: "pack non disponibile per questa chiave",
+    429: "limite di richieste raggiunto: attendere e riprovare",
+    500: "errore del servizio Epieos",
+}
+EP_QUERY_MAX = 200
+
+
+def ep_ready():
+    return bool(SERVICES["epieos_enabled"] and SERVICES["epieos_endpoint"] and SERVICES.get("epieos_api_key"))
+
+
+def _ep_public():
+    k = SERVICES.get("epieos_api_key") or ""
+    return {"enabled": bool(SERVICES["epieos_enabled"]), "endpoint": SERVICES["epieos_endpoint"],
+            "has_key": bool(k), "key_hint": ("…" + k[-4:]) if len(k) > 8 else ("•" * len(k)),
+            "pack": SERVICES["epieos_pack"], "timeout": SERVICES["epieos_timeout"],
+            "ready": ep_ready(), "credits": EP_STATE["credits"], "credits_at": EP_STATE["credits_at"],
+            "ratelimit": EP_STATE["ratelimit"], "packs": _ep_saved_packs(),
+            "modules": {"email": list(epieos.MODULES_EMAIL), "phone": list(epieos.MODULES_PHONE)}}
+
+
+def _ep_saved_packs():
+    try:
+        packs = json.loads(store.get_gmeta("epieos_packs") or "[]")
+        return packs if isinstance(packs, list) else []
+    except (TypeError, ValueError):
+        return []
+
+
+def _ep_note_headers(hdrs):
+    """Crediti residui e limiti di frequenza dagli header della risposta."""
+    h = {str(k).lower(): v for k, v in (hdrs or {}).items()}
+    if "x-remaining-credits" in h:
+        try:
+            EP_STATE["credits"] = int(float(h["x-remaining-credits"]))
+            EP_STATE["credits_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        except (TypeError, ValueError):
+            pass
+    rl = {k[10:]: h[k] for k in ("ratelimit-limit", "ratelimit-remaining", "ratelimit-reset") if k in h}
+    if rl:
+        EP_STATE["ratelimit"] = rl
+
+
+def _ep_call(path, payload=None):
+    if not SERVICES["epieos_enabled"]:
+        return None, "Epieos disattivato (pannello Epieos)", 0
+    if not SERVICES.get("epieos_api_key"):
+        return None, "chiave API Epieos mancante (Configura)", 0
+    url = SERVICES["epieos_endpoint"] + path
+    headers = {"api-key": SERVICES["epieos_api_key"]}
+    data, err, hdrs, code = _http_json_full(url, payload, headers, SERVICES["epieos_timeout"], EP_EXPLAIN)
+    _ep_note_headers(hdrs)
+    if err and code == 429:
+        reset = (EP_STATE["ratelimit"] or {}).get("reset")
+        if reset:
+            err += f" (reset fra {reset} s)"
+    return data, err, code
+
+
+def _ep_packs_from_schema(spec):
+    """Dalla specifica OpenAPI su misura della chiave (GET /schema):
+    [{pack, kinds: {email: [moduli], phone: [moduli]}}]."""
+    packs = {}
+    for path, item in ((spec or {}).get("paths") or {}).items():
+        m = re.match(r"^/v1/search/(email|phone)/([a-z0-9_\-]+)$", str(path))
+        if not m or not isinstance(item, dict) or "post" not in item:
+            continue
+        kind, pack = m.group(1), m.group(2)
+        mods = []
+        try:
+            sch = item["post"]["responses"]["200"]["content"]["application/json"]["schema"]
+            mods = sorted((sch.get("properties") or {}).get("result", {}).get("properties", {}).keys())
+        except (KeyError, TypeError, AttributeError):
+            pass
+        if not mods:
+            try:
+                body = item["post"]["requestBody"]["content"]["application/json"]["schema"]
+                mods = sorted(body["properties"]["modules"]["items"]["enum"])
+            except (KeyError, TypeError):
+                pass
+        packs.setdefault(pack, {"pack": pack, "kinds": {}})["kinds"][kind] = mods
+    return sorted(packs.values(), key=lambda p: p["pack"])
+
+
+def _ep_kind(query, kind=""):
+    q = re.sub(r"\s+", " ", str(query or "")).strip()[:EP_QUERY_MAX]
+    kind = str(kind or "").strip().lower()
+    if not kind:
+        if "@" in q and "." in q.split("@")[-1]:
+            kind = "email"
+        elif re.fullmatch(r"\+?[0-9][0-9\s().\-]{5,}", q):
+            kind = "phone"
+    if kind == "email":
+        q = q.lower()
+    elif kind == "phone":
+        q = re.sub(r"[\s().\-]", "", q)
+    return q, kind
+
+
+def _ep_anchor_node(anchor, query, kind):
+    """Nodo a cui agganciare la risposta: quello indicato, altrimenti il nodo
+    email/telefono dell'identificativo se gia' presente nel grafo."""
+    g = current_graph()
+    if anchor:
+        return next((n for n in g["nodes"] if n["id"] == anchor or anchor in (n.get("alias_ids") or [])), None)
+    want = ("email:" + query) if kind == "email" else ("phone:" + phone_key(query))
+    return next((n for n in g["nodes"] if n["id"] == want), None)
+
+
+def _ep_store(node, kind, query, content):
+    """Salva la risposta come import sul nodo (sostituendo una ricerca
+    precedente dello stesso identificativo sullo stesso nodo)."""
+    filename = f"search_{query}.json"[:200]
+    for old in store.list_imports(node["id"]):
+        if old.get("filename") == filename:
+            store.delete_import(old["id"])
+    iid = store.add_import(node["id"], _flat(node.get("label")) or node["id"], filename, content, 1, False,
+                           node.get("ntype") or "generic", node.get("platform") or "generic")
+    _cache["key"] = None
+    return iid, filename
+
+
+@app.route("/api/epieos/config", methods=["GET", "POST"])
+def api_ep_config():
+    if request.method == "GET":
+        return jsonify(_ep_public())
+    data = request.get_json(silent=True) or {}
+    up = {}
+    for k in EP_KEYS:
+        if k not in data:
+            continue
+        v = data[k]
+        if k == "enabled":
+            up["epieos_enabled"] = "true" if v in (True, "true", "1", 1, "on") else "false"
+            continue
+        v = re.sub(r"[\r\n]+", " ", str(v if v is not None else "")).strip()[:500]
+        if k == "api_key" and not v and not data.get("clear_key"):
+            continue
+        if k == "endpoint" and v and not re.match(r"^https?://[^\s]+$", v, re.I):
+            return jsonify({"error": "endpoint non valido (serve http:// o https://)"}), 400
+        if k == "timeout":
+            try:
+                v = str(max(10, min(300, int(float(v)))))
+            except ValueError:
+                return jsonify({"error": "timeout non valido"}), 400
+        if k == "pack":
+            v = re.sub(r"[^a-z0-9_\-]", "", v.lower()) or "osinter"
+        up["epieos_" + k] = v
+    try:
+        _save_kv_conf(SERVICES_CONF, up, "# services.conf - servizi online facoltativi (OpenSanctions, Epieos). Non pubblicare: contiene le chiavi API.")
+    except OSError as e:
+        return jsonify({"error": f"impossibile scrivere services.conf: {e}"}), 500
+    SERVICES.clear()
+    SERVICES.update(_load_services_conf())
+    logging.info(f"Configurazione Epieos aggiornata: {sorted(up)}")
+    return jsonify(_ep_public())
+
+
+@app.route("/api/epieos/schema", methods=["POST"])
+def api_ep_schema():
+    """Legge la specifica su misura della chiave (GET /schema): pack e moduli
+    disponibili. Non consuma crediti. Salvata nei metadati globali."""
+    spec, err, code = _ep_call("/schema")
+    if err:
+        return jsonify({"ok": False, "error": err}), 502
+    packs = _ep_packs_from_schema(spec)
+    store.set_gmeta("epieos_packs", json.dumps(packs))
+    logging.info(f"Epieos: schema letto, pack disponibili: {[p['pack'] for p in packs]}")
+    return jsonify({"ok": True, "packs": packs, "credits": EP_STATE["credits"], "ratelimit": EP_STATE["ratelimit"]})
+
+
+@app.route("/api/epieos/search", methods=["POST"])
+def api_ep_search():
+    """{query, kind?, anchor?, pack?, modules?: [...], excluded_modules?: [...]}
+    -> ricerca a pagamento (una chiamata), risposta salvata sul nodo e grafo
+    ricostruito. 'anchor' e' il nodo email/telefono (o il target) a cui
+    agganciare i risultati: se manca si usa il nodo dell'identificativo, che
+    deve gia' esistere (l'interfaccia lo crea prima di chiedere conferma)."""
+    data = request.get_json(silent=True) or {}
+    if not store.current_case():
+        return jsonify({"error": "nessun caso aperto"}), 400
+    query, kind = _ep_kind(data.get("query"), data.get("kind"))
+    if kind not in ("email", "phone") or not query:
+        return jsonify({"error": "indica una email o un numero di telefono"}), 400
+    pack = re.sub(r"[^a-z0-9_\-]", "", str(data.get("pack") or SERVICES["epieos_pack"]).lower()) or "osinter"
+    node = _ep_anchor_node(str(data.get("anchor") or "").strip(), query, kind)
+    if node is None:
+        return jsonify({"error": "nodo non trovato: crea prima il nodo dell'identificativo"}), 404
+    body = {"query": query}
+    for key in ("modules", "excluded_modules"):
+        mods = [re.sub(r"[^a-z0-9_]", "", str(m).lower()) for m in (data.get(key) or [])]
+        mods = [m for m in mods if m]
+        if mods:
+            body[key] = mods
+    res, err, code = _ep_call(f"/v1/search/{kind}/{pack}", body)
+    if err:
+        return jsonify({"error": err, "code": code, "credits": EP_STATE["credits"]}), 502
+    result = res.get("result") if isinstance(res, dict) else None
+    if not isinstance(result, dict):
+        return jsonify({"error": "risposta Epieos non riconosciuta"}), 502
+    wrapper = epieos.wrap(result, kind, query, pack, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), EP_STATE["credits"])
+    content = json.dumps(wrapper, ensure_ascii=False)
+    iid, filename = _ep_store(node, kind, query, content)
+    summ = epieos.summary(wrapper)
+    logging.info(f"Epieos: {kind} {query} ({pack}) -> {len(summ['modules'])} moduli, {summ['records']} record, "
+                 f"crediti residui {EP_STATE['credits']}")
+    return jsonify({"ok": True, "id": iid, "filename": filename, "anchor": node["id"], "kind": kind, "query": query,
+                    "modules": summ["modules"], "records": summ["records"], "credits": EP_STATE["credits"]})
+
+
+@app.route("/api/epieos/import", methods=["POST"])
+def api_ep_import():
+    """{anchor?, content, filename?}: una risposta Epieos salvata su file
+    (nuda {"result": ...} o con involucro) registrata come una ricerca.
+    Non chiama il servizio e non consuma crediti."""
+    data = request.get_json(silent=True) or {}
+    if not store.current_case():
+        return jsonify({"error": "nessun caso aperto"}), 400
+    content = str(data.get("content") or "")
+    if len(content.encode("utf-8")) > IMPORT_MAX_MB * 1024 * 1024:
+        return jsonify({"error": f"file troppo grande (max {IMPORT_MAX_MB} MB)"}), 400
+    obj = epieos.loads(content)
+    if not epieos.is_epieos(obj):
+        return jsonify({"error": "il file non e' una risposta Epieos"}), 400
+    meta, result = epieos.unwrap(obj)
+    query, kind = _ep_kind(data.get("query") or meta.get("query"), data.get("kind") or meta.get("kind"))
+    if not query or kind not in ("email", "phone"):
+        # risposta senza 'query' nei moduli: la si ricava dal nome del file
+        query, kind = _ep_kind(export_query(str(data.get("filename") or "")))
+    if not query or kind not in ("email", "phone"):
+        return jsonify({"error": "identificativo cercato non riconoscibile: indicalo (query)"}), 400
+    node = _ep_anchor_node(str(data.get("anchor") or "").strip(), query, kind)
+    if node is None:
+        return jsonify({"error": "nodo non trovato: crea prima il nodo dell'identificativo", "query": query,
+                        "kind": kind}), 404
+    wrapper = epieos.wrap(result, kind, query, meta.get("pack") or SERVICES["epieos_pack"],
+                          meta.get("fetched_at") or "", meta.get("credits_left"))
+    iid, filename = _ep_store(node, kind, query, json.dumps(wrapper, ensure_ascii=False))
+    summ = epieos.summary(wrapper)
+    logging.info(f"Epieos: importato da file {kind} {query} -> {len(summ['modules'])} moduli, {summ['records']} record")
+    return jsonify({"ok": True, "id": iid, "filename": filename, "anchor": node["id"], "kind": kind, "query": query,
+                    "modules": summ["modules"], "records": summ["records"]})
+
+
+@app.route("/api/epieos/searches")
+def api_ep_searches():
+    """Ricerche Epieos salvate nel caso: {anchor: [{id, filename, query, kind, fetched_at, modules}]}."""
+    out = {}
+    for imp in store.iter_imports():
+        if not str(imp.get("filename") or "").startswith("search_"):
+            continue
+        obj = epieos.loads(imp.get("content") or "")
+        if not isinstance(obj, dict) or not isinstance(obj.get("epieos"), dict):
+            continue
+        w = obj["epieos"]
+        out.setdefault(imp["anchor"], []).append({"id": imp["id"], "filename": imp["filename"], "query": w.get("query"),
+                                                  "kind": w.get("kind"), "pack": w.get("pack"),
+                                                  "fetched_at": w.get("fetched_at"),
+                                                  "modules": sorted(k for k, v in (w.get("result") or {}).items() if v)})
+    return jsonify(out)
 
 
 # ======================= AI: DAL TESTO LIBERO AI NODI =======================
@@ -4749,7 +5829,7 @@ if __name__ == "__main__":
         import threading
         import webbrowser
         threading.Timer(1.5, lambda: webbrowser.open(f"http://127.0.0.1:{port}")).start()
-        logging.info(f"OSInt Graph avviato su http://127.0.0.1:{port}")
+        logging.info(f"Quaesitor avviato su http://127.0.0.1:{port}")
         logging.info(f"Dati letti da: {DATA_DIR}")
         if not os.path.isdir(DATA_DIR):
             logging.warning("La cartella 'data' non è accanto all'eseguibile: "
