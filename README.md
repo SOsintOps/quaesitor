@@ -1,6 +1,6 @@
-# Quaesitor 1.5.0
+# Quaesitor 1.5.1
 
-![version](https://img.shields.io/badge/version-1.5.0-blue)
+![version](https://img.shields.io/badge/version-1.5.1-blue)
 ![licence](https://img.shields.io/github/license/SOsintOps/quaesitor)
 ![last commit](https://img.shields.io/github/last-commit/SOsintOps/quaesitor)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
@@ -9,7 +9,7 @@
 
 **Quaesitor** is a case graph for OSINT investigations: people, phones, e-mails, social profiles, companies, vehicles, places and documents as an interactive graph, with every case stored on your own computer. It is a fork of [OSInt Graph](https://github.com/tingon11/OsintGraph) by Andrea Cumini (andrea@osintinfo.net, [www.osintinfo.net](https://www.osintinfo.net)): the program, its design, its code and its illustrated manual are his work, released as free software under the GNU GPL v3 with attribution terms. The fork exists because his program was already excellent and only needed adapting to the needs of one analyst — non-Latin names, the Follow the Money data model, the Epieos API and a one-click Windows install. It adds those and nothing else; see [Credits](#credits).
 
-Version 1.5.0 is the first public release: the fork carries its own name, wordmark and icon in the interface, as the licence requires, while the attribution of the original author stays in every place it was. Version 1.4.0 named the fork and brought the FAQ, the guidelines, the link analysis primer and this documentation layout. See the full [version history](docs/versionhistory.md) for previous releases and for what is planned next.
+Version 1.5.1 verifies the Linux install used by Argos and Speculator and makes OCR use every installed Tesseract language. Version 1.5.0 was the first public release: the fork carries its own name, wordmark and icon in the interface, as the licence requires, while the attribution of the original author stays in every place it was. Version 1.4.0 named the fork and brought the FAQ, the guidelines, the link analysis primer and this documentation layout. See the full [version history](docs/versionhistory.md) for previous releases and for what is planned next.
 
 ---
 
@@ -65,6 +65,20 @@ A node card, and the column mapping step of the guided CSV import:
 3. Double-click **`avvia.bat`**: the program starts and the browser opens on http://127.0.0.1:5000. Closing the window stops it.
 
 `aggiorna.bat` pulls the repository and updates the libraries; `disinstalla.bat` removes `.venv` and the temporary files and asks before touching the cases in `data\`. The program is not "installed" in Windows: it is only this folder.
+
+### Linux
+
+Quaesitor is installed and started for you by the SOsintOps workstations [Argos](https://github.com/SOsintOps/Argos) (Ubuntu) and [Speculator](https://github.com/SOsintOps/Speculator-Project) (Debian): their installers clone this repository, create the virtual environment, install Tesseract and open the program in the browser. Verified on Ubuntu 26.04 (Python 3.12 and 3.14) and Debian 13 (Python 3.13). By hand, on Debian or Ubuntu:
+
+```bash
+sudo apt install python3-venv tesseract-ocr tesseract-ocr-ita tesseract-ocr-chi-sim tesseract-ocr-rus tesseract-ocr-ara
+git clone https://github.com/SOsintOps/quaesitor.git && cd quaesitor
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
+cp chatbot.conf.example chatbot.conf && cp services.conf.example services.conf
+DATA_DIR="$HOME/quaesitor-cases" PORT=5000 .venv/bin/python app.py
+```
+
+Tesseract is found in the `PATH`; every installed language pack is used for OCR (override with `TESSERACT_LANG=ita+eng`). `DATA_DIR` keeps the cases outside the program folder; `PORT` changes the port. Optional: `python3-icu` (ICU transliteration of non-Latin names, picked up when the venv is created with `--system-site-packages`); Ollama, if you want the AI features. No desktop toolkit is needed: without Tkinter the folder picker falls back to a typed path.
 
 ### From source, any system
 

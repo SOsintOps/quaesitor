@@ -72,12 +72,31 @@ TESSDATA_DIR = ""          # cartella tessdata locale, se trovata
 
 
 OCR_REASON = ""     # perche' l'OCR manca: "module" (pytesseract), "binary" (tesseract) o ""
+OCR_LANG = ""       # lingue passate a Tesseract ("ita+eng", eng per ultimo): TESSERACT_LANG oppure tutte quelle installate
+
+
+def _ocr_languages():
+    """Lingue da passare a Tesseract: la variabile TESSERACT_LANG se c'e',
+    altrimenti tutti i pacchetti lingua installati (meno 'osd'), uniti con '+'.
+    Senza pacchetti o in caso di errore si lascia decidere a Tesseract (eng)."""
+    env = os.environ.get("TESSERACT_LANG", "").strip()
+    if env:
+        return env
+    try:
+        import pytesseract
+        langs = [l for l in pytesseract.get_languages(config="") if l and l != "osd"]
+    except Exception:
+        return ""
+    # la PRIMA lingua guida il riconoscimento: eng per ultimo, cosi' accenti e
+    # alfabeti delle altre lingue non vengono appiattiti sull'inglese
+    langs.sort(key=lambda l: (l == "eng", l))
+    return "+".join(langs)
 
 
 def configure_ocr(base_dir=None):
     """Configura pytesseract usando un Tesseract locale se presente, altrimenti
     quello di sistema. Aggiorna e ritorna OCR_AVAILABLE (e OCR_REASON)."""
-    global OCR_AVAILABLE, TESSDATA_DIR, OCR_REASON
+    global OCR_AVAILABLE, TESSDATA_DIR, OCR_REASON, OCR_LANG
     try:
         import pytesseract
     except Exception:
@@ -98,6 +117,7 @@ def configure_ocr(base_dir=None):
     try:
         pytesseract.get_tesseract_version()
         OCR_AVAILABLE, OCR_REASON = True, ""
+        OCR_LANG = _ocr_languages()
     except Exception:
         OCR_AVAILABLE, OCR_REASON = False, "binary"
     return OCR_AVAILABLE
@@ -188,7 +208,9 @@ def _image(path):
         from PIL import Image
         # la posizione dei dati lingua è data da TESSDATA_PREFIX (impostato in
         # configure_ocr direttamente sulla cartella tessdata, come vuole Tesseract 5).
-        return pytesseract.image_to_string(Image.open(path))
+        # lingue: tutte quelle installate (o TESSERACT_LANG), cosi' accenti e
+        # alfabeti non latini vengono letti; senza pacchetti lingua resta eng.
+        return pytesseract.image_to_string(Image.open(path), lang=OCR_LANG or None)
     except Exception as e:
         logging.warning(f"OCR fallito su {path}: {e}")
         return ""

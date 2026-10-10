@@ -2158,7 +2158,7 @@ except OSError as _e:
     logging.warning(f"Impossibile creare la cartella fonti {SOURCES_DEFAULT}: {_e}")
 _ocr_ok = _src.configure_ocr(BASE_DIR)   # cerca un Tesseract locale (tools/tesseract)
 logging.info(f"OCR {'attivo' if _ocr_ok else 'non disponibile'} "
-             f"(cerco Tesseract in {os.path.join(BASE_DIR, 'tools', 'tesseract')})")
+             f"(cerco Tesseract in {os.path.join(BASE_DIR, 'tools', 'tesseract')}; lingue: {_src.OCR_LANG or 'predefinita'})")
 _sources_cache = {"idx": None}
 
 # -------- Tesseract scaricabile dall'interfaccia (solo Windows) ----------
@@ -5679,6 +5679,7 @@ def api_sources_status():
         st["portable"] = bool(rel)
         st["folder_rel"] = rel
     st["ocr_available"] = _src.OCR_AVAILABLE
+    st["ocr_langs"] = _src.OCR_LANG                 # es. "ita+eng" ("" = predefinita)
     st["ocr_reason"] = _src.OCR_REASON             # "module" | "binary" | ""
     # download automatico solo su Windows e solo se manca il binario (se manca
     # il modulo Python pytesseract, scaricare Tesseract non servirebbe)

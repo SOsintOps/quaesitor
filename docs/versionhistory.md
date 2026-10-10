@@ -10,6 +10,14 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 1.5.1 — 2026
+
+- **Improved:** OCR uses every Tesseract language pack installed on the machine, English last (or `TESSERACT_LANG`), so accented and non-Latin text is read instead of English-only; the languages in use are reported by `/api/sources/status`.
+- **New:** `scripts/smoke_test.py`: end-to-end test of an installed copy through the HTTP API (cases, nodes, CSV, Follow the Money import and export, Epieos from file, document sources with OCR, restart). Used to verify the Linux installs of Argos (Ubuntu 26.04, Python 3.12 and 3.14) and Speculator (Debian 13, Python 3.13): 27 of 27 steps on each.
+- **Docs:** README "Linux" install section; FAQ entries on Linux and on OCR languages.
+
+---
+
 ## 1.5.0 — 2026
 
 First public release.

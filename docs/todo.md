@@ -9,7 +9,6 @@ This file collects ideas, requirements and potential improvements to be evaluate
 ### Packaging
 
 - **Docker:** a `Dockerfile` (python:3.12-slim, `tesseract-ocr` with the ita, eng, chi_sim, rus and ara language packs, the app bound to 127.0.0.1 behind the published port) and a `docker-compose.yml` with volumes for `data/`, `fonti/`, `chatbot.conf` and `services.conf`. Ollama stays outside the image (host or second service). The native folder picker is unavailable in a container; the manual path entry already covers it. The program has no authentication: never publish the port beyond localhost without a proxy with login. The venv plus the four `.bat` files remain the primary Windows installation. Decided on 2026-10-09, not started.
-- **OCR language packs:** `sources.py` still calls Tesseract without `lang`; add the parameter and the `chi_sim`, `rus` and `ara` traineddata when OCR of such documents is needed. To be done together with the Docker image.
 
 ### Name and Identity of the Fork
 

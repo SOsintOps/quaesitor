@@ -16,6 +16,8 @@ Frequently asked questions about Quaesitor — the project, the licence, install
 * [How do I run it from source on any system?](#how-do-i-run-it-from-source-on-any-system)
 * [Does it run in Docker?](#does-it-run-in-docker)
 * [Is there a Windows executable?](#is-there-a-windows-executable)
+* [Does it run on Linux?](#does-it-run-on-linux)
+* [Which languages does the OCR read?](#which-languages-does-the-ocr-read)
 * [Which branch do I use? What is `osintgraph`?](#which-branch-do-i-use-what-is-osintgraph)
 * [Where are my cases?](#where-are-my-cases)
 * [What leaves my computer?](#what-leaves-my-computer)
@@ -100,6 +102,14 @@ Not yet. A `Dockerfile` and a `docker-compose.yml` are queued, with the requirem
 ### Is there a Windows executable?
 
 Upstream provides `build_app.py`, which compiles the server into a single executable with a small launcher. The fork has not changed it. The `.bat` scripts are the primary Windows install.
+
+### Does it run on Linux?
+
+Yes, and that is how the SOsintOps workstations ship it: Argos (Ubuntu 24.04 and 26.04) and Speculator (Debian 13) clone this repository, create a virtual environment, install Tesseract from apt and start `app.py` with `DATA_DIR` and `PORT` set. The complete install and every feature (cases, imports, Follow the Money, Epieos from file, document sources with OCR, export, restart) were verified on Ubuntu 26.04 with Python 3.12 and 3.14 and on Debian 13 with Python 3.13. The README has the manual steps. Nothing in the program needs Windows: the automatic Tesseract download and the launcher window are Windows conveniences, on Linux Tesseract comes from apt and the browser is opened by the launcher script.
+
+### Which languages does the OCR read?
+
+All the Tesseract language packs installed on the machine, joined together with English last (for example `ita+rus+eng`: the first language leads the recognition), so accents and non-Latin scripts are read correctly; with only the engine installed Tesseract reads English and drops accents ("citta" for "città"). Install the packs you need (`tesseract-ocr-ita`, `tesseract-ocr-chi-sim`, `tesseract-ocr-rus`, `tesseract-ocr-ara` on Debian and Ubuntu; on Windows the `.traineddata` files go into `tools	esseract	essdata`) or set `TESSERACT_LANG` to choose. The languages in use are shown by `/api/sources/status`.
 
 ### Which branch do I use? What is `osintgraph`?
 
