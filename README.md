@@ -54,7 +54,7 @@ Version 1.5.1 verifies the Linux install used by Argos and Speculator and makes 
 
 ### Linux
 
-Quaesitor is installed and started for you by the SOsintOps workstations [Argos](https://github.com/SOsintOps/Argos) (Ubuntu) and [Speculator](https://github.com/SOsintOps/Speculator-Project) (Debian): their installers clone this repository, create the virtual environment, install Tesseract and open the program in the browser. Verified on Ubuntu 26.04 (Python 3.12 and 3.14) and Debian 13 (Python 3.13). By hand, on Debian or Ubuntu:
+Quaesitor is installed and started for you by the SOsintOps workstations [Argos](https://github.com/SOsintOps/Argos) (Ubuntu Budgie) and [Speculator](https://github.com/SOsintOps/Speculator-Project) (Debian): their installers clone this repository, create the virtual environment, install Tesseract and open the program in the browser. Verified on the Ubuntu 26.04 base of Argos (Python 3.12 and 3.14) and on Debian 13 (Python 3.13). By hand, on Debian or Ubuntu:
 
 ```bash
 sudo apt install python3-venv tesseract-ocr tesseract-ocr-ita tesseract-ocr-chi-sim tesseract-ocr-rus tesseract-ocr-ara

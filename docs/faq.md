@@ -105,7 +105,7 @@ Upstream provides `build_app.py`, which compiles the server into a single execut
 
 ### Does it run on Linux?
 
-Yes, and that is how the SOsintOps workstations ship it: Argos (Ubuntu 24.04 and 26.04) and Speculator (Debian 13) clone this repository, create a virtual environment, install Tesseract from apt and start `app.py` with `DATA_DIR` and `PORT` set. The complete install and every feature (cases, imports, Follow the Money, Epieos from file, document sources with OCR, export, restart) were verified on Ubuntu 26.04 with Python 3.12 and 3.14 and on Debian 13 with Python 3.13. The README has the manual steps. Nothing in the program needs Windows: the automatic Tesseract download and the launcher window are Windows conveniences, on Linux Tesseract comes from apt and the browser is opened by the launcher script.
+Yes, and that is how the SOsintOps workstations ship it: Argos (Ubuntu Budgie 24.04 and 26.04) and Speculator (Debian 13) clone this repository, create a virtual environment, install Tesseract from apt and start `app.py` with `DATA_DIR` and `PORT` set. The complete install and every feature (cases, imports, Follow the Money, Epieos from file, document sources with OCR, export, restart) were verified on the Ubuntu 26.04 base of Argos with Python 3.12 and 3.14 and on Debian 13 with Python 3.13. The README has the manual steps. Nothing in the program needs Windows: the automatic Tesseract download and the launcher window are Windows conveniences, on Linux Tesseract comes from apt and the browser is opened by the launcher script.
 
 ### Which languages does the OCR read?
 
