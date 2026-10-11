@@ -10,6 +10,13 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 1.5.2 — 2026
+
+- **Changed:** The Windows scripts are in English and renamed: `install.bat`, `start.bat`, `update.bat`, `uninstall.bat` (formerly `installa`, `avvia`, `aggiorna`, `disinstalla`). Same behaviour; prompts answer `y`/`N`.
+- **Removed:** The screenshots of the original program (`screen.png`, the eighteen images of the built-in manual, the three in the README): they showed the OSInt Graph interface. The manual keeps the captions as text until Quaesitor's own screenshots are taken.
+
+---
+
 ## 1.5.1 — 2026
 
 - **Improved:** OCR uses every Tesseract language pack installed on the machine, English last (or `TESSERACT_LANG`), so accented and non-Latin text is read instead of English-only; the languages in use are reported by `/api/sources/status`.

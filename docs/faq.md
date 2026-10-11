@@ -84,7 +84,7 @@ Nothing is triggered: copyleft and the renaming clause apply to distribution. Th
 
 ### How do I install it on Windows?
 
-Double-click `installa.bat` in the program folder (or run `.\installa.bat` from PowerShell). It finds Python 3.10 or newer, creates `.venv`, installs the libraries, prepares `chatbot.conf` and `services.conf` from the examples, creates the `fonti` folder and asks whether to download Tesseract for OCR. Then `avvia.bat` starts the program and opens the browser on http://127.0.0.1:5000. `aggiorna.bat` pulls the repository and updates the libraries; `disinstalla.bat` removes `.venv` and asks before touching the cases.
+Double-click `install.bat` in the program folder (or run `.\install.bat` from PowerShell). It finds Python 3.10 or newer, creates `.venv`, installs the libraries, prepares `chatbot.conf` and `services.conf` from the examples, creates the `fonti` folder and asks whether to download Tesseract for OCR. Then `start.bat` starts the program and opens the browser on http://127.0.0.1:5000. `update.bat` pulls the repository and updates the libraries; `disinstall.bat` removes `.venv` and asks before touching the cases.
 
 ### How do I run it from source on any system?
 

@@ -71,7 +71,11 @@ const IMG = {
   ai: 'img/13-configurazione-ai.jpg', lic: 'img/14-licenze.jpg', caseEdit: 'img/15-modifica-caso.jpg',
   manual: 'img/16-modifiche-manuali.jpg', sideTop: 'img/17-pannello-alto.png', sideBottom: 'img/18-pannello-basso.png'
 };
-const fig = (src, cap, cls = '') => `<figure class="${cls}"><img src="${src}" alt="${cap.replace(/"/g, '&quot;')}" loading="lazy"><figcaption>${cap}</figcaption></figure>`;
+// Le figure del manuale originale mostravano l'interfaccia di OSInt Graph e sono
+// state tolte da Quaesitor (nome e logo diversi); le didascalie restano come
+// testo finche' non ci saranno le schermate di Quaesitor. IMG e' la mappa dei
+// vecchi file, conservata per rimettere le figure al loro posto.
+const fig = (src, cap, cls = '') => `<p class="figcap ${cls}"><i>${cap}</i></p>`;
 
 const M = {};
 

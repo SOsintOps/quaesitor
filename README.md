@@ -1,6 +1,6 @@
-# Quaesitor 1.5.1
+# Quaesitor 1.5.2
 
-![version](https://img.shields.io/badge/version-1.5.1-blue)
+![version](https://img.shields.io/badge/version-1.5.2-blue)
 ![licence](https://img.shields.io/github/license/SOsintOps/quaesitor)
 ![last commit](https://img.shields.io/github/last-commit/SOsintOps/quaesitor)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
@@ -32,20 +32,6 @@ Version 1.5.1 verifies the Linux install used by Argos and Speculator and makes 
 
 ---
 
-## Screenshots
-
-The command panel on the left, the case graph on the right (screenshots from the original manual by Andrea Cumini):
-
-![Overview: command panel on the left, the case graph on the right](static/manual/img/02-panoramica.jpg)
-
-A node card, and the column mapping step of the guided CSV import:
-
-![Node card](static/manual/img/04-scheda-nodo.jpg)
-
-![Guided CSV import, column mapping](static/manual/img/11-import-2-colonne.jpg)
-
----
-
 ## Requirements
 
 - Python 3.10 or newer, on Windows, Linux or macOS.
@@ -61,10 +47,10 @@ A node card, and the column mapping step of the guided CSV import:
    ```bash
    git clone https://github.com/SOsintOps/quaesitor.git
    ```
-2. Double-click **`installa.bat`**: it finds Python 3.10+, creates the `.venv` environment, installs the libraries, prepares `chatbot.conf` and `services.conf` from the examples, creates the `fonti` folder and asks whether to download Tesseract. It can be run again at any time: it never overwrites configuration or data.
-3. Double-click **`avvia.bat`**: the program starts and the browser opens on http://127.0.0.1:5000. Closing the window stops it.
+2. Double-click **`install.bat`**: it finds Python 3.10+, creates the `.venv` environment, installs the libraries, prepares `chatbot.conf` and `services.conf` from the examples, creates the `fonti` folder and asks whether to download Tesseract. It can be run again at any time: it never overwrites configuration or data.
+3. Double-click **`start.bat`**: the program starts and the browser opens on http://127.0.0.1:5000. Closing the window stops it.
 
-`aggiorna.bat` pulls the repository and updates the libraries; `disinstalla.bat` removes `.venv` and the temporary files and asks before touching the cases in `data\`. The program is not "installed" in Windows: it is only this folder.
+`update.bat` pulls the repository and updates the libraries; `disinstall.bat` removes `.venv` and the temporary files and asks before touching the cases in `data\`. The program is not "installed" in Windows: it is only this folder.
 
 ### Linux
 
@@ -116,7 +102,7 @@ The left panel groups everything the program does:
 * [Ideas & Roadmap](docs/todo.md): what is planned and under consideration.
 * [Graph Entities](docs/ontology.md): every node type with its identity rule, fields and Follow the Money equivalent, and the typed relations.
 
-The built-in manual (link **Manuale** in the left panel) covers the interface step by step, with screenshots, in all six languages.
+The built-in manual (link **Manuale** in the left panel) covers the interface step by step in all six languages.
 
 ---
 
@@ -154,7 +140,7 @@ Issues and pull requests are welcome on the SOsintOps repository. Keep changes c
 
 ## Credits
 
-OSInt Graph is developed and maintained by **Andrea Cumini**: the idea, the design, the code, the manual in six languages and the screenshots above are his. His attribution in the interface (the credits line under the logo, the credits window and the licences window) and in the source headers stays, as the licence requires and as is right.
+OSInt Graph is developed and maintained by **Andrea Cumini**: the idea, the design, the code, the manual in six languages are his. His attribution in the interface (the credits line under the logo, the credits window and the licences window) and in the source headers stays, as the licence requires and as is right.
 
 The name "OSInt Graph", its logo and its "OG" icon identify the original program and belong to its author (NOTICE, point 3). They are not distributed with Quaesitor: the interface carries a provisional wordmark and icon of its own. "Quaesitor" is the Latin name of the magistrate who conducted a criminal inquiry.
 

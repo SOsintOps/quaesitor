@@ -1,43 +1,43 @@
 @echo off
 rem ============================================================================
-rem  aggiorna.bat - aggiorna OSInt Graph dal repository e le librerie
-rem  Doppio clic, oppure da PowerShell:  .\aggiorna.bat
-rem  Richiede git (https://git-scm.com). Non tocca dati e configurazioni.
+rem  update.bat - updates Quaesitor from the repository, and the libraries
+rem  Double-click it, or from PowerShell:  .\update.bat
+rem  Requires git (https://git-scm.com). Data and settings are not touched.
 rem ============================================================================
 rem "Aliena vitia in oculis habemus, a tergo nostra sunt." (Seneca, De Ira)
 rem Other people's faults are before our eyes; our own are behind our backs.
 setlocal
 cd /d "%~dp0"
 echo.
-echo  === OSInt Graph - aggiornamento ===
+echo  === Quaesitor - update ===
 echo.
 where git >nul 2>&1
 if errorlevel 1 (
-    echo  git non trovato: scarica l'aggiornamento a mano da GitHub e sostituisci
-    echo  i file del programma, poi rilancia installa.bat.
+    echo  git not found: download the update by hand from GitHub, replace the
+    echo  program files, then run install.bat again.
     pause
     exit /b 1
 )
 git pull
 if errorlevel 1 (
-    echo  ERRORE: git pull fallito. Vedi i messaggi qui sopra.
+    echo  ERROR: git pull failed. See the messages above.
     pause
     exit /b 1
 )
 if not exist ".venv\Scripts\python.exe" (
-    echo  Ambiente .venv non trovato: esegui installa.bat
+    echo  The .venv environment was not found: run install.bat
     pause
     exit /b 1
 )
-echo  Aggiorno le librerie ...
+echo  Updating the libraries ...
 ".venv\Scripts\python.exe" -m pip install -r requirements.txt --disable-pip-version-check
 if errorlevel 1 (
-    echo  ERRORE: aggiornamento delle librerie fallito.
+    echo  ERROR: the libraries could not be updated.
     pause
     exit /b 1
 )
 echo.
-echo  Aggiornamento completato. Se il programma era in esecuzione, riavvialo con avvia.bat.
+echo  Update complete. If the program was running, restart it with start.bat.
 pause
 endlocal
 exit /b 0
