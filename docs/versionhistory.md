@@ -10,6 +10,13 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 1.6.1 — 2026
+
+- **Changed:** The credits line and the credits window name the fork's maintainer, Sitticus (osintops.com). The attribution to Andrea Cumini that `NOTICE` requires stays complete and legible on its own line ("Based on OSInt Graph by Andrea Cumini - andrea@osintinfo.net - www.osintinfo.net") and as an "Original project" section of the credits window.
+- **Docs:** The third-party notices state the licences of the transcription models: the WeSpeaker models follow the CC BY 4.0 licence of the VoxCeleb dataset; the Argos `en_it` package declares no licence of its own (trained on OPUS data, it includes Stanza models under Apache-2.0).
+
+---
+
 ## 1.6.0 — 2026
 
 - **New:** Video transcription, optional. **🎙 Transcribe video** in the toolbar transcribes a video or audio file of this computer with faster-whisper, tells the speakers apart (diarization) and, on request, translates to English or Italian. The video becomes a node with the transcript, every voice a person node "Speaker k (file)" linked to it by "speaks in", and the text goes into the sources folder, where the search finds it. Transcribing the same file again updates the same nodes. Everything runs on this computer; the models download once, on first use. The modules come from Cognitor, released by their holder under the GPL as part of Quaesitor (`audio/`, see `audio/README.md`); the packages are in `requirements-audio.txt`, offered by `install.bat` and updated by `update.bat` where installed.

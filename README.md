@@ -1,6 +1,6 @@
-# Quaesitor 1.6.0
+# Quaesitor 1.6.1
 
-![version](https://img.shields.io/badge/version-1.6.0-blue)
+![version](https://img.shields.io/badge/version-1.6.1-blue)
 ![licence](https://img.shields.io/github/license/SOsintOps/quaesitor)
 ![last commit](https://img.shields.io/github/last-commit/SOsintOps/quaesitor)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
@@ -9,7 +9,7 @@
 
 **Quaesitor** is a case graph for OSINT investigations: people, phones, e-mails, social profiles, companies, vehicles, places and documents as an interactive graph, with every case stored on your own computer. It is a fork of [OSInt Graph](https://github.com/tingon11/OsintGraph) by Andrea Cumini (andrea@osintinfo.net, [www.osintinfo.net](https://www.osintinfo.net)): the program, its design, its code and its illustrated manual are his work, released as free software under the GNU GPL v3 with attribution terms. The fork exists because his program was already excellent and only needed adapting to the needs of one analyst — non-Latin names, the Follow the Money data model, the Epieos API, a one-click Windows install and the bridge with Cognitor, the face-recognition program of the same holder. It adds those and nothing else; see [Credits](#credits).
 
-Version 1.6.0 opens the cases of Cognitor (face photos, co-appearances, videos with their transcripts) through the Follow the Money import, reads large files by their path, fixes the import of every Follow the Money file, and transcribes videos on this computer with the modules of Cognitor, released by their holder under the GPL. Version 1.5.1 verifies the Linux install used by Argos and Speculator and makes OCR use every installed Tesseract language. Version 1.5.0 was the first public release: the fork carries its own name, wordmark and icon in the interface, as the licence requires, while the attribution of the original author stays in every place it was. Version 1.4.0 named the fork and brought the FAQ, the guidelines, the link analysis primer and this documentation layout. See the full [version history](docs/versionhistory.md) for previous releases and for what is planned next.
+Version 1.6.1 names the fork's maintainer in the credits, with the attribution of the original author kept on its own line. Version 1.6.0 opened the cases of Cognitor (face photos, co-appearances, videos with their transcripts) through the Follow the Money import, read large files by their path, fixed the import of every Follow the Money file, and brought the transcription of videos on this computer with the modules of Cognitor, released by their holder under the GPL. Version 1.5.1 verifies the Linux install used by Argos and Speculator and makes OCR use every installed Tesseract language. Version 1.5.0 was the first public release: the fork carries its own name, wordmark and icon in the interface, as the licence requires, while the attribution of the original author stays in every place it was. Version 1.4.0 named the fork and brought the FAQ, the guidelines, the link analysis primer and this documentation layout. See the full [version history](docs/versionhistory.md) for previous releases and for what is planned next.
 
 ---
 

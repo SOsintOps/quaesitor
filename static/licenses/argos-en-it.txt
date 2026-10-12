@@ -2,4 +2,4 @@ Argos Translate package en_it - https://www.argosopentech.com
 
 Not distributed with Quaesitor: downloaded on first use by the video transcription
 (audio/, requirements-audio.txt) into ~/.quaesitor/models or the Hugging Face cache.
-Licence: to verify in the package metadata. Copyright: Argos Open Technologies.
+Licence: none declared by the package; includes Stanza models (Apache-2.0). Copyright: Argos Open Technologies; training data from OPUS.

@@ -571,9 +571,9 @@
  },
  {
   "id": "wespeaker",
-  "name": "WeSpeaker speaker models (sherpa-onnx)",
+  "name": "WeSpeaker speaker models, VoxCeleb (sherpa-onnx)",
   "version": "",
-  "license": "Apache-2.0 (code); model terms to verify",
+  "license": "CC-BY-4.0 (VoxCeleb dataset)",
   "copyright": "WeSpeaker team; ONNX export by k2-fsa",
   "url": "https://github.com/wenet-e2e/wespeaker",
   "role": {
@@ -588,8 +588,8 @@
   "id": "argos-en-it",
   "name": "Argos Translate package en_it",
   "version": "",
-  "license": "to verify in the package metadata",
-  "copyright": "Argos Open Technologies",
+  "license": "none declared by the package; includes Stanza models (Apache-2.0)",
+  "copyright": "Argos Open Technologies; training data from OPUS",
   "url": "https://www.argosopentech.com",
   "role": {
    "it": "Traduzione in italiano, scaricata al primo uso",

@@ -39,7 +39,11 @@
     <svg class="logo" viewBox="0 0 1000 139.1" role="img" aria-label="Quaesitor"><use href="#logo-art"/></svg>
     <select id="langSel" data-i18n-title="lang.label"></select>
   </div>
-  <div id="credits"><button type="button" id="creditsLink" data-i18n-title="credits.title">Andrea Cumini</button> - <a href="mailto:andrea@osintinfo.net">andrea@osintinfo.net</a> - <a href="https://www.osintinfo.net" target="_blank" rel="noopener">www.osintinfo.net</a> · <a href="https://github.com/SOsintOps/quaesitor" target="_blank" rel="noopener">Quaesitor fork: SOsintOps</a></div>
+  <!-- Crediti del fork in primo piano; sotto, l'attribuzione all'autore originale
+       richiesta dal NOTICE (punto 1(b)): leggibile, non va rimossa né alterata. -->
+  <div id="credits"><button type="button" id="creditsLink" data-i18n-title="credits.title">Sitticus</button> - <a href="https://osintops.com" target="_blank" rel="noopener">osintops.com</a>
+    <div id="credits-orig"><span data-i18n="credits.orig">Basato su OSInt Graph di</span> Andrea Cumini - <a href="mailto:andrea@osintinfo.net">andrea@osintinfo.net</a> - <a href="https://www.osintinfo.net" target="_blank" rel="noopener">www.osintinfo.net</a></div>
+  </div>
   <div id="help-links"><a href="#" id="manualLink" data-i18n="help.manual">Manuale</a><a href="#" id="licLink" data-i18n="lic.link">Licenze</a></div>
 
   <div class="grp case-box">
@@ -958,12 +962,19 @@
     <button id="credmodal-close" data-i18n-title="credits.close" title="Chiudi">✕</button>
     <div id="credmodal-title" data-i18n="credits.title">Crediti</div>
     <div id="credmodal-role" data-i18n="credits.role">Sviluppatore</div>
-    <div id="credmodal-name">Andrea Cumini</div>
+    <div id="credmodal-name">Sitticus</div>
     <ul id="credmodal-list">
-      <li><span class="cr-ic">✉</span><a href="mailto:andrea@osintinfo.net">andrea@osintinfo.net</a></li>
-      <li><span class="cr-ic">🌐</span><a href="https://www.osintinfo.net" target="_blank" rel="noopener">www.osintinfo.net</a></li>
-      <li><span class="cr-ic">☎</span><a href="tel:+393394601972">+393394601972</a></li>
+      <li><span class="cr-ic">🌐</span><a href="https://osintops.com" target="_blank" rel="noopener">osintops.com</a></li>
     </ul>
+    <!-- autore del programma originale: attribuzione richiesta dal NOTICE (punto 1(b)) -->
+    <div id="credmodal-orig">
+      <div class="credmodal-orig-role" data-i18n="credits.origRole">Progetto originale: OSInt Graph</div>
+      <div class="credmodal-orig-name">Andrea Cumini</div>
+      <ul class="credmodal-orig-list">
+        <li><span class="cr-ic">✉</span><a href="mailto:andrea@osintinfo.net">andrea@osintinfo.net</a></li>
+        <li><span class="cr-ic">🌐</span><a href="https://www.osintinfo.net" target="_blank" rel="noopener">www.osintinfo.net</a></li>
+      </ul>
+    </div>
   </div>
 </div>
 

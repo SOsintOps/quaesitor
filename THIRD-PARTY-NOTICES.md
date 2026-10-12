@@ -43,8 +43,8 @@ texts are in `static/licenses/` and can be read from the program itself
 | [huggingface_hub](https://pypi.org/project/huggingface-hub/) | 2.2.0 | Apache-2.0 |  | Download of the Whisper models (optional: requirements-audio.txt) (not bundled) |
 | [Whisper models (faster-whisper conversion)](https://huggingface.co/Systran) |  | MIT | OpenAI; conversion by SYSTRAN | Transcription models, downloaded on first use (not bundled) |
 | [Silero VAD](https://github.com/snakers4/silero-vad) |  | MIT | Silero Team | Speech detection, downloaded on first use (not bundled) |
-| [WeSpeaker speaker models (sherpa-onnx)](https://github.com/wenet-e2e/wespeaker) |  | Apache-2.0 (code); model terms to verify | WeSpeaker team; ONNX export by k2-fsa | Voiceprints, downloaded on first use (not bundled) |
-| [Argos Translate package en_it](https://www.argosopentech.com) |  | to verify in the package metadata | Argos Open Technologies | Translation to Italian, downloaded on first use (not bundled) |
+| [WeSpeaker speaker models, VoxCeleb (sherpa-onnx)](https://github.com/wenet-e2e/wespeaker) |  | CC-BY-4.0 (VoxCeleb dataset) | WeSpeaker team; ONNX export by k2-fsa | Voiceprints, downloaded on first use (not bundled) |
+| [Argos Translate package en_it](https://www.argosopentech.com) |  | none declared by the package; includes Stanza models (Apache-2.0) | Argos Open Technologies; training data from OPUS | Translation to Italian, downloaded on first use (not bundled) |
 | [Python](https://www.python.org) | 3.11.9 | PSF License | Python Software Foundation | Interpreter embedded in the executable |
 | [Tesseract OCR](https://github.com/tesseract-ocr/tesseract) | 5.3.3 | Apache-2.0 | Tesseract contributors (Google, Ray Smith e altri) | Text recognition in images. Downloaded separately into tools/tesseract (not bundled) |
 | [Leptonica](http://www.leptonica.org) | 1.83 | BSD-2-Clause | Copyright (C) 2001 Leptonica | Image library used by Tesseract (downloaded with it) (not bundled) |

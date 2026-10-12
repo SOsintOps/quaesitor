@@ -210,12 +210,16 @@ for mid, shown, lic, holder, url, rit, ren in [
          "Transcription models, downloaded on first use"),
         ("silero-vad", "Silero VAD", "MIT", "Silero Team", "https://github.com/snakers4/silero-vad",
          "Rilevamento del parlato, scaricato al primo uso", "Speech detection, downloaded on first use"),
-        ("wespeaker", "WeSpeaker speaker models (sherpa-onnx)", "Apache-2.0 (code); model terms to verify",
+        # WeSpeaker docs/pretrained.md: a pretrained model follows the licence of its dataset;
+        # the models used here are trained on VoxCeleb (CC BY 4.0). Checked on 2026-10-12.
+        ("wespeaker", "WeSpeaker speaker models, VoxCeleb (sherpa-onnx)", "CC-BY-4.0 (VoxCeleb dataset)",
          "WeSpeaker team; ONNX export by k2-fsa", "https://github.com/wenet-e2e/wespeaker",
          "Impronte delle voci, scaricate al primo uso", "Voiceprints, downloaded on first use"),
-        ("argos-en-it", "Argos Translate package en_it", "to verify in the package metadata", "Argos Open Technologies",
-         "https://www.argosopentech.com", "Traduzione in italiano, scaricata al primo uso",
-         "Translation to Italian, downloaded on first use")]:
+        # the package (metadata.json, README.md) and the argospm index declare no licence:
+        # trained on OPUS data, it includes Stanza models (Apache-2.0). Checked on 2026-10-12.
+        ("argos-en-it", "Argos Translate package en_it", "none declared by the package; includes Stanza models (Apache-2.0)",
+         "Argos Open Technologies; training data from OPUS", "https://www.argosopentech.com",
+         "Traduzione in italiano, scaricata al primo uso", "Translation to Italian, downloaded on first use")]:
     add(mid, shown, "", lic, holder, url, rit, ren, wr(f"{mid}.txt", f"""{shown} - {url}
 
 Not distributed with Quaesitor: downloaded on first use by the video transcription
