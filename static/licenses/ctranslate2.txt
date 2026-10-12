@@ -1,0 +1,4 @@
+CTranslate2 4.8.2 - https://pypi.org/project/ctranslate2/
+
+Licensed under the MIT licence. The installed wheel ships no licence file;
+the full text is in the source repository of the project.

@@ -2134,6 +2134,7 @@ def media(relpath):
 # caricate (data/media) e la configurazione dell'AI (chatbot.conf).
 import store
 import ftm
+import ftm_bundle
 import epieos
 import ontology as onto
 import ontology_i18n as onto_i18n
@@ -2634,7 +2635,41 @@ def apply_annotations(graph):
     manual_ids = {n["id"] for n in g["nodes"] if n.get("manual")}
     if manual_ids:
         add_translit(g, only=manual_ids, offline=True)
+    mark_evidence(g)
     return g
+
+
+def mark_evidence(g):
+    """Links and photos that come from a Cognitor bundle or from a transcription.
+
+    An Associate "seen together" edge gets evid="seen" and its weight (photos plus
+    video segments, read from the summary); "speaks in" and "appears in" links get
+    evid="speaks" / "appears". A person pictured by a photo node shows the first photo
+    as its icon and every photo in its card (decision of 2026-10-12)."""
+    nodes = {n["id"]: n for n in g["nodes"]}
+    photos = {}
+    for e in g["edges"]:
+        lab = str(e.get("label") or "").strip().lower()
+        fp = e.get("ftm_props") or {}
+        if e.get("ftm") == "Associate" and "seen together" in str(fp.get("relationship") or "").lower():
+            e["evid"] = "seen"
+            nums = [int(x) for x in re.findall(r"\d+", str(fp.get("summary") or e.get("label") or ""))[:2]]
+            e["seen_n"] = max(1, sum(nums))
+        elif lab in ("speaks in", "appears in"):
+            e["evid"] = "speaks" if lab == "speaks in" else "appears"
+        elif lab == "pictured":
+            a, b = nodes.get(e["source"]), nodes.get(e["target"])
+            if a and b and a.get("ntype") == "photo" and a.get("image") \
+                    and b.get("ntype") in ("name", "target"):
+                photos.setdefault(b["id"], []).append(a["image"])
+    for nid, imgs in photos.items():
+        n = nodes[nid]
+        if not n.get("image"):
+            n["image"] = imgs[0]
+            n["pic"] = True
+        recs = n.setdefault("records", [])
+        recs.append({"collection": "pictured", "category": "", "images": imgs[:12],
+                     "links": [], "raw": {}})
 
 
 def current_graph():
@@ -3470,6 +3505,25 @@ _EDGE_COLS = {
 }
 
 
+def _reserved_norms():
+    out = set(_SIDE_ALIASES["1"]) | set(_SIDE_ALIASES["2"])
+    for al in list(_NODE_COLS.values()) + list(_EDGE_COLS.values()):
+        out |= set(al)
+    return out
+
+
+_RESERVED = None
+
+
+def ftm_reserved(name):
+    """True when a free column of a Follow the Money file would be read as a fixed
+    column (title -> label, type -> node type, service -> platform...)."""
+    global _RESERVED
+    if _RESERVED is None:
+        _RESERVED = _reserved_norms()
+    return _norm(name) in _RESERVED
+
+
 def map_header(cells):
     """Mappa le intestazioni: {indice colonna: chiave}. Chiavi come 'name1',
     'type2', 'url1', 'rel', 'arrow'. None se la riga non sembra un'intestazione."""
@@ -3528,6 +3582,8 @@ _TYPE_ALIASES = {
     "vehicle": {"vehicle", "veicolo", "auto", "targa", "plate", "car", "moto", "mezzo"},
     "text": {"text", "testo", "nota", "note", "appunto"},
     "target": {"target", "obiettivo", "bersaglio"},
+    # a photo already under DATA_DIR/media (Follow the Money Image with its file, 2026-10-12)
+    "photo": {"photo", "foto", "immagine", "image"},
 }
 
 
@@ -4113,6 +4169,36 @@ def _ftm_blob(data):
     return blob
 
 
+def _ftm_source(data):
+    """What an FtM import reads: ("bundle", path|bytes) for a Cognitor bundle, or
+    ("blob", bytes) for a file of entities. {path} reads a file of this computer
+    (the program runs locally), without the 20 MB limit of the upload: a bundle with
+    photos is larger. {data} is the upload as before."""
+    path = str(data.get("path") or "").strip().strip('"')
+    if path:
+        path = os.path.abspath(os.path.expanduser(path))
+        if not os.path.isfile(path):
+            raise NodeError(f"file non trovato: {path}")
+        if ftm_bundle.is_bundle(path):
+            return "bundle", path
+        if os.path.getsize(path) > FTM_MAX_MB * 1024 * 1024:
+            raise NodeError(f"file troppo grande (max {FTM_MAX_MB} MB)")
+        with open(path, "rb") as f:
+            return "blob", f.read()
+    blob = _decode_upload(data)
+    if blob[:2] == b"PK" and ftm_bundle.is_bundle(blob):
+        return "bundle", blob
+    if len(blob) > FTM_MAX_MB * 1024 * 1024:
+        raise NodeError(f"file troppo grande (max {FTM_MAX_MB} MB)")
+    return "blob", blob
+
+
+def _sources_folder():
+    """The folder of the sources the search reads now (default: 'fonti')."""
+    idx = sources_index()
+    return _src.resolved_folder(idx, BASE_DIR, SOURCES_DEFAULT) if idx else SOURCES_DEFAULT
+
+
 def _ftm_mapping(header):
     """Mappatura delle colonne prodotte da ftm.rows_from_entities: quelle
     riconosciute dall'intestazione, le altre come campi liberi del nodo 1 o 2."""
@@ -4131,6 +4217,37 @@ def _ftm_mapping(header):
     return out
 
 
+def _run_bundle_import(src, opts):
+    """A Cognitor bundle: images under data/media/cognitor/<case>/, transcripts in the
+    sources folder (then indexed), entities through the same path as an FtM file."""
+    try:
+        _ftm_job["stage"] = "files"
+        with ftm_bundle.Bundle(src) as b:
+            media = b.install_media(DATA_DIR, MEDIA_DIRNAME)
+            _ftm_job["images"] = len(media)
+            _ftm_job["images_refused"] = len(getattr(b, "refused", []))
+            paths = b.install_transcripts(_sources_folder())
+            _ftm_job["transcripts"] = len(paths)
+            blob = b.entities_blob()
+            opts = dict(opts, media=media, dataset=opts.get("dataset") or str(b.manifest.get("dataset") or ""))
+    except Exception as e:
+        logging.error(f"Bundle FtM illeggibile: {e}")
+        _ftm_job["error"] = str(e)
+        _ftm_job["running"] = False
+        _ftm_job["finished"] = True
+        return
+    _run_ftm_import(blob, opts)
+    if _ftm_job.get("transcripts") and not _ftm_job.get("error"):
+        # the transcripts become searchable: same scan as the button of the sources
+        folder = _sources_folder()
+        with _scan_lock:
+            if not _scan["running"] and os.path.isdir(folder):
+                _scan.update({"running": True, "done": 0, "total": 0, "name": "",
+                              "finished": False, "error": "", "summary": None})
+                _threading.Thread(target=_run_scan, args=(folder,), daemon=True).start()
+                _ftm_job["sources_scan"] = True
+
+
 def _run_ftm_import(blob, opts):
     try:
         _ftm_job["stage"] = "filter"
@@ -4139,7 +4256,17 @@ def _run_ftm_import(blob, opts):
                                    connected_only=opts.get("connected_only", False))
         if not ents:
             raise NodeError("nessuna entita' corrisponde ai filtri")
-        table = ftm.rows_from_entities(ents, native_types=onto.TYPES)
+        media = dict(opts.get("media") or {})
+        for e in ents.values():
+            # an Image exported by this program names a file already under DATA_DIR/media
+            if e.get("schema") == "Image":
+                for fn in e["properties"].get("fileName") or []:
+                    rel = str(fn).replace("\\", "/").lstrip("/")
+                    if rel not in media and rel.lower().startswith(MEDIA_DIRNAME + "/") and ".." not in rel \
+                            and os.path.isfile(os.path.join(DATA_DIR, *rel.split("/"))):
+                        media[rel] = rel
+        table = ftm.rows_from_entities(ents, native_types=onto.TYPES, media=media,
+                                       reserved=ftm_reserved)
         header, body = table[0], table[1:]
         mapping = _ftm_mapping(header)
         _ftm_job["total"] = len(body)
@@ -4168,8 +4295,14 @@ def api_ftm_inspect():
     """Conteggi per schema e dataset di un file FtM. Corpo: {filename, data}."""
     data = request.get_json(silent=True) or {}
     try:
-        blob = _ftm_blob(data)
-        out = ftm.inspect(blob)
+        kind, src = _ftm_source(data)
+        if kind == "bundle":
+            with ftm_bundle.Bundle(src) as b:
+                out = ftm.inspect(b.entities_blob())
+                out.update(b.summary())
+            out["size"] = os.path.getsize(src) if isinstance(src, str) else len(src)
+        else:
+            out = ftm.inspect(src)
     except (NodeError, ValueError) as e:
         return jsonify({"error": str(e)}), 400
     out["ok"] = True
@@ -4184,8 +4317,11 @@ def api_ftm_import():
     max_entities, connected_only, dataset}. Avanzamento: /api/ftm/progress."""
     data = request.get_json(silent=True) or {}
     try:
-        blob = _ftm_blob(data)
-    except NodeError as e:
+        kind, src = _ftm_source(data)
+        if kind == "bundle":
+            with ftm_bundle.Bundle(src):          # verified before the thread starts
+                pass
+    except (NodeError, ValueError) as e:
         return jsonify({"error": str(e)}), 400
     if not store.current_case():
         return jsonify({"error": "nessun caso aperto"}), 400
@@ -4202,8 +4338,10 @@ def api_ftm_import():
             return jsonify({"error": "importazione gia' in corso", "running": True}), 409
         _ftm_job.update({"running": True, "finished": False, "error": "", "done": 0, "total": 0,
                          "nodes": 0, "links": 0, "updated": 0, "same_links": 0, "errors": 0,
-                         "stage": "parse"})
-    threading.Thread(target=_run_ftm_import, args=(blob, opts), daemon=True).start()
+                         "stage": "parse", "images": 0, "images_refused": 0, "transcripts": 0,
+                         "sources_scan": False})
+    target = _run_bundle_import if kind == "bundle" else _run_ftm_import
+    threading.Thread(target=target, args=(src, opts), daemon=True).start()
     return jsonify({"started": True})
 
 
@@ -4237,6 +4375,164 @@ def api_ftm_export():
     return Response(body, mimetype="application/json; charset=utf-8",
                     headers={"Content-Disposition": f"attachment; filename={name}.ftm.json",
                              "X-Ftm-Summary": json.dumps(summary)})
+
+
+# ======================= VIDEO TRANSCRIPTION (1.6.0) =======================
+# The modules of Cognitor in audio/ (GPL, optional packages of requirements-audio.txt):
+# faster-whisper, diarization, translation. A transcribed video becomes the same
+# Follow the Money entities as a Cognitor bundle (transcripts.py) and goes through the
+# same import: a second transcription of the same file updates the same nodes.
+# Everything runs on this computer; the models download once, on first use.
+import audio as _audio
+import transcripts as _transcripts
+
+TRANSCRIPTS_DIRNAME = "transcripts"
+WHISPER_MODELS = ("tiny", "base", "small", "medium", "large-v3")
+_tr_job = {"running": False, "finished": False, "error": "", "stage": "", "done": 0, "total": 0,
+           "log": [], "result": None, "file": ""}
+_tr_lock = threading.Lock()
+_tr_stop = threading.Event()
+
+
+def _tr_log(msg):
+    """Log of the transcription job: the last 200 lines, and the progress lines
+    '[transcribe|diarize|translate] N/M' of the modules become the bar."""
+    msg = str(msg)
+    lines = _tr_job["log"]
+    lines.append(msg)
+    del lines[:-200]
+    m = re.match(r"\[(transcribe|diarize|translate)\] (\d+)/(\d+)", msg)
+    if m:
+        _tr_job["stage"], _tr_job["done"], _tr_job["total"] = m.group(1), int(m.group(2)), int(m.group(3))
+    else:
+        m = re.match(r"\[(diarize|translate)\]", msg)
+        if m and _tr_job["stage"] != m.group(1):
+            _tr_job.update(stage=m.group(1), done=0, total=0)
+    logging.info(msg)
+
+
+@app.route("/api/transcribe/status")
+def api_transcribe_status():
+    ok, why = _audio.available()
+    out = {"available": ok, "reason": why, "missing": _audio.missing_packages(),
+           "models": list(WHISPER_MODELS), "running": _tr_job["running"],
+           "install": "requirements-audio.txt"}
+    if ok:
+        try:
+            from audio import diarize as _dia
+            out["diarize_models_cached"] = _dia.models_cached()
+            out["models_dir"] = str(_dia.models_dir())
+        except Exception as e:                       # noqa: BLE001 - status only
+            out["diarize_models_cached"] = False
+            out["models_error"] = str(e)
+    return jsonify(out)
+
+
+@app.route("/api/transcribe", methods=["POST"])
+def api_transcribe():
+    """Starts the transcription of a video (or audio) file of this computer.
+    Body: {path, model_size, diarize, speakers, translate: ["en", "it"]}.
+    Progress: /api/transcribe/progress; stop: /api/transcribe/stop."""
+    data = request.get_json(silent=True) or {}
+    ok, why = _audio.available()
+    if not ok:
+        return jsonify({"error": "trascrizione non installata: pip install -r requirements-audio.txt",
+                        "reason": why}), 503
+    path = str(data.get("path") or "").strip().strip('"')
+    path = os.path.abspath(os.path.expanduser(path)) if path else ""
+    if not path or not os.path.isfile(path):
+        return jsonify({"error": f"file non trovato: {path}"}), 400
+    case_id = store.current_case()
+    if not case_id:
+        return jsonify({"error": "nessun caso aperto"}), 400
+    model = str(data.get("model_size") or "small")
+    if model not in WHISPER_MODELS:
+        return jsonify({"error": f"modello sconosciuto: {model}"}), 400
+    try:
+        speakers = max(0, min(20, int(data.get("speakers") or 0)))
+    except (TypeError, ValueError):
+        speakers = 0
+    opts = {"model_size": model, "diarize": _truthy(data.get("diarize", True)), "speakers": speakers,
+            "translate": [x for x in (data.get("translate") or []) if x in ("en", "it")]}
+    with _tr_lock:
+        if _tr_job["running"]:
+            return jsonify({"error": "trascrizione gia' in corso", "running": True}), 409
+        _tr_stop.clear()
+        _tr_job.update({"running": True, "finished": False, "error": "", "stage": "hash", "done": 0,
+                        "total": 0, "log": [], "result": None, "file": os.path.basename(path)})
+    threading.Thread(target=_run_transcribe, args=(path, opts, case_id), daemon=True).start()
+    return jsonify({"started": True})
+
+
+@app.route("/api/transcribe/progress")
+def api_transcribe_progress():
+    out = dict(_tr_job)
+    out["log"] = list(_tr_job["log"][-60:])
+    return jsonify(out)
+
+
+@app.route("/api/transcribe/stop", methods=["POST"])
+def api_transcribe_stop():
+    _tr_stop.set()
+    return jsonify({"ok": True, "running": _tr_job["running"]})
+
+
+def _run_transcribe(path, opts, case_id):
+    try:
+        from audio.transcribe import transcribe_video
+        sha = _transcripts.sha256_file(path)
+        out = os.path.join(DATA_DIR, TRANSCRIPTS_DIRNAME, case_id, sha[:16])
+        _tr_job["stage"] = "transcribe"
+        _tr_log(f"[transcribe] {os.path.basename(path)} -> {out}")
+        res = transcribe_video(path, out, model_size=opts["model_size"], diarize=opts["diarize"],
+                               num_speakers=opts["speakers"], translate=tuple(opts["translate"]),
+                               cancel=_tr_stop.is_set, log=_tr_log)
+        if store.current_case() != case_id:
+            raise NodeError(f"il caso aperto e' cambiato durante la trascrizione: il trascritto resta in {out}")
+        _tr_job.update(stage="import", done=0, total=0)
+        ents, names, body = _transcripts.entities(res, path, case_id, sha)
+        table = ftm.rows_from_entities({e["id"]: e for e in ents}, native_types=onto.TYPES,
+                                       reserved=ftm_reserved)
+        plan, _ = plan_import(table, mapping=_ftm_mapping(table[0]), has_header=True)
+        r = commit_plan(plan, update=True, ftm_dataset="quaesitor:transcribe")
+        _cache["key"] = None
+        # the transcript in the sources folder, where the search finds it
+        folder = os.path.join(_sources_folder(), TRANSCRIPTS_DIRNAME, re.sub(r"[^A-Za-z0-9_-]+", "_", case_id))
+        os.makedirs(folder, exist_ok=True)
+        stem = re.sub(r"[^\w.-]+", "_", os.path.splitext(os.path.basename(path))[0])[:60] + "_" + sha[:8]
+        files = []
+        if body:
+            fp = os.path.join(folder, stem + ".txt")
+            with open(fp, "w", encoding="utf-8") as f:
+                f.write(f"{os.path.basename(path)}\n\n{body}\n")
+            files.append(fp)
+        for lg in res.get("translations") or []:
+            fp = os.path.join(folder, f"{stem}.{lg}.txt")
+            with open(fp, "w", encoding="utf-8") as f:
+                f.write(f"{os.path.basename(path)} ({lg})\n\n{_transcripts.text_of(res.get('segments') or [], names, lang=lg)}\n")
+            files.append(fp)
+        scan = False
+        if files:
+            sfolder = _sources_folder()
+            with _scan_lock:
+                if not _scan["running"] and os.path.isdir(sfolder):
+                    _scan.update({"running": True, "done": 0, "total": 0, "name": "",
+                                  "finished": False, "error": "", "summary": None})
+                    _threading.Thread(target=_run_scan, args=(sfolder,), daemon=True).start()
+                    scan = True
+        node = next((i for i in r.get("ids") or [] if i.split(":", 1)[0] in ("video", "audio")), "")
+        _tr_job["result"] = {"node": node, "output": out, "segments": len(res.get("segments") or []),
+                             "speakers": len(names), "languages": res.get("languages") or [],
+                             "translations": res.get("translations") or [], "partial": bool(res.get("partial")),
+                             "nodes": r.get("nodes", 0), "links": r.get("links", 0),
+                             "updated": r.get("updated", 0), "sources": files, "sources_scan": scan}
+        _tr_log(f"[import] {r.get('nodes', 0)} nodes, {r.get('links', 0)} links, {r.get('updated', 0)} updated")
+    except Exception as e:
+        logging.error(f"Trascrizione fallita: {e}", exc_info=not isinstance(e, NodeError))
+        _tr_job["error"] = str(e)
+    finally:
+        _tr_job["running"] = False
+        _tr_job["finished"] = True
 
 
 # ======================= OPENSANCTIONS (ricerca online) =======================
@@ -4537,7 +4833,7 @@ def api_osa_import():
     ents = {i: e for i, e in ents.items() if e["schema"] in ftm.schema()}
     if not ents:
         return jsonify({"error": "; ".join(errors) or "nessuna entita' ricevuta"}), 502
-    table = ftm.rows_from_entities(ents, native_types=onto.TYPES)
+    table = ftm.rows_from_entities(ents, native_types=onto.TYPES, reserved=ftm_reserved)
     header, body = table[0], table[1:]
     totals = {"nodes": 0, "links": 0, "updated": 0, "same_links": 0}
     for i in range(0, len(body), FTM_BATCH):

@@ -36,6 +36,12 @@ if errorlevel 1 (
     pause
     exit /b 1
 )
+rem the video transcription is updated only where it was installed
+".venv\Scripts\python.exe" -c "import faster_whisper" >nul 2>&1
+if not errorlevel 1 (
+    echo  Updating the video transcription libraries ...
+    ".venv\Scripts\python.exe" -m pip install -r requirements-audio.txt --disable-pip-version-check
+)
 echo.
 echo  Update complete. If the program was running, restart it with start.bat.
 pause

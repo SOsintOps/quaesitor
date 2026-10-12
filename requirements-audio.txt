@@ -1,0 +1,14 @@
+# Video transcription, OPTIONAL (audio/ package, modules from Cognitor under the GPL).
+# Quaesitor runs without them; install.bat offers them, or:
+#   .venv\Scripts\python.exe -m pip install -r requirements-audio.txt
+# faster-whisper decodes the audio with PyAV (no system ffmpeg) and brings ctranslate2;
+# the diarization runs on onnxruntime + numpy, with scipy for the clustering;
+# the translation to Italian uses Argos packages (sentencepiece). Models download on first use.
+faster-whisper>=1.0
+scipy>=1.10
+sentencepiece>=0.2
+onnxruntime>=1.17
+numpy>=1.24
+# PyAV 19 removed the metadata_errors argument that faster-whisper 1.2.1 passes to
+# av.open() (seen on 2026-10-12): the cap goes away when faster-whisper follows.
+av<19

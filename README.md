@@ -1,15 +1,15 @@
-# Quaesitor 1.5.2
+# Quaesitor 1.6.0
 
-![version](https://img.shields.io/badge/version-1.5.2-blue)
+![version](https://img.shields.io/badge/version-1.6.0-blue)
 ![licence](https://img.shields.io/github/license/SOsintOps/quaesitor)
 ![last commit](https://img.shields.io/github/last-commit/SOsintOps/quaesitor)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
 ![backend](https://img.shields.io/badge/backend-Flask-lightgrey)
 ![storage](https://img.shields.io/badge/storage-local%20SQLite-success)
 
-**Quaesitor** is a case graph for OSINT investigations: people, phones, e-mails, social profiles, companies, vehicles, places and documents as an interactive graph, with every case stored on your own computer. It is a fork of [OSInt Graph](https://github.com/tingon11/OsintGraph) by Andrea Cumini (andrea@osintinfo.net, [www.osintinfo.net](https://www.osintinfo.net)): the program, its design, its code and its illustrated manual are his work, released as free software under the GNU GPL v3 with attribution terms. The fork exists because his program was already excellent and only needed adapting to the needs of one analyst — non-Latin names, the Follow the Money data model, the Epieos API and a one-click Windows install. It adds those and nothing else; see [Credits](#credits).
+**Quaesitor** is a case graph for OSINT investigations: people, phones, e-mails, social profiles, companies, vehicles, places and documents as an interactive graph, with every case stored on your own computer. It is a fork of [OSInt Graph](https://github.com/tingon11/OsintGraph) by Andrea Cumini (andrea@osintinfo.net, [www.osintinfo.net](https://www.osintinfo.net)): the program, its design, its code and its illustrated manual are his work, released as free software under the GNU GPL v3 with attribution terms. The fork exists because his program was already excellent and only needed adapting to the needs of one analyst — non-Latin names, the Follow the Money data model, the Epieos API, a one-click Windows install and the bridge with Cognitor, the face-recognition program of the same holder. It adds those and nothing else; see [Credits](#credits).
 
-Version 1.5.1 verifies the Linux install used by Argos and Speculator and makes OCR use every installed Tesseract language. Version 1.5.0 was the first public release: the fork carries its own name, wordmark and icon in the interface, as the licence requires, while the attribution of the original author stays in every place it was. Version 1.4.0 named the fork and brought the FAQ, the guidelines, the link analysis primer and this documentation layout. See the full [version history](docs/versionhistory.md) for previous releases and for what is planned next.
+Version 1.6.0 opens the cases of Cognitor (face photos, co-appearances, videos with their transcripts) through the Follow the Money import, reads large files by their path, fixes the import of every Follow the Money file, and transcribes videos on this computer with the modules of Cognitor, released by their holder under the GPL. Version 1.5.1 verifies the Linux install used by Argos and Speculator and makes OCR use every installed Tesseract language. Version 1.5.0 was the first public release: the fork carries its own name, wordmark and icon in the interface, as the licence requires, while the attribution of the original author stays in every place it was. Version 1.4.0 named the fork and brought the FAQ, the guidelines, the link analysis primer and this documentation layout. See the full [version history](docs/versionhistory.md) for previous releases and for what is planned next.
 
 ---
 
@@ -21,8 +21,9 @@ Version 1.5.1 verifies the Linux install used by Argos and Speculator and makes 
 - Any kind of node, any node as target, links with a label, a style, a colour and a direction; typed Follow the Money relations (ownership with percentage, directorship with role, payment with amount) on any link.
 - Node types for people, phones, e-mails, social profiles, places, vehicles, documents, investigative items (weapons, drugs, cash, cards, wallets, devices, events, property) and the 41 Follow the Money schemata (companies, bank accounts, passports, sanctions, vessels, contracts and so on, 727 fields, labels in five languages). Full catalogue in [docs/ontology.md](docs/ontology.md).
 - Non-Latin names: the Latin form is an attribute of the node, so the same person in Cyrillic, Arabic or Chinese and in Latin letters is one node; a switch restores separate twin nodes. Transliteration dictionary window (manual editing, CSV import and export, collection from the graph). Chinese: spaced pinyin, search from two characters, source search on text without spaces. Identity keys that respect Devanagari, Thai and kana with dakuten.
-- Import: guided CSV and Excel import with column mapping and preview, unknown columns kept as fields of the card; JSON exports of OSINT tools; Follow the Money datasets (`.json`, `.jsonl`, `.ftm`, up to 200 MB) with filters, progress and update on re-import.
+- Import: guided CSV and Excel import with column mapping and preview, unknown columns kept as fields of the card; JSON exports of OSINT tools; Follow the Money datasets (`.json`, `.jsonl`, `.ftm`, up to 200 MB, by upload or by path) with filters, progress and update on re-import; Cognitor case bundles (`.cognitor.zip`) with face photos, co-appearances and video transcripts.
 - Export: graph, table and cards to PDF; the case as Follow the Money JSON lines.
+- Video transcription (optional): transcript, speakers and translation of a video or audio file, on this computer; the video, its speakers and the text enter the graph and the sources.
 - Document sources: PDF, Word, Excel, CSV, text and images (OCR with Tesseract) indexed and searchable from the panel or from a card.
 - Online lookups, each off by default and confirmed when switched on: OpenSanctions (search, match and import of entities with their relations) and Epieos (reverse lookup of e-mails and phone numbers, paid service, every search confirmed in a dialog with the modules and the remaining credits, responses saved in the case and turned into account, breach, organisation, phone and e-mail nodes, saved responses importable from file without any call).
 - Optional AI (Ollama or any OpenAI-compatible server, off by default): free text into proposed nodes, transliteration of names.
@@ -83,12 +84,13 @@ The left panel groups everything the program does:
 * **Search and graph**: find nodes, expand and collapse, layouts, category filters, saved views.
 * **Node card**: notes, connections, raw records, images, OpenSanctions and Epieos buttons, PDF export.
 * **New node and links**: every node type, targets, labelled and directed links, Follow the Money relations.
-* **Import**: CSV and Excel wizard, JSON exports of OSINT tools, Follow the Money datasets, Epieos responses.
+* **Import**: CSV and Excel wizard, JSON exports of OSINT tools, Follow the Money datasets, Cognitor case bundles, Epieos responses.
 * **Sources**: indexed documents with OCR, searched from the panel or from a card.
 * **Transliteration dictionary**: the Latin forms of non-Latin names, by hand or from the graph.
 * **OpenSanctions and Epieos**: online lookups, off by default.
 * **AI**: optional server, text into nodes, transliteration.
 * **Export**: PDF of graph, table and cards; Follow the Money JSON lines.
+* **Transcribe video**: faster-whisper with speakers and translation; optional packages (`requirements-audio.txt`), models downloaded on first use.
 * **Help**: the illustrated manual, credits and licences.
 
 ---

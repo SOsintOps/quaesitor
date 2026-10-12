@@ -76,7 +76,11 @@ REQUIRED = {
 }
 # importati in modo lazy da app.py / sources.py: PyInstaller non li vede da solo
 HIDDEN = ["docx", "openpyxl", "xlrd", "pypdf", "pytesseract", "PIL.Image",
-          "pdfminer.high_level", "setup_tesseract", "tkinter", "tkinter.filedialog"]
+          "pdfminer.high_level", "setup_tesseract", "tkinter", "tkinter.filedialog",
+          # 1.6.0: Cognitor bundles and video transcription (the audio packages of
+          # requirements-audio.txt enter the executable only if installed when building)
+          "ftm_bundle", "transcripts", "audio", "audio.transcribe", "audio.diarize", "audio.voci",
+          "audio.translate", "audio.acceleratore"]
 
 
 def check_requirements():

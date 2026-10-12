@@ -45,15 +45,18 @@ TYPE = {"Person": "person", "Address": "place", "Vehicle": "vehicle", "Email": "
         "UserAccount": "social", "Note": "text", "HyperText": "link", "Image": "photo"}
 # tutti gli altri schemi-nodo hanno un tipo nativo generato (ontology_ftm.py)
 try:
-    from ontology_ftm import FTM_TYPE_OF, FTM_SCHEMA_OF
+    from ontology_ftm import FTM_TYPE_OF, FTM_SCHEMA_OF, FTM_TYPES
 except ImportError:                       # ontologia non generata: solo i built-in
-    FTM_TYPE_OF, FTM_SCHEMA_OF = {}, {}
+    FTM_TYPE_OF, FTM_SCHEMA_OF, FTM_TYPES = {}, {}, {}
 # proprieta' FtM con una colonna nativa dell'importazione
 NATIVE_COLS = {"birthDate": "nascita", "sourceUrl": "url", "website": "url",
                "notes": "nota", "summary": "nota"}
 # proprieta' gia' usate come nome del nodo: niente colonna doppia
 SKIP_FREE = {"name"}
 
+# Note (2026-10-12): no FtM schema reaches the types below any more, because every
+# node schema outside BUILTIN has a generated native type (ontology_ftm.py). The
+# table stays as documentation of the mapping and for the export (EXPORT_IT).
 # Tipi di ontology.py gia' esistenti: campo OsintGraph <- proprieta' FtM, in
 # ordine di preferenza (la prima presente vince). Le proprieta' non mappate
 # restano come colonne libere della scheda, nulla va perso.
@@ -385,64 +388,102 @@ def entities_to_rows(blob, native_types=()):
     return rows_from_entities(ents, native_types)
 
 
-def rows_from_entities(ents, native_types=()):
-    """{id: entita'} -> tabella (prima riga = intestazione) per plan_import."""
+def _full_date(v):
+    """A complete date (YYYY-MM-DD, first value): the import accepts no partial date
+    as a birth date, and a partial one would make the whole row fail."""
+    m = re.match(r"^\s*(\d{4}-\d{2}-\d{2})", str(v or ""))
+    return m.group(1) if m else ""
+
+
+def image_file(e, media):
+    """Local path (media/...) of the file of an Image entity, or '' when the file did
+    not come with the import (an Image without its file cannot become a photo node)."""
+    for fn in e["properties"].get("fileName") or []:
+        if str(fn) in (media or {}):
+            return media[str(fn)]
+    return ""
+
+
+def rows_from_entities(ents, native_types=(), media=None, reserved=None):
+    """{id: entita'} -> tabella (prima riga = intestazione) per plan_import.
+
+    media: {Image.fileName: path under DATA_DIR ('media/...')} for the images that
+    arrived with a bundle; an Image without a file is left out, with its links.
+    reserved: predicate on a free column name; True when the import would read it as
+    a fixed column (title -> label, type -> node type...), so it gets an 'ftm_' prefix.
+
+    Since 2026-10-12 every node entity has a row of its own, before the links: before,
+    an entity reached only as the target of an entity property (a Person 'pictured' by
+    an Image) had no row, and it vanished when the row of the link failed."""
     native = {str(t).lower() for t in native_types}
+    media = media or {}
+    reserved = reserved or (lambda name: False)
 
     rows, free = [], set()
+
+    def importable(e):
+        return otype(e["schema"], native) != "photo" or bool(image_file(e, media))
 
     def side(e, s):
         r = {}
         sc = e["schema"]
         t = otype(sc, native)
-        r[f"name{s}"] = caption(e)
         r[f"type{s}"] = t
         r[f"Schema FtM{s}"] = sc
         scal = _scalars(e)
+        if t == "photo":
+            # the value of a photo node is its file under DATA_DIR; the caption is the label
+            r[f"name{s}"] = image_file(e, media)
+            r[f"label{s}"] = next((str(v[0]) for v in (e["properties"].get("title"),
+                                                         e["properties"].get("name")) if v), caption(e))
+        else:
+            r[f"name{s}"] = caption(e)
         if t in FTM_SCHEMA_OF:
             # tipo generato da FtM: le chiavi dei campi SONO le proprieta' FtM;
-            # l'id FtM entra nel campo nascosto ftmId (identita' del nodo)
-            scal["ftmId"] = str(e.get("id") or "")
-            r[f"campi{s}"] = json.dumps(scal, ensure_ascii=False)
-            scal = {}
+            # l'id FtM entra nel campo nascosto ftmId (identita' del nodo).
+            # Le proprieta' che non sono campi del tipo (bodyText, description,
+            # notes...) restano colonne libere: fino al 2026-10-12 andavano perse
+            keys = {f["key"] for f in (FTM_TYPES.get(t) or {}).get("fields", [])}
+            fields = {k: v for k, v in scal.items() if not keys or k in keys}
+            fields["ftmId"] = str(e.get("id") or "")
+            r[f"campi{s}"] = json.dumps(fields, ensure_ascii=False)
+            scal = {k: v for k, v in scal.items() if keys and k not in keys}
         elif e.get("id"):
             r[f"FtM id{s}"] = str(e["id"])                # built-in: id nella scheda
-        elif t in FIELD_MAP:
-            fields, used = {}, set()
-            for fkey, cands in FIELD_MAP[t]:
-                for k in cands:
-                    if scal.get(k):
-                        fields[fkey] = scal[k]
-                        used.add(k)
-                        break
-            for (sch, typ, fkey), val in CONST_FIELDS.items():
-                if sch == sc and typ == t and fkey not in fields:
-                    fields[fkey] = val
-            if fields:
-                r[f"campi{s}"] = json.dumps(fields, ensure_ascii=False)
-            scal = {k: v for k, v in scal.items() if k not in used}
-        if True:
-            for k, v in scal.items():
-                if k in SKIP_FREE:
+        for k, v in scal.items():
+            if k in SKIP_FREE:
+                continue
+            col = NATIVE_COLS.get(k)
+            if col == "nascita":
+                d = _full_date(v)
+                if s == "1" and d:
+                    r["nascita1"] = d
                     continue
-                col = NATIVE_COLS.get(k)
-                if col == "nascita" and s == "1":
-                    r["nascita1"] = v
-                elif col:
-                    r[f"{col}{s}"] = v
-                else:
-                    r[f"{k}{s}"] = v
-                    free.add(f"{k}{s}")
+                col = None                       # a partial date stays a card field
+            if k == "description":
+                col = "text"
+            if col == "nota" and r.get(f"nota{s}"):
+                r[f"nota{s}"] += "\n" + v           # notes and summary together
+            elif col:
+                r[f"{col}{s}"] = v
+            else:
+                name = f"ftm_{k}" if reserved(k) else k
+                r[f"{name}{s}"] = v
+                free.add(f"{name}{s}")
         return r
 
-    linked = set()
+    nodes = {i: e for i, e in ents.items() if not schema()[e["schema"]].get("edge")}
+    ok = {i for i, e in nodes.items() if importable(e)}
+    for i in ok:
+        rows.append(side(nodes[i], "1"))
+
     for e in ents.values():
         ed = schema()[e["schema"]].get("edge")
         if not ed:
             continue
         src = (e["properties"].get(ed["source"]) or [None])[0]
         dst = (e["properties"].get(ed["target"]) or [None])[0]
-        if src not in ents or dst not in ents:
+        if src not in ok or dst not in ok:
             continue
         # relazione tipizzata: schema-arco e sue proprieta'; l'etichetta la
         # compone il server (edge_auto_label) se resta vuota. UnknownLink e' il
@@ -458,32 +499,31 @@ def rows_from_entities(ents, native_types=()):
             r = {"relation": "", "ftm_edge": e["schema"],
                  "ftm_props": json.dumps(eprops, ensure_ascii=False) if eprops else "",
                  "arrow": "->" if ed.get("directed", True) else "<->"}
+            # Cognitor co-appearance: the counts live in 'summary', which a link does
+            # not keep as a field; they go in the label, where the analyst reads them
+            summ = "; ".join(str(x) for x in e["properties"].get("summary") or [])
+            if e["schema"] == "Associate" and eprops.get("relationship") == "seen together" and summ:
+                # a Quaesitor export carries the label back in summary: no nesting
+                r["relation"] = (summ if summ.startswith("seen together") else f"seen together ({summ})")[:300]
         r.update(side(ents[src], "1"))
         r.update(side(ents[dst], "2"))
         rows.append(r)
-        linked.update((src, dst))
 
-    for e in ents.values():
-        if schema()[e["schema"]].get("edge"):
-            continue
+    for i in ok:
+        e = nodes[i]
         props = all_props(e["schema"])
         targets = [(k, t) for k, vals in e["properties"].items()
                    if props.get(k, {}).get("type") == "entity" and isinstance(vals, list)
-                   for t in vals if t in ents]
-        base = side(e, "1")
-        if targets:
-            for k, t in targets:
-                r = dict(base)
-                r.update({"relation": k, "arrow": "->"})
-                r.update(side(ents[t], "2"))
-                rows.append(r)
-                linked.add(t)
-        elif e["id"] not in linked:
-            rows.append(base)
+                   for t in vals if t in ok]
+        for k, t in targets:
+            r = side(e, "1")
+            r.update({"relation": k, "arrow": "->"})
+            r.update(side(nodes[t], "2"))
+            rows.append(r)
 
-    fixed = ["name1", "type1", "relation", "arrow", "ftm_edge", "ftm_props", "name2", "type2", "campi1", "campi2",
-             "nascita1", "nascita2", "url1", "url2", "nota1", "nota2",
-             "Schema FtM1", "Schema FtM2", "FtM id1", "FtM id2"]
+    fixed = ["name1", "type1", "label1", "relation", "arrow", "ftm_edge", "ftm_props", "name2", "type2",
+             "label2", "campi1", "campi2", "nascita1", "nascita2", "url1", "url2", "nota1", "nota2",
+             "text1", "text2", "Schema FtM1", "Schema FtM2", "FtM id1", "FtM id2"]
     used = {k for r in rows for k in r}
     cols = [c for c in fixed if c in used] + sorted(free)
     return [cols] + [[r.get(c, "") for c in cols] for r in rows]
@@ -515,7 +555,7 @@ INTERNAL_RELS = {"", "target", "result", "phone", "email", "username", "name", "
                  "email-alias", "translit", "pname", "photo", "manuale", "breach", "registered", "organization"}
 EXPORT_BUILTIN = {"name": "Person", "target": "Person", "place": "Address", "vehicle": "Vehicle",
                   "account": "UserAccount", "username": "UserAccount", "link": "HyperText", "text": "Note",
-                  "domain": "HyperText"}
+                  "domain": "HyperText", "photo": "Image"}
 # nodi che non hanno uno schema FtM: diventano proprieta' dei vicini
 PROPERTY_NODES = {"phone": "phone", "email": "email"}
 
@@ -627,6 +667,11 @@ def export_entities(graph, entries, ftm_ids, only=None):
             elif sc == "HyperText":
                 _add(props, "title", n.get("label"))
                 _add(props, "sourceUrl", n.get("url") or entry.get("value"))
+            elif sc == "Image":
+                # photo node: its file under DATA_DIR (media/...) and its caption; the
+                # persons it pictures follow as links (2026-10-12, before: a Note)
+                _add(props, "fileName", entry.get("value"))
+                _add(props, "title", n.get("label"))
             else:                                               # Note
                 _add(props, "name", n.get("label"))
                 _add(props, "description", entry.get("text"))

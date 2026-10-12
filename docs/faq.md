@@ -35,6 +35,7 @@ Frequently asked questions about Quaesitor — the project, the licence, install
 * [How are Cyrillic, Arabic or Chinese names handled?](#how-are-cyrillic-arabic-or-chinese-names-handled)
 * [What is the transliteration dictionary?](#what-is-the-transliteration-dictionary)
 * [And Chinese?](#and-chinese)
+* [Does the video transcription send the audio anywhere?](#does-the-video-transcription-send-the-audio-anywhere)
 * [Does it talk to Cognitor?](#does-it-talk-to-cognitor)
 * [Where do I report a problem or ask a question?](#where-do-i-report-a-problem-or-ask-a-question)
 * [Where is the rest of the documentation?](#where-is-the-rest-of-the-documentation)
@@ -212,9 +213,13 @@ Spaced pinyin in the Latin form, search from two characters, and source search o
 
 ## Integrations
 
+### Does the video transcription send the audio anywhere?
+
+No. Since 1.6.0 the transcription runs on this computer: faster-whisper for the text, Silero VAD and WeSpeaker for the speakers, Argos packages for the Italian translation. The network is used once per model, to download it on first use (a few hundred MB in all, into `~/.quaesitor/models` and the Hugging Face cache); after that the transcription works offline. The feature is optional: answer yes to the transcription in `install.bat`, or run `.venv\Scripts\python.exe -m pip install -r requirements-audio.txt`. The modules come from Cognitor, released by their holder under the GPL as part of Quaesitor.
+
 ### Does it talk to Cognitor?
 
-Not directly. Cognitor (face recognition with cases and a co-appearance graph) and Quaesitor share no code and no live link. The practical bridge is a file: Cognitor would export persons, photos and co-appearances in Follow the Money format, which Quaesitor imports natively. That exporter does not exist yet.
+Through a file, since 1.6.0. Cognitor (face recognition with cases and a co-appearance graph) exports a case with **Export (FollowTheMoney)** as a `.cognitor.zip` bundle. Open it from **Import** or drop it on the Follow the Money window; for a bundle above 20 MB type its path in the field of that window. Persons, unknown groups, face photos, "seen together" links with the number of shared photos and video segments, videos with their transcripts and the "speaks in" / "appears in" links arrive in the current case. The photos are copied under `data/media/cognitor/`, the transcripts into the sources folder, where the search finds them. Importing the same case again updates the nodes instead of duplicating them. Face and voice embeddings stay in Cognitor: Follow the Money has no schema for them. An unknown group named in Cognitor after an export becomes a person at the next export; the old "Unknown #N" node stays here, to be merged by hand.
 
 ## Help & Documentation
 

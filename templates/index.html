@@ -81,6 +81,7 @@
     <button id="showManual" data-i18n="btn.showManual">✎ Modifiche manuali</button>
     <button id="newNode" data-i18n="btn.newNode">➕ Nuovo nodo</button>
     <button id="importData" data-i18n="btn.import">📥 Importa CSV/Excel</button>
+    <button id="transcribeVideo" data-i18n="btn.transcribe" data-i18n-title="tr.sub">🎙 Trascrivi video</button>
     <button id="aiTranslit" hidden>Traslittera con AI</button>
     <button id="showDict" data-i18n="btn.dict" data-i18n-title="dict.hint">Dizionario traslitterazioni</button>
     <button id="exportFtm" data-i18n="btn.exportFtm" data-i18n-title="ftm.exportHint">Esporta Follow the Money</button>
@@ -749,7 +750,7 @@
         <div id="imp-drop" tabindex="0">
           <span id="imp-drop-txt" data-i18n="imp.drop">Trascina qui il file .csv / .xlsx o clicca per sceglierlo</span>
         </div>
-        <input id="imp-file" type="file" accept=".csv,.tsv,.txt,.xlsx,.xlsm,.json,.jsonl,.ftm" hidden>
+        <input id="imp-file" type="file" accept=".csv,.tsv,.txt,.xlsx,.xlsm,.json,.jsonl,.ftm,.zip" hidden>
       </div>
 
       <!-- passo 2: a cosa corrisponde ogni colonna -->
@@ -804,7 +805,12 @@
           <div data-i18n="ftm.help2">Gli id FtM vengono conservati: importare di nuovo lo stesso dataset aggiorna i nodi invece di duplicarli.</div>
         </div>
         <div id="ftm-drop" tabindex="0"><span id="ftm-drop-txt" data-i18n="ftm.drop">Trascina qui il file .json / .jsonl / .ftm o clicca per sceglierlo</span></div>
-        <input id="ftm-file" type="file" accept=".json,.jsonl,.ftm,.ndjson" hidden>
+        <input id="ftm-file" type="file" accept=".json,.jsonl,.ftm,.ndjson,.zip" hidden>
+        <div class="imp-help"><div data-i18n="ftm.help3">Un pacchetto di Cognitor (.cognitor.zip) porta con sé le foto dei volti e i trascritti: le foto diventano nodi collegati alle persone, i trascritti entrano nelle fonti.</div></div>
+        <div class="ftm-path">
+          <input id="ftm-path" autocomplete="off" data-i18n-ph="ftm.pathPh" placeholder="Percorso del file su questo computer (per i file oltre 20 MB)">
+          <button type="button" id="ftm-path-go" data-i18n="ftm.pathGo">Apri</button>
+        </div>
       </div>
       <div id="ftm-step2" hidden>
         <div id="ftm-sum" class="imp-sum"></div>
@@ -828,6 +834,41 @@
       <button id="ftmmodal-back" data-i18n="imp.back" hidden>Indietro</button>
       <button id="ftmmodal-go" data-i18n="ftm.go" hidden>Importa</button>
       <button id="ftmmodal-done" data-i18n="ftm.done" hidden>Chiudi</button>
+    </div>
+  </div>
+</div>
+
+<div id="trmodal" hidden>
+  <div id="trmodal-box">
+    <div id="trmodal-head">
+      <div>
+        <div id="trmodal-title" data-i18n="tr.title">🎙 Trascrivi un video</div>
+        <div id="trmodal-sub" data-i18n="tr.sub">Sbobinatura, parlanti e traduzione, tutto su questo computer</div>
+      </div>
+      <button id="trmodal-close">✕</button>
+    </div>
+    <div id="trmodal-body">
+      <div class="imp-help"><div data-i18n="tr.help">Il video diventa un nodo con il trascritto, ogni voce un nodo persona «Speaker k» collegato al video con «speaks in»; il testo entra nelle fonti. Ritrascrivere lo stesso file aggiorna gli stessi nodi. I modelli si scaricano una volta sola, al primo uso.</div></div>
+      <div id="tr-status" class="jm-msg"></div>
+      <label class="af-lb" for="tr-path" data-i18n="tr.path">File video o audio su questo computer</label>
+      <input id="tr-path" autocomplete="off" data-i18n-ph="tr.pathPh" placeholder="C:\percorso\video.mp4">
+      <div class="ftm-filters">
+        <div><label class="af-lb" for="tr-model" data-i18n="tr.model">Modello Whisper</label>
+          <select id="tr-model"><option>tiny</option><option>base</option><option selected>small</option><option>medium</option><option>large-v3</option></select></div>
+        <div><label class="af-lb" for="tr-speakers" data-i18n="tr.speakers">Parlanti (0 = automatico)</label><input id="tr-speakers" type="text" inputmode="numeric" value="0"></div>
+      </div>
+      <label class="af-check"><input type="checkbox" id="tr-diarize" checked><span data-i18n="tr.diarize">Riconosci chi parla (diarizzazione)</span></label>
+      <label class="af-check"><input type="checkbox" id="tr-en"><span data-i18n="tr.toEn">Traduci in inglese</span></label>
+      <label class="af-check"><input type="checkbox" id="tr-it"><span data-i18n="tr.toIt">Traduci in italiano</span></label>
+      <div id="tr-prog-txt" class="imp-sum"></div>
+      <div class="ftm-bar"><div id="tr-bar-fill"></div></div>
+      <pre id="tr-log"></pre>
+      <div id="tr-result" class="imp-sum"></div>
+    </div>
+    <div id="trmodal-foot">
+      <button id="tr-stop" data-i18n="tr.stop" disabled>Ferma</button>
+      <button id="tr-go" data-i18n="tr.go">Trascrivi</button>
+      <button id="tr-done" data-i18n="ftm.done">Chiudi</button>
     </div>
   </div>
 </div>

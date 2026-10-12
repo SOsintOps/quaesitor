@@ -5,7 +5,8 @@ rem  Double-click it, or from PowerShell:  .\install.bat
 rem  What it does: finds Python 3.10+, creates the .venv environment next to
 rem  the program, installs the libraries, prepares chatbot.conf and
 rem  services.conf from the example copies, creates the "fonti" folder for the
-rem  document sources, asks whether to download Tesseract (OCR).
+rem  document sources, asks whether to download Tesseract (OCR) and whether to
+rem  install the video transcription (requirements-audio.txt).
 rem  It can be run again as often as needed: it never overwrites the settings
 rem  files or the data (the "data" folder).
 rem ============================================================================
@@ -84,6 +85,15 @@ set /p "OCR=  Download Tesseract to read the text in images (OCR)? [y/N] "
 if /i "%OCR%"=="y" (
     "%VPY%" setup_tesseract.py
     if errorlevel 1 echo  Tesseract not installed: you can retry from the program, Sources panel.
+)
+
+rem --- 6) video transcription, optional ------------------------------------------
+echo.
+set "AUD=N"
+set /p "AUD=  Install the video transcription (about 300 MB of libraries, models on first use)? [y/N] "
+if /i "%AUD%"=="y" (
+    "%VPY%" -m pip install -r requirements-audio.txt --disable-pip-version-check
+    if errorlevel 1 echo  Transcription not installed: run install.bat again, or see requirements-audio.txt.
 )
 
 rem --- done ---------------------------------------------------------------------

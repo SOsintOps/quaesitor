@@ -6,7 +6,19 @@ Changelog of all releases and improvements to Quaesitor, the SOsintOps fork of O
 
 ## Planned
 
-What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker packaging, the fork's own name and logo in the interface, the English translation of the remaining Italian pages, a customising guide, the Cognitor exporter.
+What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker packaging, the fork's own name and logo in the interface, the English translation of the remaining Italian pages, a customising guide, the follow-ups of the Cognitor bridge.
+
+---
+
+## 1.6.0 — 2026
+
+- **New:** Video transcription, optional. **🎙 Transcribe video** in the toolbar transcribes a video or audio file of this computer with faster-whisper, tells the speakers apart (diarization) and, on request, translates to English or Italian. The video becomes a node with the transcript, every voice a person node "Speaker k (file)" linked to it by "speaks in", and the text goes into the sources folder, where the search finds it. Transcribing the same file again updates the same nodes. Everything runs on this computer; the models download once, on first use. The modules come from Cognitor, released by their holder under the GPL as part of Quaesitor (`audio/`, see `audio/README.md`); the packages are in `requirements-audio.txt`, offered by `install.bat` and updated by `update.bat` where installed.
+- **New:** Cognitor bundles. A `.cognitor.zip` written by Cognitor's **Export (FollowTheMoney)** opens in the Follow the Money import: persons, unknown groups and voices, face photos, co-appearances, videos with their transcripts. The face photos are copied under `data/media/cognitor/<case>/` and become photo nodes linked to the persons, and a person shows its first photo as its icon. The transcripts are copied to the sources folder under `cognitor/<case>/` and indexed, so the sources search finds what was said. Every file of the bundle is checked against the sha256 of its manifest; names outside `media/` and `transcripts/` and images that are not images are refused.
+- **New:** "Seen together" links (co-appearances from Cognitor) are drawn in amber, thicker with more shared photos and video segments, and carry the counts in their label; "speaks in" links are dashed violet, "appears in" dotted teal.
+- **New:** The Follow the Money import reads a file by its path on this computer, next to the upload. The upload stops at 20 MB, which a bundle with photos exceeds; the path does not.
+- **Changed:** Follow the Money import fixes. Every node entity gets a row of its own, so a person reached only through another entity (a photo that pictures it) no longer vanishes when that row fails. An `Image` without its file is left out instead of failing. Native types (Video, Document, Audio...) keep `bodyText`, `description`, `summary`, `notes` and `sourceUrl`, which were dropped. A partial birth date (`1980`) stays a field of the card instead of failing the row. Free properties named like a fixed column (`title`, `type`, `service`...) get an `ftm_` prefix instead of overriding the label, the node type or the platform. `notes` and `summary` are joined instead of one overwriting the other.
+- **Changed:** The Follow the Money export writes a photo node as an `Image` with its file name and caption, not as a `Note`; re-imported on the same computer, the photo comes back as a photo. A "seen together" link exported and imported again keeps its label instead of nesting it, so the round trip Cognitor -> Quaesitor -> export -> import doubles nothing.
+- **New:** A test suite (`tests/`, pytest from `requirements-dev.txt`, run with `.venv\Scripts\python.exe -m pytest`) covers the import fixes and the bundle; `scripts/smoke_test.py` imports the sample bundle too.
 
 ---
 

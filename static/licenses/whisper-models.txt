@@ -1,0 +1,5 @@
+Whisper models (faster-whisper conversion) - https://huggingface.co/Systran
+
+Not distributed with Quaesitor: downloaded on first use by the video transcription
+(audio/, requirements-audio.txt) into ~/.quaesitor/models or the Hugging Face cache.
+Licence: MIT. Copyright: OpenAI; conversion by SYSTRAN.

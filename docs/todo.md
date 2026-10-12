@@ -22,7 +22,7 @@ This file collects ideas, requirements and potential improvements to be evaluate
 
 ### Integrations
 
-- **Cognitor:** an exporter on the Cognitor side writing persons, photos and co-appearances in Follow the Money format (`Person`, `Image`, `UnknownLink` or `Associate`), so that a face-recognition case can be imported here without a bridge. Embeddings and unknown clusters have no FtM schema; an extension of the ontology is to be proposed upstream.
+- **After Cognitor bundles and video transcription (1.6.0):** verify the licence terms of the WeSpeaker models and of the Argos `en_it` package and write them in the third-party notices; a "Transcribe again" button on the video card, which needs the path of the original file (the node keeps only its name); the transcription inside the executable, which needs the audio packages installed when building; an unknown group named in Cognitor after an export arrives as a new person while the old "Unknown #N" node stays, so a merge proposal on import (same dataset, `previousName`) would save the manual merge.
 
 ### Verification on a Real Account
 

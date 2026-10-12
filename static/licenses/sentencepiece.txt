@@ -1,0 +1,4 @@
+SentencePiece 0.2.2 - https://pypi.org/project/sentencepiece/
+
+Licensed under the Apache-2.0 licence. The installed wheel ships no licence file;
+the full text is in the source repository of the project.

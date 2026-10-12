@@ -4608,6 +4608,214 @@ Object.assign(I18N.ar, {
  "epcfg.saved": "تم حفظ إعدادات Epieos."
 });
 
+// Cognitor bundle in the Follow the Money import (1.6.0)
+Object.assign(I18N.it, {
+ "ftm.help3": "Un pacchetto di Cognitor (.cognitor.zip) porta con sé le foto dei volti e i trascritti: le foto diventano nodi collegati alle persone, i trascritti entrano nelle fonti.",
+ "ftm.pathPh": "Percorso del file su questo computer (per i file oltre 20 MB)",
+ "ftm.pathGo": "Apri",
+ "ftm.bundleLine": "Pacchetto di Cognitor, caso «{name}»: {images} foto, {transcripts} trascritti.",
+ "ftm.bundleResult": "Foto: {images} (scartate {refused}). Trascritti copiati nelle fonti: {transcripts}.",
+ "ftm.stageFiles": "Copia delle foto e dei trascritti…"
+});
+Object.assign(I18N.en, {
+ "ftm.help3": "A Cognitor bundle (.cognitor.zip) carries the face photos and the transcripts: the photos become nodes linked to the persons, the transcripts join the sources.",
+ "ftm.pathPh": "Path of the file on this computer (for files above 20 MB)",
+ "ftm.pathGo": "Open",
+ "ftm.bundleLine": "Cognitor bundle, case “{name}”: {images} photos, {transcripts} transcripts.",
+ "ftm.bundleResult": "Photos: {images} ({refused} refused). Transcripts copied to the sources: {transcripts}.",
+ "ftm.stageFiles": "Copying the photos and the transcripts…"
+});
+Object.assign(I18N.fr, {
+ "ftm.help3": "Un paquet Cognitor (.cognitor.zip) contient les photos des visages et les transcriptions : les photos deviennent des nœuds liés aux personnes, les transcriptions rejoignent les sources.",
+ "ftm.pathPh": "Chemin du fichier sur cet ordinateur (pour les fichiers de plus de 20 Mo)",
+ "ftm.pathGo": "Ouvrir",
+ "ftm.bundleLine": "Paquet Cognitor, affaire « {name} » : {images} photos, {transcripts} transcriptions.",
+ "ftm.bundleResult": "Photos : {images} ({refused} refusées). Transcriptions copiées dans les sources : {transcripts}.",
+ "ftm.stageFiles": "Copie des photos et des transcriptions…"
+});
+Object.assign(I18N.de, {
+ "ftm.help3": "Ein Cognitor-Paket (.cognitor.zip) enthält die Gesichtsfotos und die Transkripte: Die Fotos werden zu Knoten, die mit den Personen verbunden sind, die Transkripte kommen zu den Quellen.",
+ "ftm.pathPh": "Pfad der Datei auf diesem Computer (für Dateien über 20 MB)",
+ "ftm.pathGo": "Öffnen",
+ "ftm.bundleLine": "Cognitor-Paket, Fall „{name}“: {images} Fotos, {transcripts} Transkripte.",
+ "ftm.bundleResult": "Fotos: {images} ({refused} abgelehnt). In die Quellen kopierte Transkripte: {transcripts}.",
+ "ftm.stageFiles": "Fotos und Transkripte werden kopiert…"
+});
+Object.assign(I18N.es, {
+ "ftm.help3": "Un paquete de Cognitor (.cognitor.zip) incluye las fotos de los rostros y las transcripciones: las fotos se convierten en nodos vinculados a las personas, las transcripciones pasan a las fuentes.",
+ "ftm.pathPh": "Ruta del archivo en este ordenador (para archivos de más de 20 MB)",
+ "ftm.pathGo": "Abrir",
+ "ftm.bundleLine": "Paquete de Cognitor, caso «{name}»: {images} fotos, {transcripts} transcripciones.",
+ "ftm.bundleResult": "Fotos: {images} ({refused} rechazadas). Transcripciones copiadas a las fuentes: {transcripts}.",
+ "ftm.stageFiles": "Copiando las fotos y las transcripciones…"
+});
+Object.assign(I18N.ar, {
+ "ftm.help3": "تحمل حزمة Cognitor ‏(.cognitor.zip) صور الوجوه والنصوص المفرغة: تصبح الصور عقدًا مرتبطة بالأشخاص، وتنضم النصوص المفرغة إلى المصادر.",
+ "ftm.pathPh": "مسار الملف على هذا الحاسوب (للملفات التي تتجاوز 20 ميغابايت)",
+ "ftm.pathGo": "فتح",
+ "ftm.bundleLine": "حزمة Cognitor، القضية «{name}»: {images} صورة، {transcripts} نصًا مفرغًا.",
+ "ftm.bundleResult": "الصور: {images} (المرفوضة {refused}). النصوص المفرغة المنسوخة إلى المصادر: {transcripts}.",
+ "ftm.stageFiles": "جارٍ نسخ الصور والنصوص المفرغة…"
+});
+
+// Video transcription (1.6.0)
+Object.assign(I18N.it, {
+ "btn.transcribe": "🎙 Trascrivi video",
+ "tr.title": "🎙 Trascrivi un video",
+ "tr.sub": "Sbobinatura, parlanti e traduzione, tutto su questo computer",
+ "tr.help": "Il video diventa un nodo con il trascritto, ogni voce un nodo persona «Speaker k» collegato al video con «speaks in»; il testo entra nelle fonti. Ritrascrivere lo stesso file aggiorna gli stessi nodi. I modelli si scaricano una volta sola, al primo uso.",
+ "tr.path": "File video o audio su questo computer",
+ "tr.pathPh": "C:\\percorso\\video.mp4",
+ "tr.model": "Modello Whisper",
+ "tr.speakers": "Parlanti (0 = automatico)",
+ "tr.diarize": "Riconosci chi parla (diarizzazione)",
+ "tr.toEn": "Traduci in inglese",
+ "tr.toIt": "Traduci in italiano",
+ "tr.stop": "Ferma",
+ "tr.go": "Trascrivi",
+ "tr.ready": "Pronto: i modelli della diarizzazione sono già scaricati.",
+ "tr.readyDownload": "Pronto: al primo uso si scaricano i modelli (Whisper e diarizzazione, alcune centinaia di MB).",
+ "tr.missing": "Trascrizione non installata (mancano: {pkgs}). Rilancia install.bat e rispondi sì alla trascrizione, oppure: .venv\\Scripts\\python.exe -m pip install -r requirements-audio.txt",
+ "tr.failed": "Trascrizione non riuscita: {e}",
+ "tr.result": "Fatto: {segments} segmenti, {speakers} parlanti; {nodes} nodi nuovi, {links} collegamenti, {updated} nodi aggiornati.",
+ "tr.partial": "Trascrizione interrotta: il testo è parziale.",
+ "tr.stage.hash": "Impronta del file…",
+ "tr.stage.transcribe": "Trascrizione",
+ "tr.stage.diarize": "Parlanti",
+ "tr.stage.translate": "Traduzione",
+ "tr.stage.import": "Nodi nel grafo…"
+});
+Object.assign(I18N.en, {
+ "btn.transcribe": "🎙 Transcribe video",
+ "tr.title": "🎙 Transcribe a video",
+ "tr.sub": "Transcript, speakers and translation, all on this computer",
+ "tr.help": "The video becomes a node with the transcript, every voice a person node “Speaker k” linked to the video by “speaks in”; the text joins the sources. Transcribing the same file again updates the same nodes. The models download once, on first use.",
+ "tr.path": "Video or audio file on this computer",
+ "tr.pathPh": "C:\\path\\video.mp4",
+ "tr.model": "Whisper model",
+ "tr.speakers": "Speakers (0 = automatic)",
+ "tr.diarize": "Tell who speaks (diarization)",
+ "tr.toEn": "Translate to English",
+ "tr.toIt": "Translate to Italian",
+ "tr.stop": "Stop",
+ "tr.go": "Transcribe",
+ "tr.ready": "Ready: the diarization models are already downloaded.",
+ "tr.readyDownload": "Ready: the first run downloads the models (Whisper and diarization, a few hundred MB).",
+ "tr.missing": "Transcription not installed (missing: {pkgs}). Run install.bat again and answer yes to the transcription, or: .venv\\Scripts\\python.exe -m pip install -r requirements-audio.txt",
+ "tr.failed": "Transcription failed: {e}",
+ "tr.result": "Done: {segments} segments, {speakers} speakers; {nodes} new nodes, {links} links, {updated} nodes updated.",
+ "tr.partial": "Transcription stopped: the text is partial.",
+ "tr.stage.hash": "Fingerprint of the file…",
+ "tr.stage.transcribe": "Transcription",
+ "tr.stage.diarize": "Speakers",
+ "tr.stage.translate": "Translation",
+ "tr.stage.import": "Nodes in the graph…"
+});
+Object.assign(I18N.fr, {
+ "btn.transcribe": "🎙 Transcrire une vidéo",
+ "tr.title": "🎙 Transcrire une vidéo",
+ "tr.sub": "Transcription, locuteurs et traduction, le tout sur cet ordinateur",
+ "tr.help": "La vidéo devient un nœud avec la transcription, chaque voix un nœud personne « Speaker k » lié à la vidéo par « speaks in » ; le texte rejoint les sources. Transcrire à nouveau le même fichier met à jour les mêmes nœuds. Les modèles se téléchargent une seule fois, à la première utilisation.",
+ "tr.path": "Fichier vidéo ou audio sur cet ordinateur",
+ "tr.pathPh": "C:\\chemin\\video.mp4",
+ "tr.model": "Modèle Whisper",
+ "tr.speakers": "Locuteurs (0 = automatique)",
+ "tr.diarize": "Reconnaître qui parle (diarisation)",
+ "tr.toEn": "Traduire en anglais",
+ "tr.toIt": "Traduire en italien",
+ "tr.stop": "Arrêter",
+ "tr.go": "Transcrire",
+ "tr.ready": "Prêt : les modèles de diarisation sont déjà téléchargés.",
+ "tr.readyDownload": "Prêt : la première exécution télécharge les modèles (Whisper et diarisation, quelques centaines de Mo).",
+ "tr.missing": "Transcription non installée (manquent : {pkgs}). Relancez install.bat et répondez oui à la transcription, ou : .venv\\Scripts\\python.exe -m pip install -r requirements-audio.txt",
+ "tr.failed": "Échec de la transcription : {e}",
+ "tr.result": "Terminé : {segments} segments, {speakers} locuteurs ; {nodes} nouveaux nœuds, {links} liens, {updated} nœuds mis à jour.",
+ "tr.partial": "Transcription interrompue : le texte est partiel.",
+ "tr.stage.hash": "Empreinte du fichier…",
+ "tr.stage.transcribe": "Transcription",
+ "tr.stage.diarize": "Locuteurs",
+ "tr.stage.translate": "Traduction",
+ "tr.stage.import": "Nœuds dans le graphe…"
+});
+Object.assign(I18N.de, {
+ "btn.transcribe": "🎙 Video transkribieren",
+ "tr.title": "🎙 Ein Video transkribieren",
+ "tr.sub": "Transkript, Sprecher und Übersetzung, alles auf diesem Computer",
+ "tr.help": "Das Video wird ein Knoten mit dem Transkript, jede Stimme ein Personenknoten „Speaker k“, der mit „speaks in“ mit dem Video verbunden ist; der Text kommt zu den Quellen. Dieselbe Datei erneut zu transkribieren aktualisiert dieselben Knoten. Die Modelle werden einmal heruntergeladen, beim ersten Gebrauch.",
+ "tr.path": "Video- oder Audiodatei auf diesem Computer",
+ "tr.pathPh": "C:\\Pfad\\video.mp4",
+ "tr.model": "Whisper-Modell",
+ "tr.speakers": "Sprecher (0 = automatisch)",
+ "tr.diarize": "Erkennen, wer spricht (Diarisierung)",
+ "tr.toEn": "Ins Englische übersetzen",
+ "tr.toIt": "Ins Italienische übersetzen",
+ "tr.stop": "Anhalten",
+ "tr.go": "Transkribieren",
+ "tr.ready": "Bereit: Die Modelle der Diarisierung sind bereits heruntergeladen.",
+ "tr.readyDownload": "Bereit: Der erste Lauf lädt die Modelle herunter (Whisper und Diarisierung, einige hundert MB).",
+ "tr.missing": "Transkription nicht installiert (es fehlen: {pkgs}). install.bat erneut starten und die Transkription bejahen, oder: .venv\\Scripts\\python.exe -m pip install -r requirements-audio.txt",
+ "tr.failed": "Transkription fehlgeschlagen: {e}",
+ "tr.result": "Fertig: {segments} Segmente, {speakers} Sprecher; {nodes} neue Knoten, {links} Verbindungen, {updated} Knoten aktualisiert.",
+ "tr.partial": "Transkription angehalten: Der Text ist unvollständig.",
+ "tr.stage.hash": "Fingerabdruck der Datei…",
+ "tr.stage.transcribe": "Transkription",
+ "tr.stage.diarize": "Sprecher",
+ "tr.stage.translate": "Übersetzung",
+ "tr.stage.import": "Knoten im Graphen…"
+});
+Object.assign(I18N.es, {
+ "btn.transcribe": "🎙 Transcribir vídeo",
+ "tr.title": "🎙 Transcribir un vídeo",
+ "tr.sub": "Transcripción, hablantes y traducción, todo en este ordenador",
+ "tr.help": "El vídeo se convierte en un nodo con la transcripción, cada voz en un nodo persona «Speaker k» vinculado al vídeo con «speaks in»; el texto pasa a las fuentes. Transcribir de nuevo el mismo archivo actualiza los mismos nodos. Los modelos se descargan una sola vez, en el primer uso.",
+ "tr.path": "Archivo de vídeo o audio en este ordenador",
+ "tr.pathPh": "C:\\ruta\\video.mp4",
+ "tr.model": "Modelo Whisper",
+ "tr.speakers": "Hablantes (0 = automático)",
+ "tr.diarize": "Reconocer quién habla (diarización)",
+ "tr.toEn": "Traducir al inglés",
+ "tr.toIt": "Traducir al italiano",
+ "tr.stop": "Detener",
+ "tr.go": "Transcribir",
+ "tr.ready": "Listo: los modelos de diarización ya están descargados.",
+ "tr.readyDownload": "Listo: la primera ejecución descarga los modelos (Whisper y diarización, unos cientos de MB).",
+ "tr.missing": "Transcripción no instalada (faltan: {pkgs}). Vuelve a ejecutar install.bat y responde sí a la transcripción, o: .venv\\Scripts\\python.exe -m pip install -r requirements-audio.txt",
+ "tr.failed": "Transcripción fallida: {e}",
+ "tr.result": "Hecho: {segments} segmentos, {speakers} hablantes; {nodes} nodos nuevos, {links} enlaces, {updated} nodos actualizados.",
+ "tr.partial": "Transcripción detenida: el texto es parcial.",
+ "tr.stage.hash": "Huella del archivo…",
+ "tr.stage.transcribe": "Transcripción",
+ "tr.stage.diarize": "Hablantes",
+ "tr.stage.translate": "Traducción",
+ "tr.stage.import": "Nodos en el grafo…"
+});
+Object.assign(I18N.ar, {
+ "btn.transcribe": "🎙 تفريغ فيديو",
+ "tr.title": "🎙 تفريغ فيديو",
+ "tr.sub": "التفريغ والمتحدثون والترجمة، كلها على هذا الحاسوب",
+ "tr.help": "يصبح الفيديو عقدة تحمل النص المفرغ، وكل صوت عقدة شخص «Speaker k» مرتبطة بالفيديو بعلاقة «speaks in»؛ وينضم النص إلى المصادر. تفريغ الملف نفسه مرة أخرى يحدّث العقد نفسها. تُنزَّل النماذج مرة واحدة عند أول استخدام.",
+ "tr.path": "ملف فيديو أو صوت على هذا الحاسوب",
+ "tr.pathPh": "C:\\path\\video.mp4",
+ "tr.model": "نموذج Whisper",
+ "tr.speakers": "المتحدثون (0 = تلقائي)",
+ "tr.diarize": "تمييز من يتحدث (فصل المتحدثين)",
+ "tr.toEn": "ترجمة إلى الإنجليزية",
+ "tr.toIt": "ترجمة إلى الإيطالية",
+ "tr.stop": "إيقاف",
+ "tr.go": "تفريغ",
+ "tr.ready": "جاهز: نماذج فصل المتحدثين منزّلة مسبقًا.",
+ "tr.readyDownload": "جاهز: التشغيل الأول ينزّل النماذج (Whisper وفصل المتحدثين، بضع مئات من الميغابايت).",
+ "tr.missing": "التفريغ غير مثبت (ينقص: {pkgs}). أعد تشغيل install.bat وأجب بنعم على التفريغ، أو: .venv\\Scripts\\python.exe -m pip install -r requirements-audio.txt",
+ "tr.failed": "فشل التفريغ: {e}",
+ "tr.result": "تم: {segments} مقطعًا، {speakers} متحدثين؛ {nodes} عقد جديدة، {links} روابط، {updated} عقد محدّثة.",
+ "tr.partial": "توقف التفريغ: النص جزئي.",
+ "tr.stage.hash": "بصمة الملف…",
+ "tr.stage.transcribe": "التفريغ",
+ "tr.stage.diarize": "المتحدثون",
+ "tr.stage.translate": "الترجمة",
+ "tr.stage.import": "العقد في المخطط…"
+});
+
 function applyI18n(root) {
   const scope = root || document;
   scope.querySelectorAll('[data-i18n]').forEach(el => {
@@ -4627,7 +4835,7 @@ function applyI18n(root) {
   document.documentElement.dir = 'ltr';
   const rtl = isRTL();
   ['#side', '#modal', '#addmodal', '#delmodal', '#manmodal', '#dictmodal', '#ftmmodal', '#osamodal', '#epmodal', '#epconfirm', '#credmodal',
-   '#tip', '#lightbox', '#linkmodal', '#edgemodal', '#editmodal', '#srcmodal', '#impmodal', '#aimodal', '#licmodal']
+   '#trmodal', '#tip', '#lightbox', '#linkmodal', '#edgemodal', '#editmodal', '#srcmodal', '#impmodal', '#aimodal', '#licmodal']
     .forEach(sel => {
       const el = document.querySelector(sel);
       if (el) el.dir = rtl ? 'rtl' : 'ltr';

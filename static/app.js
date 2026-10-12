@@ -400,6 +400,7 @@ const BRAND_ICON = {};
 const ONTO = window.ONTOLOGY || {};
 const iconFor = n => {
   if (n.ntype === 'photo' && n.image) return n.image;   // miniatura della foto
+  if (n.pic && n.image) return n.image;                 // person pictured by an imported photo
   if (n.ficon) return faIcon(n.ficon);                  // es. cannabis, siringa, passaporto
   if (ONTO[n.ntype]) return faIcon(ONTO[n.ntype].icon);
   if (SVG[n.ntype]) return SVG[n.ntype];
@@ -1371,6 +1372,21 @@ function render(els) {
       } },
       { selector: 'edge[rel="photo"]', style: {
         'line-color': '#14b8a6', 'target-arrow-color': '#14b8a6', 'source-arrow-color': '#14b8a6', 'width': 2.5
+      } },
+      { selector: 'node[?pic]', style: {
+        'background-fit': 'cover', 'background-width': '100%', 'background-height': '100%',
+        'background-clip': 'node', 'border-width': 3
+      } },
+      // evidence imported from Cognitor or from a transcription
+      { selector: 'edge[evid = "seen"]', style: {
+        'line-color': '#b45309', 'target-arrow-color': '#b45309', 'source-arrow-color': '#b45309',
+        'width': 'mapData(seen_n, 1, 12, 2, 9)', 'opacity': 1
+      } },
+      { selector: 'edge[evid = "speaks"]', style: {
+        'line-color': '#7c3aed', 'target-arrow-color': '#7c3aed', 'line-style': 'dashed', 'width': 2.5
+      } },
+      { selector: 'edge[evid = "appears"]', style: {
+        'line-color': '#0f766e', 'target-arrow-color': '#0f766e', 'line-style': 'dotted', 'width': 2.5
       } },
       // Stile scelto dall'utente per il singolo collegamento: vince su quello
       // del tipo di relazione (ma non sugli evidenziamenti qui sotto)
@@ -3488,7 +3504,7 @@ function readImportFile(file) {
     fr.readAsText(file);
     return;
   }
-  if (/\.(jsonl|ftm|ndjson)$/i.test(file.name)) {      // entita' Follow the Money
+  if (/\.(jsonl|ftm|ndjson|zip)$/i.test(file.name)) {  // entita' Follow the Money (zip: bundle di Cognitor)
     $('#impmodal').hidden = true;
     openFtmImport(file);
     return;
@@ -3677,6 +3693,72 @@ async function commitImport() {
 
 on('#importData', 'click', openImport);
 
+// ---- video transcription (1.6.0): audio/ modules, a job polled every 700 ms ----
+let trTimer = null;
+async function openTranscribe() {
+  if (!requireCase()) return;
+  $('#trmodal').hidden = false;
+  $('#tr-result').textContent = '';
+  try {
+    const st = await (await fetch('/api/transcribe/status')).json();
+    $('#tr-status').textContent = st.available
+      ? (st.diarize_models_cached ? t('tr.ready') : t('tr.readyDownload'))
+      : t('tr.missing', { pkgs: (st.missing || []).join(', ') });
+    $('#tr-go').disabled = !st.available;
+    if (st.running) pollTranscribe();
+  } catch (err) {
+    $('#tr-status').textContent = t('tr.failed', { e: err.message });
+  }
+}
+async function startTranscribe() {
+  const body = {
+    path: $('#tr-path').value.trim().replace(/^"|"$/g, ''), model_size: $('#tr-model').value,
+    diarize: $('#tr-diarize').checked, speakers: parseInt($('#tr-speakers').value || '0', 10) || 0,
+    translate: ['en', 'it'].filter(l => $('#tr-' + l).checked),
+  };
+  if (!body.path) return;
+  $('#tr-result').textContent = ''; $('#tr-log').textContent = ''; $('#tr-bar-fill').style.width = '0';
+  try {
+    await apiPost('/api/transcribe', body);
+    pollTranscribe();
+  } catch (err) {
+    $('#tr-result').textContent = t('tr.failed', { e: err.message });
+  }
+}
+function pollTranscribe() {
+  $('#tr-go').disabled = true; $('#tr-stop').disabled = false;
+  clearInterval(trTimer);
+  trTimer = setInterval(transcribeTick, 700);
+  transcribeTick();
+}
+async function transcribeTick() {
+  let p;
+  try { p = await (await fetch('/api/transcribe/progress')).json(); } catch (_) { return; }
+  const log = $('#tr-log');
+  log.textContent = (p.log || []).join('\n');
+  log.scrollTop = log.scrollHeight;
+  const stage = t('tr.stage.' + (p.stage || 'hash'));
+  $('#tr-prog-txt').textContent = p.total ? `${stage} ${p.done}/${p.total}` : stage;
+  if (p.total) $('#tr-bar-fill').style.width = Math.round(100 * p.done / p.total) + '%';
+  if (p.running) return;
+  clearInterval(trTimer); trTimer = null;
+  $('#tr-go').disabled = false; $('#tr-stop').disabled = true;
+  if (!p.finished) return;
+  if (p.error) { $('#tr-result').textContent = t('tr.failed', { e: p.error }); return; }
+  const r = p.result || {};
+  $('#tr-bar-fill').style.width = '100%';
+  $('#tr-result').textContent = t('tr.result', { segments: r.segments, speakers: r.speakers,
+    nodes: r.nodes, links: r.links, updated: r.updated }) + (r.partial ? ' ' + t('tr.partial') : '');
+  $('#stat').textContent = $('#tr-result').textContent;
+  await reloadData();
+}
+on('#transcribeVideo', 'click', openTranscribe);
+on('#tr-go', 'click', startTranscribe);
+on('#tr-stop', 'click', () => apiPost('/api/transcribe/stop', {}).catch(() => {}));
+on('#tr-done', 'click', () => { $('#trmodal').hidden = true; });
+on('#trmodal-close', 'click', () => { $('#trmodal').hidden = true; });
+on('#tr-path', 'keydown', e => { if (e.key === 'Enter') startTranscribe(); });
+
 /* ---- esportazione del caso in Follow the Money (righe JSON) ---- */
 on('#exportFtm', 'click', async () => {
   if (!requireCase()) return;
@@ -3731,6 +3813,7 @@ function openFtmImport(file) {
   if (!requireCase()) return;
   ftmFile = null; ftmInfo = null;
   $('#ftm-file').value = '';
+  $('#ftm-path').value = '';
   $('#ftm-drop-txt').textContent = t('ftm.drop');
   $('#ftm-schemas').innerHTML = ''; $('#ftm-sum').textContent = ''; $('#ftm-warn').textContent = '';
   $('#ftm-result').textContent = ''; $('#ftm-prog-txt').textContent = ''; $('#ftm-bar-fill').style.width = '0';
@@ -3747,6 +3830,14 @@ function readFtmFile(file) {
   $('#ftm-drop-txt').textContent = file.name;
 }
 
+function readFtmPath() {
+  const path = $('#ftm-path').value.trim().replace(/^"|"$/g, '');
+  if (!path) return;
+  ftmFile = { filename: path.split(/[\\/]/).pop(), path };
+  $('#ftm-drop-txt').textContent = ftmFile.filename;
+  inspectFtm();
+}
+
 async function inspectFtm() {
   if (!ftmFile) return;
   $('#ftm-sum').textContent = t('err.loading');
@@ -3760,8 +3851,11 @@ async function inspectFtm() {
     return;
   }
   const ds = Object.keys(ftmInfo.datasets || {});
+  if (ftmInfo.bundle && ftmInfo.dataset) ds.unshift(ftmInfo.dataset);
   $('#ftm-sum').textContent = t('ftm.sumLine', { n: ftmInfo.entities, nodes: ftmInfo.nodes,
-    edges: ftmInfo.edges, ds: ds.length ? ds.join(', ') : '—' });
+    edges: ftmInfo.edges, ds: ds.length ? ds.join(', ') : '—' }) +
+    (ftmInfo.bundle ? ' ' + t('ftm.bundleLine', { name: ftmInfo.case_name || ftmInfo.case_id || '—',
+      images: ftmInfo.images, transcripts: ftmInfo.transcripts }) : '');
   $('#ftm-dataset').value = ds.length === 1 ? ds[0] : (ftmFile.filename || '').replace(/\.[^.]+$/, '');
   const entries = Object.entries(ftmInfo.schemas || {}).sort((a, b) => b[1] - a[1]);
   $('#ftm-schemas').innerHTML = entries.map(([sc, n]) => {
@@ -3808,6 +3902,7 @@ async function runFtmImport() {
       await sleep(400);
       const r = await fetch('/api/ftm/progress');
       const p = await r.json();
+      if (p.stage === 'files') $('#ftm-prog-txt').textContent = t('ftm.stageFiles');
       if (p.stage === 'filter') $('#ftm-prog-txt').textContent = t('ftm.stageFilter');
       if (p.stage === 'import' && p.total) {
         $('#ftm-prog-txt').textContent = t('ftm.stageImport', { i: p.done, n: p.total });
@@ -3817,7 +3912,9 @@ async function runFtmImport() {
         if (p.error) throw new Error(p.error);
         $('#ftm-bar-fill').style.width = '100%';
         $('#ftm-result').textContent = t('ftm.result', { nodes: p.nodes, links: p.links,
-          updated: p.updated, same: p.same_links, errors: p.errors });
+          updated: p.updated, same: p.same_links, errors: p.errors }) +
+          (ftmInfo && ftmInfo.bundle ? ' ' + t('ftm.bundleResult', { images: p.images || 0,
+            refused: p.images_refused || 0, transcripts: p.transcripts || 0 }) : '');
         $('#stat').textContent = $('#ftm-result').textContent;
         await reloadData();
         break;
@@ -3834,6 +3931,8 @@ on('#ftmmodal-close', 'click', () => { $('#ftmmodal').hidden = true; });
 on('#ftmmodal-done', 'click', () => { $('#ftmmodal').hidden = true; });
 on('#ftmmodal', 'click', e => { if (e.target.id === 'ftmmodal' && !dragEnd('ftmmodal')) $('#ftmmodal').hidden = true; });
 on('#ftm-drop', 'click', () => $('#ftm-file').click());
+on('#ftm-path-go', 'click', readFtmPath);
+on('#ftm-path', 'keydown', e => { if (e.key === 'Enter') readFtmPath(); });
 on('#ftm-file', 'change', e => readFtmFile(e.target.files && e.target.files[0]));
 on('#ftm-drop', 'dragover', e => { e.preventDefault(); $('#ftm-drop').classList.add('over'); });
 on('#ftm-drop', 'dragleave', () => $('#ftm-drop').classList.remove('over'));

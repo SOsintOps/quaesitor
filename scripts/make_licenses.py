@@ -161,6 +161,8 @@ PY = [
     ("et_xmlfile", "et_xmlfile", "Scrittura XML (dipendenza di openpyxl)", "XML writing (openpyxl dependency)"),
     ("pillow", "Pillow", "Immagini: miniature e OCR", "Images: thumbnails and OCR"),
     ("pytesseract", "pytesseract", "Collegamento con Tesseract per l'OCR", "Bridge to Tesseract for OCR"),
+    ("regex", "regex", "Classi Unicode \\p{L}\\p{M} per le chiavi dei nomi indiani, thai e giapponesi (questo fork)",
+     "Unicode letter and combining-mark classes (\\p{L}\\p{M}) for identity keys of Indic, Thai and Japanese names (this fork)"),
 ]
 for pkg, shown, rit, ren in PY:
     ver, text = pkg_license(pkg)
@@ -168,9 +170,58 @@ for pkg, shown, rit, ren in PY:
            "itsdangerous": "BSD-3-Clause", "click": "BSD-3-Clause", "MarkupSafe": "BSD-3-Clause",
            "blinker": "MIT", "anyascii": "ISC", "pypdf": "BSD-3-Clause", "pdfminer.six": "MIT",
            "python-docx": "MIT", "openpyxl": "MIT", "xlrd": "BSD", "lxml": "BSD-3-Clause",
-           "et_xmlfile": "MIT", "pillow": "MIT-CMU (HPND)", "pytesseract": "Apache-2.0"}[pkg]
+           "et_xmlfile": "MIT", "pillow": "MIT-CMU (HPND)", "pytesseract": "Apache-2.0",
+           "regex": "Apache-2.0"}[pkg]
     add(pkg.lower().replace(".", "-"), shown, ver, lic, "", f"https://pypi.org/project/{pkg}/",
         rit, ren, wr(f"{pkg.lower().replace('.', '-')}.txt", text), "python")
+
+# ------------------------------- trascrizione video, facoltativa (1.6.0) --
+# requirements-audio.txt: installati solo se l'utente sceglie la trascrizione.
+# Lo script li vuole installati nel venv, come gli altri pacchetti.
+AUDIO = [
+    ("faster-whisper", "faster-whisper", "MIT", "Trascrizione (Whisper su CTranslate2)", "Transcription (Whisper on CTranslate2)"),
+    ("ctranslate2", "CTranslate2", "MIT", "Esecuzione di Whisper e della traduzione", "Inference engine of Whisper and of the translation"),
+    ("av", "PyAV", "BSD-3-Clause", "Lettura dell'audio dei video", "Audio decoding of the videos"),
+    ("onnxruntime", "ONNX Runtime", "MIT", "Modelli della diarizzazione", "Diarization models"),
+    ("numpy", "NumPy", "BSD-3-Clause", "Calcolo numerico della diarizzazione", "Numerics of the diarization"),
+    ("scipy", "SciPy", "BSD-3-Clause", "Raggruppamento delle voci", "Clustering of the voices"),
+    ("sentencepiece", "SentencePiece", "Apache-2.0", "Testo per la traduzione in italiano", "Tokenizer of the translation to Italian"),
+    ("tokenizers", "tokenizers", "Apache-2.0", "Testo per Whisper", "Tokenizer of Whisper"),
+    ("huggingface-hub", "huggingface_hub", "Apache-2.0", "Download dei modelli Whisper", "Download of the Whisper models"),
+]
+for pkg, shown, lic, rit, ren in AUDIO:
+    try:
+        d = distribution(pkg)
+    except PackageNotFoundError:
+        sys.exit(f"{pkg} non installato: la trascrizione e' facoltativa ma lo script la documenta: "
+                 "pip install -r requirements-audio.txt")
+    try:
+        ver, text = pkg_license(pkg)
+    except SystemExit:                          # wheel senza file di licenza (es. ctranslate2)
+        ver, text = d.version, (f"{shown} {d.version} - https://pypi.org/project/{pkg}/\n\n"
+                                f"Licensed under the {lic} licence. The installed wheel ships no licence file;\n"
+                                "the full text is in the source repository of the project.\n")
+    add(pkg.lower(), shown, ver, lic, "", f"https://pypi.org/project/{pkg}/",
+        rit + " (facoltativo: requirements-audio.txt)", ren + " (optional: requirements-audio.txt)",
+        wr(f"{pkg.lower()}.txt", text), "python", bundled=False)
+for mid, shown, lic, holder, url, rit, ren in [
+        ("whisper-models", "Whisper models (faster-whisper conversion)", "MIT", "OpenAI; conversion by SYSTRAN",
+         "https://huggingface.co/Systran", "Modelli di trascrizione, scaricati al primo uso",
+         "Transcription models, downloaded on first use"),
+        ("silero-vad", "Silero VAD", "MIT", "Silero Team", "https://github.com/snakers4/silero-vad",
+         "Rilevamento del parlato, scaricato al primo uso", "Speech detection, downloaded on first use"),
+        ("wespeaker", "WeSpeaker speaker models (sherpa-onnx)", "Apache-2.0 (code); model terms to verify",
+         "WeSpeaker team; ONNX export by k2-fsa", "https://github.com/wenet-e2e/wespeaker",
+         "Impronte delle voci, scaricate al primo uso", "Voiceprints, downloaded on first use"),
+        ("argos-en-it", "Argos Translate package en_it", "to verify in the package metadata", "Argos Open Technologies",
+         "https://www.argosopentech.com", "Traduzione in italiano, scaricata al primo uso",
+         "Translation to Italian, downloaded on first use")]:
+    add(mid, shown, "", lic, holder, url, rit, ren, wr(f"{mid}.txt", f"""{shown} - {url}
+
+Not distributed with Quaesitor: downloaded on first use by the video transcription
+(audio/, requirements-audio.txt) into ~/.quaesitor/models or the Hugging Face cache.
+Licence: {lic}. Copyright: {holder}.
+"""), "tools", bundled=False)
 
 py_lic = os.path.join(sys.base_prefix, "LICENSE.txt")
 add("python", "Python", ".".join(map(str, sys.version_info[:3])), "PSF License",
@@ -183,7 +234,7 @@ _, apache = pkg_license("pytesseract")
 add("tesseract", "Tesseract OCR", "5.3.3", "Apache-2.0",
     "Tesseract contributors (Google, Ray Smith e altri)", "https://github.com/tesseract-ocr/tesseract",
     "Riconoscimento del testo nelle immagini. Scaricato a parte in tools/tesseract (non incluso nel programma)",
-    "Text recognition in images. Downloaded separately into tools/tesseract (not bundled)",
+    "Text recognition in images. Downloaded separately into tools/tesseract",
     wr("apache-2.0.txt", apache), "tools", bundled=False)
 add("leptonica", "Leptonica", "1.83", "BSD-2-Clause", "Copyright (C) 2001 Leptonica",
     "http://www.leptonica.org",

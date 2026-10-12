@@ -202,6 +202,29 @@ def main():
             hits = r.get("files") or r.get("results") or r.get("items") or []
             step(f"search '{term}' in {where}", st == 200 and len(hits) > 0, f"hits={len(hits)}" if st == 200 else str(r))
 
+        # Cognitor bundle (1.6.0): read from a path of this computer, photos and transcripts
+        bundle = os.path.join(app_dir, "tests", "fixtures", "cognitor_sample.cognitor.zip")
+        st, i = api(base, "/api/ftm/inspect", {"path": bundle})
+        step("Cognitor bundle inspect", st == 200 and i.get("bundle") and i.get("images") == 6,
+             f"case={i.get('case_name')} images={i.get('images')} transcripts={i.get('transcripts')}")
+        st, r = api(base, "/api/ftm/import", {"path": bundle})
+        prog = {}
+        for _ in range(120):
+            st2, prog = api(base, "/api/ftm/progress")
+            if prog.get("finished") and not prog.get("running"):
+                break
+            time.sleep(0.5)
+        step("Cognitor bundle import", st == 200 and not prog.get("error") and prog.get("images") == 6,
+             json.dumps({k: prog.get(k) for k in ("nodes", "links", "images", "transcripts", "error")}))
+        for _ in range(120):
+            st2, sp = api(base, "/api/sources/progress")
+            if not sp.get("running"):
+                break
+            time.sleep(0.5)
+        st, g = api(base, "/api/graph")
+        pics = [n for n in g.get("nodes", []) if n.get("pic")]
+        step("Cognitor persons show their photo", st == 200 and len(pics) >= 2, f"persons with photo={len(pics)}")
+
         st, blob = api(base, "/api/ftm/export", raw=True)
         lines = [l for l in blob.decode("utf-8", "replace").splitlines() if l.strip()] if st == 200 else []
         step("FtM export", st == 200 and len(lines) > 0, f"entities={len(lines)}")

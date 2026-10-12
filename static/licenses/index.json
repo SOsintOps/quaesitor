@@ -152,7 +152,7 @@
  {
   "id": "werkzeug",
   "name": "Werkzeug",
-  "version": "3.1.8",
+  "version": "3.1.9",
   "license": "BSD-3-Clause",
   "copyright": "",
   "url": "https://pypi.org/project/Werkzeug/",
@@ -212,7 +212,7 @@
  {
   "id": "markupsafe",
   "name": "MarkupSafe",
-  "version": "3.0.3",
+  "version": "3.0.4",
   "license": "BSD-3-Clause",
   "copyright": "",
   "url": "https://pypi.org/project/MarkupSafe/",
@@ -257,7 +257,7 @@
  {
   "id": "pypdf",
   "name": "pypdf",
-  "version": "6.19.0",
+  "version": "6.20.0",
   "license": "BSD-3-Clause",
   "copyright": "",
   "url": "https://pypi.org/project/pypdf/",
@@ -390,6 +390,216 @@
   "bundled": true
  },
  {
+  "id": "regex",
+  "name": "regex",
+  "version": "2026.9.29",
+  "license": "Apache-2.0",
+  "copyright": "",
+  "url": "https://pypi.org/project/regex/",
+  "role": {
+   "it": "Classi Unicode \\p{L}\\p{M} per le chiavi dei nomi indiani, thai e giapponesi (questo fork)",
+   "en": "Unicode letter and combining-mark classes (\\p{L}\\p{M}) for identity keys of Indic, Thai and Japanese names (this fork)"
+  },
+  "file": "regex.txt",
+  "group": "python",
+  "bundled": true
+ },
+ {
+  "id": "faster-whisper",
+  "name": "faster-whisper",
+  "version": "1.2.1",
+  "license": "MIT",
+  "copyright": "",
+  "url": "https://pypi.org/project/faster-whisper/",
+  "role": {
+   "it": "Trascrizione (Whisper su CTranslate2) (facoltativo: requirements-audio.txt)",
+   "en": "Transcription (Whisper on CTranslate2) (optional: requirements-audio.txt)"
+  },
+  "file": "faster-whisper.txt",
+  "group": "python",
+  "bundled": false
+ },
+ {
+  "id": "ctranslate2",
+  "name": "CTranslate2",
+  "version": "4.8.2",
+  "license": "MIT",
+  "copyright": "",
+  "url": "https://pypi.org/project/ctranslate2/",
+  "role": {
+   "it": "Esecuzione di Whisper e della traduzione (facoltativo: requirements-audio.txt)",
+   "en": "Inference engine of Whisper and of the translation (optional: requirements-audio.txt)"
+  },
+  "file": "ctranslate2.txt",
+  "group": "python",
+  "bundled": false
+ },
+ {
+  "id": "av",
+  "name": "PyAV",
+  "version": "18.1.0",
+  "license": "BSD-3-Clause",
+  "copyright": "",
+  "url": "https://pypi.org/project/av/",
+  "role": {
+   "it": "Lettura dell'audio dei video (facoltativo: requirements-audio.txt)",
+   "en": "Audio decoding of the videos (optional: requirements-audio.txt)"
+  },
+  "file": "av.txt",
+  "group": "python",
+  "bundled": false
+ },
+ {
+  "id": "onnxruntime",
+  "name": "ONNX Runtime",
+  "version": "1.31.0",
+  "license": "MIT",
+  "copyright": "",
+  "url": "https://pypi.org/project/onnxruntime/",
+  "role": {
+   "it": "Modelli della diarizzazione (facoltativo: requirements-audio.txt)",
+   "en": "Diarization models (optional: requirements-audio.txt)"
+  },
+  "file": "onnxruntime.txt",
+  "group": "python",
+  "bundled": false
+ },
+ {
+  "id": "numpy",
+  "name": "NumPy",
+  "version": "2.5.4",
+  "license": "BSD-3-Clause",
+  "copyright": "",
+  "url": "https://pypi.org/project/numpy/",
+  "role": {
+   "it": "Calcolo numerico della diarizzazione (facoltativo: requirements-audio.txt)",
+   "en": "Numerics of the diarization (optional: requirements-audio.txt)"
+  },
+  "file": "numpy.txt",
+  "group": "python",
+  "bundled": false
+ },
+ {
+  "id": "scipy",
+  "name": "SciPy",
+  "version": "1.18.1",
+  "license": "BSD-3-Clause",
+  "copyright": "",
+  "url": "https://pypi.org/project/scipy/",
+  "role": {
+   "it": "Raggruppamento delle voci (facoltativo: requirements-audio.txt)",
+   "en": "Clustering of the voices (optional: requirements-audio.txt)"
+  },
+  "file": "scipy.txt",
+  "group": "python",
+  "bundled": false
+ },
+ {
+  "id": "sentencepiece",
+  "name": "SentencePiece",
+  "version": "0.2.2",
+  "license": "Apache-2.0",
+  "copyright": "",
+  "url": "https://pypi.org/project/sentencepiece/",
+  "role": {
+   "it": "Testo per la traduzione in italiano (facoltativo: requirements-audio.txt)",
+   "en": "Tokenizer of the translation to Italian (optional: requirements-audio.txt)"
+  },
+  "file": "sentencepiece.txt",
+  "group": "python",
+  "bundled": false
+ },
+ {
+  "id": "tokenizers",
+  "name": "tokenizers",
+  "version": "0.23.3",
+  "license": "Apache-2.0",
+  "copyright": "",
+  "url": "https://pypi.org/project/tokenizers/",
+  "role": {
+   "it": "Testo per Whisper (facoltativo: requirements-audio.txt)",
+   "en": "Tokenizer of Whisper (optional: requirements-audio.txt)"
+  },
+  "file": "tokenizers.txt",
+  "group": "python",
+  "bundled": false
+ },
+ {
+  "id": "huggingface-hub",
+  "name": "huggingface_hub",
+  "version": "2.2.0",
+  "license": "Apache-2.0",
+  "copyright": "",
+  "url": "https://pypi.org/project/huggingface-hub/",
+  "role": {
+   "it": "Download dei modelli Whisper (facoltativo: requirements-audio.txt)",
+   "en": "Download of the Whisper models (optional: requirements-audio.txt)"
+  },
+  "file": "huggingface-hub.txt",
+  "group": "python",
+  "bundled": false
+ },
+ {
+  "id": "whisper-models",
+  "name": "Whisper models (faster-whisper conversion)",
+  "version": "",
+  "license": "MIT",
+  "copyright": "OpenAI; conversion by SYSTRAN",
+  "url": "https://huggingface.co/Systran",
+  "role": {
+   "it": "Modelli di trascrizione, scaricati al primo uso",
+   "en": "Transcription models, downloaded on first use"
+  },
+  "file": "whisper-models.txt",
+  "group": "tools",
+  "bundled": false
+ },
+ {
+  "id": "silero-vad",
+  "name": "Silero VAD",
+  "version": "",
+  "license": "MIT",
+  "copyright": "Silero Team",
+  "url": "https://github.com/snakers4/silero-vad",
+  "role": {
+   "it": "Rilevamento del parlato, scaricato al primo uso",
+   "en": "Speech detection, downloaded on first use"
+  },
+  "file": "silero-vad.txt",
+  "group": "tools",
+  "bundled": false
+ },
+ {
+  "id": "wespeaker",
+  "name": "WeSpeaker speaker models (sherpa-onnx)",
+  "version": "",
+  "license": "Apache-2.0 (code); model terms to verify",
+  "copyright": "WeSpeaker team; ONNX export by k2-fsa",
+  "url": "https://github.com/wenet-e2e/wespeaker",
+  "role": {
+   "it": "Impronte delle voci, scaricate al primo uso",
+   "en": "Voiceprints, downloaded on first use"
+  },
+  "file": "wespeaker.txt",
+  "group": "tools",
+  "bundled": false
+ },
+ {
+  "id": "argos-en-it",
+  "name": "Argos Translate package en_it",
+  "version": "",
+  "license": "to verify in the package metadata",
+  "copyright": "Argos Open Technologies",
+  "url": "https://www.argosopentech.com",
+  "role": {
+   "it": "Traduzione in italiano, scaricata al primo uso",
+   "en": "Translation to Italian, downloaded on first use"
+  },
+  "file": "argos-en-it.txt",
+  "group": "tools",
+  "bundled": false
+ },
+ {
   "id": "python",
   "name": "Python",
   "version": "3.11.9",
@@ -413,7 +623,7 @@
   "url": "https://github.com/tesseract-ocr/tesseract",
   "role": {
    "it": "Riconoscimento del testo nelle immagini. Scaricato a parte in tools/tesseract (non incluso nel programma)",
-   "en": "Text recognition in images. Downloaded separately into tools/tesseract (not bundled)"
+   "en": "Text recognition in images. Downloaded separately into tools/tesseract"
   },
   "file": "apache-2.0.txt",
   "group": "tools",

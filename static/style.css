@@ -1580,3 +1580,28 @@ body.rtl .dict-val, body.rtl .dict-src, body.rtl .dict-script { direction: ltr; 
 .ep-r { border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font-size: 12px; display: flex; flex-direction: column; gap: 2px; }
 .ep-r b { font-size: 12.5px; word-break: break-all; }
 .ep-r small { color: var(--tx2); }
+
+/* FtM import: path of a file on this computer (Cognitor bundles above 20 MB) */
+.ftm-path { display: flex; gap: 6px; margin-top: 10px; }
+.ftm-path input { flex: 1; min-width: 0; }
+
+/* ================= VIDEO TRANSCRIPTION (1.6.0) ================= */
+#trmodal { position: fixed; inset: 0; background: rgba(0, 0, 0, .7); display: flex;
+  align-items: center; justify-content: center; z-index: 325; padding: 20px; }
+#trmodal[hidden] { display: none; }
+#trmodal-box { width: min(720px, 100%); max-height: 86vh; background: var(--panel);
+  border: 2px solid var(--acc); border-radius: 10px; display: flex; flex-direction: column;
+  overflow: hidden; box-shadow: 0 20px 40px rgba(0,0,0,.6); }
+#trmodal-head { display: flex; align-items: center; gap: 12px; padding: 14px 18px;
+  border-bottom: 1px solid var(--line); }
+#trmodal-title { font-size: 15px; font-weight: 700; color: var(--acc); }
+#trmodal-sub { font-size: 11px; color: var(--tx2); text-transform: uppercase; margin-top: 2px; }
+#trmodal-close { margin-left: auto; padding: 4px 10px; font-size: 14px; }
+#trmodal-body { padding: 12px 16px; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 8px; }
+#trmodal-foot { display: flex; gap: 8px; justify-content: flex-end; padding: 10px 16px;
+  border-top: 1px solid var(--line); }
+#tr-go:not(:disabled) { background: var(--acc); color: #000; font-weight: 700; }
+#tr-bar-fill { height: 100%; width: 0; background: var(--acc); transition: width .3s; }
+#tr-log { max-height: 160px; overflow: auto; font-size: 11px; color: var(--tx2); margin: 0;
+  white-space: pre-wrap; background: rgba(0,0,0,.2); padding: 6px 8px; border-radius: 6px; }
+#tr-log:empty { display: none; }

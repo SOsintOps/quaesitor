@@ -1,0 +1,5 @@
+WeSpeaker speaker models (sherpa-onnx) - https://github.com/wenet-e2e/wespeaker
+
+Not distributed with Quaesitor: downloaded on first use by the video transcription
+(audio/, requirements-audio.txt) into ~/.quaesitor/models or the Hugging Face cache.
+Licence: Apache-2.0 (code); model terms to verify. Copyright: WeSpeaker team; ONNX export by k2-fsa.
