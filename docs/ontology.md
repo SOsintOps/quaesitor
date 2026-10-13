@@ -46,7 +46,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `weapon` — Weapon
 
-- **Group:** Weapons · **Italian label:** Arma · **icon:** gun · **colour:** #475569
+- **Group:** Weapons · **Italian label:** Arma · **icon:** colour icon `weapon.png` (glyph `gun` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `matricola`
 - **Label:** `categoria`, `marca`, `modello`, `calibro:cal. {}`, `matricola:matr. {}`
 - **Follow the Money:** Note (declared loss)
@@ -61,7 +61,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `explosive` — Explosive
 
-- **Group:** Weapons · **Italian label:** Esplosivo / ordigno · **icon:** explosion · **colour:** #9a3412
+- **Group:** Weapons · **Italian label:** Esplosivo / ordigno · **icon:** colour icon `explosive.png` (glyph `explosion` as fallback) · **colour:** #9a3412
 - **Identity** (same value = same node): none: every entry is a new node
 - **Label:** `tipo`, `quantita+unita`
 - **Follow the Money:** Note (declared loss)
@@ -73,7 +73,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `ammo` — Ammunition
 
-- **Group:** Weapons · **Italian label:** Munizioni · **icon:** burst · **colour:** #78716c
+- **Group:** Weapons · **Italian label:** Munizioni · **icon:** colour icon `ammo.png` (glyph `burst` as fallback) · **colour:** #78716c
 - **Identity** (same value = same node): none: every entry is a new node
 - **Label:** `Munizioni`, `calibro:cal. {}`, `quantita:{} colpi`
 - **Follow the Money:** Note (declared loss)
@@ -85,10 +85,11 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `drug` — Narcotic drug
 
-- **Group:** Drugs · **Italian label:** Sostanza stupefacente · **icon:** pills · **colour:** #16a34a
+- **Group:** Drugs · **Italian label:** Sostanza stupefacente · **icon:** colour icon `drug.png` (glyph `pills` as fallback) · **colour:** #16a34a
 - **Identity** (same value = same node): none: every entry is a new node
 - **Label:** `sostanza`, `quantita+unita`
 - **Follow the Money:** Note (declared loss)
+- **Icon by `sostanza`:** `cannabis.png` Hashish, Marijuana, Cannabis oil, Cannabis plants, Synthetic cannabinoids; `syringe.png` Heroin, Fentanyl and analogues, Morphine, Opium, Methadone; `vial.png` Cocaine, Crack, Chemical precursors, Ketamine; `prescription-bottle-medical.png` MDMA / Ecstasy, Amphetamine, Methamphetamine, Buprenorphine, Oxycodone / pharmaceutical opioids, Benzodiazepines, Synthetic cathinones (mephedrone…); `leaf.png` Khat, Kratom, Mescaline; `droplet.png` GHB / GBL; `microscope.png` Unidentified substance; any other value shows the icon of the type
 - **Fields** (6):
   - `sostanza` Substance (select · values: Cocaine, Crack, Heroin, Hashish, Marijuana, Cannabis oil, Cannabis plants, MDMA / Ecstasy, Amphetamine, Methamphetamine, Ketamine, LSD, Magic mushrooms (psilocybin), Mescaline, Fentanyl and analogues, Opium, Morphine, Methadone, Buprenorphine, Oxycodone / pharmaceutical opioids, Benzodiazepines, GHB / GBL, Synthetic cannabinoids, Synthetic cathinones (mephedrone…), Khat, Kratom, Chemical precursors, Cutting agent, Unidentified substance, Other)
   - `quantita` Quantity (number)
@@ -99,7 +100,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `cash` — Cash
 
-- **Group:** Valuables · **Italian label:** Denaro contante · **icon:** money-bill-wave · **colour:** #15803d
+- **Group:** Valuables · **Italian label:** Denaro contante · **icon:** colour icon `cash.png` (glyph `money-bill-wave` as fallback) · **colour:** #15803d
 - **Identity** (same value = same node): none: every entry is a new node
 - **Label:** `importo+valuta`, `false:(false)`
 - **Follow the Money:** Note (declared loss)
@@ -113,7 +114,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `cheque` — Cheque
 
-- **Group:** Valuables · **Italian label:** Assegno / titolo di credito · **icon:** money-check · **colour:** #0f766e
+- **Group:** Valuables · **Italian label:** Assegno / titolo di credito · **icon:** colour icon `cheque.png` (glyph `money-check` as fallback) · **colour:** #0f766e
 - **Identity** (same value = same node): `numero`
 - **Label:** `tipo`, `numero:n. {}`, `importo+valuta`
 - **Follow the Money:** Note (declared loss)
@@ -129,7 +130,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `valuable` — Valuables
 
-- **Group:** Valuables · **Italian label:** Beni di valore · **icon:** gem · **colour:** #a16207
+- **Group:** Valuables · **Italian label:** Beni di valore · **icon:** colour icon `valuable.png` (glyph `gem` as fallback) · **colour:** #a16207
 - **Identity** (same value = same node): `seriale`
 - **Label:** `tipo`, `descrizione`, `valore+valuta`
 - **Follow the Money:** Asset
@@ -142,7 +143,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `bankaccount` — Bank account
 
-- **Group:** Finance · **Italian label:** Conto bancario (IBAN) · **icon:** building-columns · **colour:** #1d4ed8
+- **Group:** Finance · **Italian label:** Conto bancario (IBAN) · **icon:** colour icon `bankaccount.png` (glyph `building-columns` as fallback) · **colour:** #1d4ed8
 - **Identity** (same value = same node): `iban`
 - **Label:** `iban`, `banca`
 - **Follow the Money:** BankAccount
@@ -154,7 +155,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `card` — Payment card
 
-- **Group:** Finance · **Italian label:** Carta di pagamento · **icon:** credit-card · **colour:** #1e40af
+- **Group:** Finance · **Italian label:** Carta di pagamento · **icon:** colour icon `card.png` (glyph `credit-card` as fallback) · **colour:** #1e40af
 - **Identity** (same value = same node): `numero`
 - **Label:** `circuito`, `numero`
 - **Follow the Money:** BankAccount
@@ -167,7 +168,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `crypto` — Crypto wallet
 
-- **Group:** Finance · **Italian label:** Wallet criptovalute · **icon:** bitcoin · **colour:** #c2410c
+- **Group:** Finance · **Italian label:** Wallet criptovalute · **icon:** colour icon `crypto.png` (glyph `bitcoin` as fallback) · **colour:** #c2410c
 - **Identity** (same value = same node): `indirizzo`
 - **Label:** `blockchain`, `indirizzo`
 - **Follow the Money:** CryptoWallet
@@ -178,10 +179,11 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `document` — ID document
 
-- **Group:** Documents · **Italian label:** Documento d'identità · **icon:** id-card · **colour:** #0e7490
+- **Group:** Documents · **Italian label:** Documento d'identità · **icon:** colour icon `document.png` (glyph `id-card` as fallback) · **colour:** #0e7490
 - **Identity** (same value = same node): `numero`
 - **Label:** `tipo`, `numero`, `falso:(falso)`
 - **Follow the Money:** Passport
+- **Icon by `tipo`:** `passport.png` Passport; `address-card.png` Identity card; `id-card-clip.png` Driving licence; `stamp.png` Residence permit; `notes-medical.png` Tax code / health card; `plane-departure.png` Visa, Travel document; `id-badge.png` ID badge; any other value shows the icon of the type
 - **Fields** (6):
   - `tipo` Type (select · values: Identity card, Passport, Driving licence, Residence permit, Tax code / health card, Visa, Travel document, ID badge, Other)
   - `numero` Number (text)
@@ -192,10 +194,11 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `findoc` — Financial document
 
-- **Group:** Documents · **Italian label:** Documento finanziario / commerciale · **icon:** file-invoice-dollar · **colour:** #0f766e
+- **Group:** Documents · **Italian label:** Documento finanziario / commerciale · **icon:** colour icon `findoc.png` (glyph `file-invoice-dollar` as fallback) · **colour:** #0f766e
 - **Identity** (same value = same node): `emittente`, `numero`
 - **Label:** `tipo`, `numero:n. {}`, `data:del {date}`, `importo+valuta`
 - **Follow the Money:** Contract
+- **Icon by `tipo`:** `receipt.png` Receipt, Bank statement, Bank transfer / payment order; `file-contract.png` Contract, Lease, Deed of sale; `file-invoice.png` Invoice; `file-shield.png` Insurance policy; `chart-column.png` Financial statement; `book.png` Ledger / register; `note-sticky.png` Hidden accounts / crime note; `truck-ramp-box.png` Delivery note; `certificate.png` Company register extract, Tax return; any other value shows the icon of the type
 - **Fields** (8):
   - `tipo` Type (select · values: Invoice, Receipt, Bank statement, Bank transfer / payment order, Contract, Lease, Deed of sale, Insurance policy, Financial statement, Payslip, Tax return, Delivery note, Ledger / register, Hidden accounts / crime note, Company register extract, Other)
   - `numero` Number (text)
@@ -208,10 +211,11 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `legaldoc` — Legal document
 
-- **Group:** Documents · **Italian label:** Atto / documento legale · **icon:** file-contract · **colour:** #57534e
+- **Group:** Documents · **Italian label:** Atto / documento legale · **icon:** colour icon `legaldoc.png` (glyph `file-contract` as fallback) · **colour:** #57534e
 - **Identity** (same value = same node): `tipo`, `numero`
 - **Label:** `tipo`, `numero:n. {}`, `data:del {date}`
 - **Follow the Money:** CourtCase
+- **Icon by `tipo`:** `scale-balanced.png` Judgment, Committal for trial; `handcuffs.png` Arrest report, Pre-trial detention order, European arrest warrant; `magnifying-glass.png` Search report, Search warrant, Seizure report, Seizure order; `microphone.png` Witness statement, Interrogation report; `satellite-dish.png` Interception order; `file-pen.png` Complaint / report, Petition / complaint; `shield.png` Crime report to prosecutor, Police report note, Service report; `clipboard-list.png` Notice of investigation, Notice of end of investigation, Request for indictment; `earth-europe.png` Letter rogatory; any other value shows the icon of the type
 - **Fields** (7):
   - `tipo` Type (select · values: Search report, Seizure report, Arrest report, Witness statement, Interrogation report, Complaint / report, Petition / complaint, Crime report to prosecutor, Police report note, Search warrant, Seizure order, Interception order, Pre-trial detention order, Notice of investigation, Notice of end of investigation, Request for indictment, Committal for trial, Judgment, European arrest warrant, Letter rogatory, Service report, Other)
   - `numero` Number / reference (text)
@@ -223,10 +227,11 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `device` — Device
 
-- **Group:** Devices · **Italian label:** Dispositivo elettronico · **icon:** mobile-screen · **colour:** #334155
+- **Group:** Devices · **Italian label:** Dispositivo elettronico · **icon:** colour icon `device.png` (glyph `mobile-screen` as fallback) · **colour:** #334155
 - **Identity** (same value = same node): `imei`
 - **Label:** `tipo`, `marca`, `modello`, `imei:IMEI {}`
 - **Follow the Money:** Asset
+- **Icon by `tipo`:** `laptop.png` Laptop; `desktop.png` Desktop PC; `mobile-screen-button.png` Smartphone, Mobile phone, Tablet; `hard-drive.png` Hard disk / SSD; `usb.png` USB stick / memory card; `router.png` Router / modem; `location-crosshairs.png` GPS device; `user-lock.png` Encrypted phone; any other value shows the icon of the type
 - **Fields** (5):
   - `tipo` Type (select · values: Smartphone, Mobile phone, Tablet, Laptop, Desktop PC, Hard disk / SSD, USB stick / memory card, Router / modem, GPS device, Encrypted phone, Other)
   - `marca` Make (text)
@@ -236,7 +241,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `organization` — Organization
 
-- **Group:** Subjects · **Italian label:** Organizzazione / azienda · **icon:** building · **colour:** #7c2d12
+- **Group:** Subjects · **Italian label:** Organizzazione / azienda · **icon:** colour icon `organization.png` (glyph `building` as fallback) · **colour:** #7c2d12
 - **Identity** (same value = same node): `piva` · alternative key: `nome`
 - **Label:** `nome`, `piva:P.IVA {}`
 - **Follow the Money:** Company
@@ -248,7 +253,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `event` — Event / offence
 
-- **Group:** Events · **Italian label:** Evento / reato · **icon:** gavel · **colour:** #831843
+- **Group:** Events · **Italian label:** Evento / reato · **icon:** colour icon `event.png` (glyph `gavel` as fallback) · **colour:** #831843
 - **Identity** (same value = same node): `procedimento`, `tipo`
 - **Label:** `tipo`, `data:{date}`, `procedimento:RGNR {}`
 - **Follow the Money:** Event
@@ -261,7 +266,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `property` — Real estate
 
-- **Group:** Assets · **Italian label:** Immobile · **icon:** house · **colour:** #4338ca
+- **Group:** Assets · **Italian label:** Immobile · **icon:** colour icon `property.png` (glyph `house` as fallback) · **colour:** #4338ca
 - **Identity** (same value = same node): `comune`, `catasto`
 - **Label:** `tipo`, `comune`, `indirizzo`
 - **Follow the Money:** RealEstate
@@ -274,7 +279,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 
 ### `sighting` — Aircraft sighting
 
-- **Group:** Flight · **Italian label:** Avvistamento aereo · **icon:** image · **colour:** #0e7490
+- **Group:** Flight · **Italian label:** Avvistamento aereo · **icon:** colour icon `sighting.png` (glyph `image` as fallback) · **colour:** #0e7490
 - **Identity** (same value = same node): `callsign`, `quando`
 - **Label:** `callsign`, `tipo`, `quando`
 - **Follow the Money:** Note (declared loss)
@@ -299,7 +304,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `airplane` — Airplane
 
-- **Group:** FtM · Assets and vehicles · **Italian label:** Aeromobile · **icon:** car · **colour:** #4338ca
+- **Group:** FtM · Assets and vehicles · **Italian label:** Aeromobile · **icon:** colour icon `airplane.png` (glyph `car` as fallback) · **colour:** #4338ca
 - **Identity** (same value = same node): `ftmId` · alternative key: `registrationNumber`
 - **Label:** `name`, `registrationNumber`
 - **Follow the Money:** Airplane
@@ -324,7 +329,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `realestate` — Real estate
 
-- **Group:** FtM · Assets and vehicles · **Italian label:** Immobile · **icon:** house · **colour:** #4338ca
+- **Group:** FtM · Assets and vehicles · **Italian label:** Immobile · **icon:** colour icon `realestate.png` (glyph `house` as fallback) · **colour:** #4338ca
 - **Identity** (same value = same node): `ftmId` · alternative key: `registrationNumber`
 - **Label:** `name`, `address`, `registrationNumber`
 - **Follow the Money:** RealEstate
@@ -352,7 +357,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `vessel` — Vessel
 
-- **Group:** FtM · Assets and vehicles · **Italian label:** Nave · **icon:** car · **colour:** #4338ca
+- **Group:** FtM · Assets and vehicles · **Italian label:** Nave · **icon:** colour icon `vessel.png` (glyph `car` as fallback) · **colour:** #4338ca
 - **Identity** (same value = same node): `ftmId` · alternative key: `imoNumber`
 - **Label:** `name`, `imoNumber`
 - **Follow the Money:** Vessel
@@ -390,7 +395,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `article` — Article
 
-- **Group:** FtM · Documents · **Italian label:** Articolo · **icon:** file-lines · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** Articolo · **icon:** colour icon `article.png` (glyph `file-lines` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `title`
 - **Label:** `title`, `fileName`
 - **Follow the Money:** Article
@@ -412,7 +417,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `audio` — Audio
 
-- **Group:** FtM · Documents · **Italian label:** Audio · **icon:** image · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** Audio · **icon:** colour icon `audio.png` (glyph `image` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `fileName`
 - **Label:** `fileName`, `title`
 - **Follow the Money:** Audio
@@ -436,7 +441,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `ftmdocument` — File
 
-- **Group:** FtM · Documents · **Italian label:** File · **icon:** file-lines · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** File · **icon:** colour icon `ftmdocument.png` (glyph `file-lines` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `fileName`
 - **Label:** `fileName`, `title`
 - **Follow the Money:** Document
@@ -464,7 +469,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `folder` — Folder
 
-- **Group:** FtM · Documents · **Italian label:** Cartella · **icon:** file-lines · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** Cartella · **icon:** colour icon `folder.png` (glyph `file-lines` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `fileName`
 - **Label:** `fileName`, `title`
 - **Follow the Money:** Folder
@@ -486,7 +491,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `mention` — Mention
 
-- **Group:** FtM · Documents · **Italian label:** Menzione · **icon:** link · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** Menzione · **icon:** colour icon `mention.png` (glyph `link` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `name`
 - **Label:** `name`
 - **Follow the Money:** Mention
@@ -496,7 +501,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `message` — Message
 
-- **Group:** FtM · Documents · **Italian label:** Messaggio · **icon:** envelope · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** Messaggio · **icon:** colour icon `message.png` (glyph `envelope` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `subject`
 - **Label:** `subject`, `title`, `threadTopic`
 - **Follow the Money:** Message
@@ -523,7 +528,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `package` — Package
 
-- **Group:** FtM · Documents · **Italian label:** Pacchetto · **icon:** file-lines · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** Pacchetto · **icon:** colour icon `package.png` (glyph `file-lines` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `fileName`
 - **Label:** `fileName`, `title`
 - **Follow the Money:** Package
@@ -545,7 +550,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `page` — Page
 
-- **Group:** FtM · Documents · **Italian label:** Pagina · **icon:** file-lines · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** Pagina · **icon:** colour icon `page.png` (glyph `file-lines` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `index`
 - **Label:** `index`
 - **Follow the Money:** Page
@@ -555,7 +560,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `pages` — Document
 
-- **Group:** FtM · Documents · **Italian label:** Documento · **icon:** file-lines · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** Documento · **icon:** colour icon `pages.png` (glyph `file-lines` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `fileName`
 - **Label:** `fileName`, `title`
 - **Follow the Money:** Pages
@@ -577,7 +582,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `plaintext` — Text file
 
-- **Group:** FtM · Documents · **Italian label:** File di testo · **icon:** file-lines · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** File di testo · **icon:** colour icon `plaintext.png` (glyph `file-lines` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `fileName`
 - **Label:** `fileName`, `title`
 - **Follow the Money:** PlainText
@@ -599,7 +604,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `similar` — Similar
 
-- **Group:** FtM · Documents · **Italian label:** Simile · **icon:** link · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** Simile · **icon:** colour icon `similar.png` (glyph `link` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `confidenceScore`
 - **Label:** `confidenceScore`, `criteria`
 - **Follow the Money:** Similar
@@ -611,7 +616,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `table` — Table
 
-- **Group:** FtM · Documents · **Italian label:** Tabella · **icon:** file-lines · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** Tabella · **icon:** colour icon `table.png` (glyph `file-lines` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `title`
 - **Label:** `title`, `name`, `fileName`
 - **Follow the Money:** Table
@@ -634,7 +639,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `video` — Video
 
-- **Group:** FtM · Documents · **Italian label:** Video · **icon:** image · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** Video · **icon:** colour icon `video.png` (glyph `image` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `fileName`
 - **Label:** `fileName`, `title`
 - **Follow the Money:** Video
@@ -657,7 +662,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `workbook` — Workbook
 
-- **Group:** FtM · Documents · **Italian label:** Cartella di lavoro · **icon:** file-lines · **colour:** #475569
+- **Group:** FtM · Documents · **Italian label:** Cartella di lavoro · **icon:** colour icon `workbook.png` (glyph `file-lines` as fallback) · **colour:** #475569
 - **Identity** (same value = same node): `ftmId` · alternative key: `fileName`
 - **Label:** `fileName`, `title`
 - **Follow the Money:** Workbook
@@ -682,7 +687,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `asset` — Asset
 
-- **Group:** FtM · Finance · **Italian label:** Bene · **icon:** gem · **colour:** #0f766e
+- **Group:** FtM · Finance · **Italian label:** Bene · **icon:** colour icon `asset.png` (glyph `gem` as fallback) · **colour:** #0f766e
 - **Identity** (same value = same node): `ftmId` · alternative key: `name`
 - **Label:** `name`
 - **Follow the Money:** Asset
@@ -698,7 +703,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `ftmbankaccount` — Bank account
 
-- **Group:** FtM · Finance · **Italian label:** Conto bancario · **icon:** money-check · **colour:** #0f766e
+- **Group:** FtM · Finance · **Italian label:** Conto bancario · **icon:** colour icon `ftmbankaccount.png` (glyph `money-check` as fallback) · **colour:** #0f766e
 - **Identity** (same value = same node): `ftmId` · alternative key: `iban`
 - **Label:** `name`, `iban`, `accountNumber`
 - **Follow the Money:** BankAccount
@@ -726,7 +731,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `callfortenders` — Call for tenders
 
-- **Group:** FtM · Finance · **Italian label:** Bando di gara · **icon:** file-contract · **colour:** #0f766e
+- **Group:** FtM · Finance · **Italian label:** Bando di gara · **icon:** colour icon `callfortenders.png` (glyph `file-contract` as fallback) · **colour:** #0f766e
 - **Identity** (same value = same node): `ftmId` · alternative key: `title`
 - **Label:** `title`
 - **Follow the Money:** CallForTenders
@@ -771,7 +776,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `contract` — Contract
 
-- **Group:** FtM · Finance · **Italian label:** Contratto · **icon:** file-contract · **colour:** #0f766e
+- **Group:** FtM · Finance · **Italian label:** Contratto · **icon:** colour icon `contract.png` (glyph `file-contract` as fallback) · **colour:** #0f766e
 - **Identity** (same value = same node): `ftmId` · alternative key: `name`
 - **Label:** `title`, `name`, `procedureNumber`
 - **Follow the Money:** Contract
@@ -800,7 +805,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `cryptowallet` — Cryptocurrency wallet
 
-- **Group:** FtM · Finance · **Italian label:** Wallet di criptovalute · **icon:** bitcoin · **colour:** #0f766e
+- **Group:** FtM · Finance · **Italian label:** Wallet di criptovalute · **icon:** colour icon `cryptowallet.png` (glyph `bitcoin` as fallback) · **colour:** #0f766e
 - **Identity** (same value = same node): `ftmId` · alternative key: `publicKey`
 - **Label:** `publicKey`, `name`
 - **Follow the Money:** CryptoWallet
@@ -827,7 +832,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `economicactivity` — Customs declaration
 
-- **Group:** FtM · Finance · **Italian label:** Dichiarazione doganale · **icon:** building · **colour:** #0f766e
+- **Group:** FtM · Finance · **Italian label:** Dichiarazione doganale · **icon:** colour icon `economicactivity.png` (glyph `building` as fallback) · **colour:** #0f766e
 - **Identity** (same value = same node): `ftmId` · alternative key: `ccdNumber`
 - **Label:** `goodsDescription`, `ccdNumber`
 - **Follow the Money:** EconomicActivity
@@ -854,7 +859,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `license` — License
 
-- **Group:** FtM · Finance · **Italian label:** Licenza · **icon:** file-contract · **colour:** #0f766e
+- **Group:** FtM · Finance · **Italian label:** Licenza · **icon:** colour icon `license.png` (glyph `file-contract` as fallback) · **colour:** #0f766e
 - **Identity** (same value = same node): `ftmId` · alternative key: `name`
 - **Label:** `name`
 - **Follow the Money:** License
@@ -886,7 +891,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `security` — Security
 
-- **Group:** FtM · Finance · **Italian label:** Strumento finanziario · **icon:** file-invoice-dollar · **colour:** #0f766e
+- **Group:** FtM · Finance · **Italian label:** Strumento finanziario · **icon:** colour icon `security.png` (glyph `file-invoice-dollar` as fallback) · **colour:** #0f766e
 - **Identity** (same value = same node): `ftmId` · alternative key: `isin`
 - **Label:** `name`, `isin`, `registrationNumber`
 - **Follow the Money:** Security
@@ -911,7 +916,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `taxroll` — Tax roll
 
-- **Group:** FtM · Finance · **Italian label:** Dichiarazione fiscale · **icon:** receipt · **colour:** #0f766e
+- **Group:** FtM · Finance · **Italian label:** Dichiarazione fiscale · **icon:** colour icon `taxroll.png` (glyph `receipt` as fallback) · **colour:** #0f766e
 - **Identity** (same value = same node): `ftmId` · alternative key: `date`
 - **Label:** `date`
 - **Follow the Money:** TaxRoll
@@ -934,7 +939,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `call` — Call
 
-- **Group:** FtM · Proceedings · **Italian label:** Chiamata telefonica · **icon:** phone · **colour:** #831843
+- **Group:** FtM · Proceedings · **Italian label:** Chiamata telefonica · **icon:** colour icon `call.png` (glyph `phone` as fallback) · **colour:** #831843
 - **Identity** (same value = same node): `ftmId` · alternative key: `date`
 - **Label:** `callerNumber`, `receiverNumber`
 - **Follow the Money:** Call
@@ -950,7 +955,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `courtcase` — Court case
 
-- **Group:** FtM · Proceedings · **Italian label:** Procedimento giudiziario · **icon:** scale-balanced · **colour:** #831843
+- **Group:** FtM · Proceedings · **Italian label:** Procedimento giudiziario · **icon:** colour icon `courtcase.png` (glyph `scale-balanced` as fallback) · **colour:** #831843
 - **Identity** (same value = same node): `ftmId` · alternative key: `caseNumber`
 - **Label:** `name`, `caseNumber`
 - **Follow the Money:** CourtCase
@@ -969,7 +974,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `ftmevent` — Event
 
-- **Group:** FtM · Proceedings · **Italian label:** Evento · **icon:** burst · **colour:** #831843
+- **Group:** FtM · Proceedings · **Italian label:** Evento · **icon:** colour icon `ftmevent.png` (glyph `burst` as fallback) · **colour:** #831843
 - **Identity** (same value = same node): `ftmId` · alternative key: `name`
 - **Label:** `name`, `summary`, `date`
 - **Follow the Money:** Event
@@ -988,7 +993,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `position` — Position
 
-- **Group:** FtM · Proceedings · **Italian label:** Incarico / posizione · **icon:** building-columns · **colour:** #831843
+- **Group:** FtM · Proceedings · **Italian label:** Incarico / posizione · **icon:** colour icon `position.png` (glyph `building-columns` as fallback) · **colour:** #831843
 - **Identity** (same value = same node): `ftmId` · alternative key: `name`
 - **Label:** `name`
 - **Follow the Money:** Position
@@ -1004,7 +1009,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `project` — Project
 
-- **Group:** FtM · Proceedings · **Italian label:** Progetto · **icon:** file-lines · **colour:** #831843
+- **Group:** FtM · Proceedings · **Italian label:** Progetto · **icon:** colour icon `project.png` (glyph `file-lines` as fallback) · **colour:** #831843
 - **Identity** (same value = same node): `ftmId` · alternative key: `projectId`
 - **Label:** `name`, `projectId`
 - **Follow the Money:** Project
@@ -1028,7 +1033,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `risk` — Risk
 
-- **Group:** FtM · Proceedings · **Italian label:** Rischio · **icon:** burst · **colour:** #831843
+- **Group:** FtM · Proceedings · **Italian label:** Rischio · **icon:** colour icon `risk.png` (glyph `burst` as fallback) · **colour:** #831843
 - **Identity** (same value = same node): `ftmId` · alternative key: `reason`
 - **Label:** `reason`, `status`
 - **Follow the Money:** Risk
@@ -1051,7 +1056,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `sanction` — Sanction
 
-- **Group:** FtM · Proceedings · **Italian label:** Sanzione · **icon:** gavel · **colour:** #831843
+- **Group:** FtM · Proceedings · **Italian label:** Sanzione · **icon:** colour icon `sanction.png` (glyph `gavel` as fallback) · **colour:** #831843
 - **Identity** (same value = same node): `ftmId` · alternative key: `authorityId`
 - **Label:** `program`
 - **Follow the Money:** Sanction
@@ -1076,7 +1081,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `territory` — Territory
 
-- **Group:** FtM · Proceedings · **Italian label:** Territorio · **icon:** globe · **colour:** #831843
+- **Group:** FtM · Proceedings · **Italian label:** Territorio · **icon:** colour icon `territory.png` (glyph `globe` as fallback) · **colour:** #831843
 - **Identity** (same value = same node): `ftmId` · alternative key: `name`
 - **Label:** `name`
 - **Follow the Money:** Territory
@@ -1093,7 +1098,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `trip` — Trip
 
-- **Group:** FtM · Proceedings · **Italian label:** Viaggio · **icon:** location-dot · **colour:** #831843
+- **Group:** FtM · Proceedings · **Italian label:** Viaggio · **icon:** colour icon `trip.png` (glyph `location-dot` as fallback) · **colour:** #831843
 - **Identity** (same value = same node): `ftmId` · alternative key: `name`
 - **Label:** `name`, `startDate`, `endDate`
 - **Follow the Money:** Trip
@@ -1114,7 +1119,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `company` — Company
 
-- **Group:** FtM · Subjects · **Italian label:** Società · **icon:** building · **colour:** #7c2d12
+- **Group:** FtM · Subjects · **Italian label:** Società · **icon:** colour icon `company.png` (glyph `building` as fallback) · **colour:** #7c2d12
 - **Identity** (same value = same node): `ftmId` · alternative key: `name`
 - **Label:** `name`, `abbreviation`, `registrationNumber`
 - **Follow the Money:** Company
@@ -1185,7 +1190,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `legalentity` — Legal entity
 
-- **Group:** FtM · Subjects · **Italian label:** Soggetto giuridico · **icon:** building · **colour:** #7c2d12
+- **Group:** FtM · Subjects · **Italian label:** Soggetto giuridico · **icon:** colour icon `legalentity.png` (glyph `building` as fallback) · **colour:** #7c2d12
 - **Identity** (same value = same node): `ftmId` · alternative key: `name`
 - **Label:** `name`, `abbreviation`, `email`
 - **Follow the Money:** LegalEntity
@@ -1230,7 +1235,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `ftmorganization` — Organization
 
-- **Group:** FtM · Subjects · **Italian label:** Organizzazione · **icon:** building · **colour:** #7c2d12
+- **Group:** FtM · Subjects · **Italian label:** Organizzazione · **icon:** colour icon `ftmorganization.png` (glyph `building` as fallback) · **colour:** #7c2d12
 - **Identity** (same value = same node): `ftmId` · alternative key: `name`
 - **Label:** `name`, `abbreviation`, `registrationNumber`
 - **Follow the Money:** Organization
@@ -1279,7 +1284,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `publicbody` — Public body
 
-- **Group:** FtM · Subjects · **Italian label:** Ente pubblico · **icon:** building-columns · **colour:** #7c2d12
+- **Group:** FtM · Subjects · **Italian label:** Ente pubblico · **icon:** colour icon `publicbody.png` (glyph `building-columns` as fallback) · **colour:** #7c2d12
 - **Identity** (same value = same node): `ftmId` · alternative key: `name`
 - **Label:** `name`, `abbreviation`
 - **Follow the Money:** PublicBody
@@ -1331,7 +1336,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `identification` — Identification
 
-- **Group:** FtM · Identity documents · **Italian label:** Identificazione · **icon:** id-card · **colour:** #1d4ed8
+- **Group:** FtM · Identity documents · **Italian label:** Identificazione · **icon:** colour icon `identification.png` (glyph `id-card` as fallback) · **colour:** #1d4ed8
 - **Identity** (same value = same node): `ftmId` · alternative key: `number`
 - **Label:** `number`
 - **Follow the Money:** Identification
@@ -1348,7 +1353,7 @@ Generated by `scripts/ftm/make_ftm_types.py`; identity = `ftmId` (hidden field: 
 
 ### `passport` — Passport
 
-- **Group:** FtM · Identity documents · **Italian label:** Passaporto · **icon:** passport · **colour:** #1d4ed8
+- **Group:** FtM · Identity documents · **Italian label:** Passaporto · **icon:** colour icon `passport.png` (glyph `passport` as fallback) · **colour:** #1d4ed8
 - **Identity** (same value = same node): `ftmId` · alternative key: `number`
 - **Label:** `number`
 - **Follow the Money:** Passport

@@ -14,7 +14,7 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 - **New:** Colour icons for the two node types that still had a Font Awesome glyph, Follow the Money articles (a newspaper) and calls (a handset).
 - **New:** Colour icons for the sub-types. A drug picks its icon from the substance: pills for MDMA, amphetamines, benzodiazepines and pharmaceutical opioids, a leaf for khat, kratom and mescaline, a droplet for GHB, a microscope for an unidentified substance, besides the cannabis, syringe and vial of earlier versions. An identity document picks it from its kind (identity card, driving licence, residence permit, health card, visa and travel document, ID badge), a financial document likewise (invoice, insurance policy, balance sheet, ledger, hidden accounts, transport document, company registry extract, tax return), a judicial act likewise (arrest and custody, search and seizure, interviews, interception, complaints, police reports, notices to the suspect, letters rogatory), and a device too (smartphone, desktop, hard disk, USB stick, router, GPS tracker, and an encrypted phone with a padlock that no longer looks like the ordinary phone). A sub-type without its own icon shows the icon of its type.
-- **Docs:** `scripts/icons/labels.json` labels every cut of two more sheets, so the next icons can be chosen by name.
+- **Docs:** `scripts/icons/labels.json` labels every cut of two more sheets, so the next icons can be chosen by name. [Graph Entities](ontology.md) names the colour icon of every type and, for drugs, documents, judicial acts and devices, which value picks which icon (`scripts/make_ontology_doc.py`).
 
 ---
 

@@ -15,6 +15,29 @@ import ontology_i18n as i18n
 import ftm
 
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "docs", "ontology.md")
+ICON_DIR = os.path.join(os.path.dirname(OUT), "..", "static", "icons", "entities")
+# sub-type icons: the select field that picks them and the table of ontology.py
+SUB_ICONS = {"drug": ("sostanza", o.DRUG_ICONS), "document": ("tipo", o.DOC_ICONS),
+             "findoc": ("tipo", o.FINDOC_ICONS), "legaldoc": ("tipo", o.LEGALDOC_ICONS),
+             "device": ("tipo", o.DEVICE_ICONS)}
+
+
+def icon_note(key, t):
+    """Colour icon of the type (static/icons/entities) or, without one, the Font Awesome glyph."""
+    if os.path.isfile(os.path.join(ICON_DIR, f"{key}.png")):
+        return f"colour icon `{key}.png` (glyph `{t.get('icon')}` as fallback)"
+    return f"glyph `{t.get('icon')}`"
+
+
+def sub_icons_line(key):
+    if key not in SUB_ICONS:
+        return None
+    field, table = SUB_ICONS[key]
+    by_icon = {}
+    for value, icon in table.items():
+        by_icon.setdefault(icon, []).append(en_value(value))
+    parts = "; ".join(f"`{icon}.png` {esc(', '.join(vals))}" for icon, vals in by_icon.items())
+    return f"- **Icon by `{field}`:** {parts}; any other value shows the icon of the type"
 EN = i18n.table()["en"]          # Italian display text -> English, for select values
 
 # Group names: the Italian ontology groups and their English names (the FtM
@@ -70,11 +93,14 @@ def type_section(key, t):
     alt = t.get("ident_alt") or []
     ftm_sc = t.get("ftm") or (ftm.EXPORT_IT.get(key, ("—",))[0] if key in ftm.EXPORT_IT else "Note (declared loss)")
     lines = [f"### `{key}` — {esc(t.get('en') or t['label'])}", ""]
-    lines.append(f"- **Group:** {esc(GROUPS.get(t.get('group'), t.get('group')))} · **Italian label:** {esc(t['label'])} · **icon:** {t.get('icon')} · **colour:** {t.get('color')}")
+    lines.append(f"- **Group:** {esc(GROUPS.get(t.get('group'), t.get('group')))} · **Italian label:** {esc(t['label'])} · **icon:** {icon_note(key, t)} · **colour:** {t.get('color')}")
     lines.append(f"- **Identity** (same value = same node): {', '.join('`'+k+'`' for k in ident) if ident else 'none: every entry is a new node'}"
                  + (f" · alternative key: {', '.join('`'+k+'`' for k in alt)}" if alt else ""))
     lines.append(f"- **Label:** {', '.join('`'+x+'`' for x in (t.get('label_fmt') or [t.get('value') or '']))}")
     lines.append(f"- **Follow the Money:** {ftm_sc}")
+    sub = sub_icons_line(key)
+    if sub:
+        lines.append(sub)
     lines.append(f"- **Fields** ({len(t['fields'])}):")
     for f in t["fields"]:
         lines.append(f"  - {field_row(f)}")
