@@ -10,6 +10,13 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 1.7.4 — 2026
+
+- **Fixed:** The English interface and manual spell the *Licences* link and window in British English, like the rest of the documentation.
+- **Docs:** `docs/field-notes/` updated to the Field Notes 0.1.3.
+
+---
+
 ## 1.7.3 — 2026
 
 - **Fixed:** [Link Analysis Guidelines](link-analysis.md) no longer say that the 6 x 6 (Admiralty) system "converts easily": the two systems differ by more than the number of grades, and information graded on the 6 x 6 must be re-graded on the 4 x 4 questions, as the [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes/blob/main/docs/source-evaluation.md#converting-from-the-6-x-6-admiralty-system) explain. *Further Reading* links the UNODC manual for front-line law enforcement.

@@ -3970,8 +3970,8 @@ Object.assign(I18N.it, {
   'lic.external': 'scaricato a parte, non incluso nel programma'
 });
 Object.assign(I18N.en, {
-  'lic.link': 'Licenses',
-  'lic.title': 'Licenses',
+  'lic.link': 'Licences',
+  'lic.title': 'Licences',
   'lic.sub': 'Quaesitor is a fork of OSInt Graph by Andrea Cumini, free software (GNU GPL v3 with an attribution requirement). Here are its license and those of every component it uses.',
   'lic.grp.program': 'The program',
   'lic.grp.js': 'JavaScript libraries',
