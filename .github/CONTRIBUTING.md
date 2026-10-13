@@ -24,6 +24,10 @@ Issues and pull requests are welcome on [SOsintOps/quaesitor](https://github.com
 | `docs/` | FAQ, guidelines, version history, case study. |
 | `examples/` | Sample files to import. |
 
+## Where the Data Live (Decision)
+
+The cases (`data/`) and the documents to index (`sources/`, `fonti/` on installs older than 1.8.0) sit next to the program by default. This is deliberate, inherited from the original program and kept in 1.8.0: the folder is portable, and copying it moves the program with every case to another computer. Users who want them elsewhere set `DATA_DIR` and `SOURCES_DIR` (since 1.9.0); the Linux launchers of Argos, Speculator and Wukong already set `DATA_DIR`. Do not move the defaults into the user profile without revisiting this decision.
+
 ## Development Setup
 
 ```
