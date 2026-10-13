@@ -20,6 +20,10 @@ This file collects ideas, requirements and potential improvements to be evaluate
 - **English translation** of the Follow the Money guide, the Epieos guide and the Ollama setup guide, written in Italian during development and kept in the development repository until translated.
 - **Customising guide:** an equivalent of the Exploratores *Customise* page for this program: how to add an investigative node type (`ontology.py` and `ontology_i18n.py`), regenerate the Follow the Money ontology after a new release of the `followthemoney` package, add an interface language (`static/i18n.js`), configure `chatbot.conf` and `services.conf`, and adapt the OSINT-export import (`handle_record`) to a new tool.
 
+### Icons
+
+- **Node icons still to draw:** `article` and `call` keep the Font Awesome glyph; the sheet `glossy-3d-investigation-icon-atlas` and the uneven grid of `3d-investigation-and-finance-icon-grid` are cut but not labelled, and could provide icons for the sub-types of drugs, documents and devices.
+
 ### Integrations
 
 - **After Cognitor bundles and video transcription (1.6.0):** a "Transcribe again" button on the video card, which needs the path of the original file (the node keeps only its name); the transcription inside the executable, which needs the audio packages installed when building; an unknown group named in Cognitor after an export arrives as a new person while the old "Unknown #N" node stays, so a merge proposal on import (same dataset, `previousName`) would save the manual merge.

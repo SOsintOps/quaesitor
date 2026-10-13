@@ -44,3 +44,6 @@ dist/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# fogli di icone generati (sorgente di scripts/icons/split_sheets.py, 19 MB): restano in locale
+icone grezze/

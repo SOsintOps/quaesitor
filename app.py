@@ -1982,6 +1982,17 @@ def data_signature():
             translit_mode())
 
 
+def entity_icons():
+    """Keys of the colour node icons installed in static/icons/entities (index.json,
+    written by scripts/icons/install.py); empty when the folder is missing."""
+    try:
+        with open(os.path.join(app.static_folder, "icons", "entities", "index.json"), encoding="utf-8") as f:
+            keys = json.load(f)
+        return [str(k) for k in keys if isinstance(k, str)]
+    except (OSError, ValueError):
+        return []
+
+
 @app.route("/")
 def index():
     # versione = mtime di app.js/style.css: forza il browser a riscaricare i
@@ -1994,7 +2005,8 @@ def index():
     ver = max(_mtime("app.js"), _mtime("style.css"), _mtime("i18n.js"))
     return render_template("index.html", asset_ver=ver, fa_icons=fa_icons(),
                            ontology=onto.public(), base_icons=onto.BASE_ICONS,
-                           onto_i18n=onto_i18n.table(), ftm_edges=ftm.edges_public())
+                           onto_i18n=onto_i18n.table(), ftm_edges=ftm.edges_public(),
+                           entity_icons=entity_icons())
 
 
 _FA_DIR = os.path.join(RES_DIR, "static", "vendor", "fa")

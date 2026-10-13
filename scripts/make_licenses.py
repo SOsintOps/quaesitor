@@ -111,8 +111,20 @@ for id_, name, ver in (("cytoscape-fcose", "cytoscape-fcose", "2.2.0"),
 # ------------------------------------------------------- icone e carattere ---
 add("font-awesome", "Font Awesome Free", "6", "Icone CC BY 4.0, codice MIT",
     "Fonticons, Inc.", "https://fontawesome.com",
-    "Icone dei tipi di nodo (persona, telefono, email…)", "Node type icons (person, phone, email…)",
+    "Icone di ripiego dei tipi di nodo e dell'interfaccia", "Fallback node type icons and interface icons",
     wr("font-awesome.txt", rd(os.path.join(ROOT, "static", "vendor", "fa", "LICENSE.txt"))), "assets")
+add("entity-icons", "Quaesitor node icons", "1.7.0", "GPL-3.0-or-later (as the program)",
+    "Ramingo (SOsintOps)", "https://github.com/SOsintOps/quaesitor",
+    "Icone a colori dei tipi di nodo, generate con ChatGPT e Gemini (static/icons/entities)",
+    "Colour node type icons, generated with ChatGPT and Gemini (static/icons/entities)",
+    wr("entity-icons.txt", """Quaesitor node icons - static/icons/entities/
+
+Colour icons of the node types, generated in October 2026 with ChatGPT and Gemini
+from a prompt written by the maintainer of the fork, cut and assigned with the
+scripts in scripts/icons/. They are part of Quaesitor and are distributed under
+the same licence as the program (GNU GPL v3 or later). See the FAQ, "Where do the
+node icons come from?".
+"""), "assets")
 add("simple-icons", "Simple Icons", "", "CC0 1.0 (pubblico dominio); i loghi restano marchi dei rispettivi titolari",
     "Simple Icons contributors", "https://simpleicons.org",
     "Loghi delle piattaforme social (Facebook, Instagram, Telegram…)", "Social platform logos (Facebook, Instagram, Telegram…)",

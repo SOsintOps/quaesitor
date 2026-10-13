@@ -398,9 +398,17 @@ const letterIcon = (name, hex) => {
 const BRAND_ICON = {};
 
 const ONTO = window.ONTOLOGY || {};
+// colour icons of the node types (static/icons/entities, scripts/icons/install.py):
+// they come before the Font Awesome glyphs, which stay as fallback
+const ENT_ICON = Object.fromEntries((window.ENTITY_ICONS || []).map(k => [k, `/static/icons/entities/${k}.png`]));
 const iconFor = n => {
   if (n.ntype === 'photo' && n.image) return n.image;   // miniatura della foto
   if (n.pic && n.image) return n.image;                 // person pictured by an imported photo
+  const brand = n.ntype === 'account' && (BRAND_ICON[n.platform] || BRAND[n.platform]);
+  if (!brand) {                                         // a social profile keeps its platform logo
+    if (n.ficon && ENT_ICON[n.ficon]) return ENT_ICON[n.ficon];
+    if (ENT_ICON[n.ntype]) return ENT_ICON[n.ntype];
+  }
   if (n.ficon) return faIcon(n.ficon);                  // es. cannabis, siringa, passaporto
   if (ONTO[n.ntype]) return faIcon(ONTO[n.ntype].icon);
   if (SVG[n.ntype]) return SVG[n.ntype];

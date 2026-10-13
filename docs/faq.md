@@ -37,6 +37,7 @@ Frequently asked questions about Quaesitor — the project, the licence, install
 * [And Chinese?](#and-chinese)
 * [Does the video transcription send the audio anywhere?](#does-the-video-transcription-send-the-audio-anywhere)
 * [Does it talk to Cognitor?](#does-it-talk-to-cognitor)
+* [Where do the node icons come from?](#where-do-the-node-icons-come-from)
 * [Where do I report a problem or ask a question?](#where-do-i-report-a-problem-or-ask-a-question)
 * [Where is the rest of the documentation?](#where-is-the-rest-of-the-documentation)
 
@@ -220,6 +221,10 @@ No. Since 1.6.0 the transcription runs on this computer: faster-whisper for the 
 ### Does it talk to Cognitor?
 
 Through a file, since 1.6.0. Cognitor (face recognition with cases and a co-appearance graph) exports a case with **Export (FollowTheMoney)** as a `.cognitor.zip` bundle. Open it from **Import** or drop it on the Follow the Money window; for a bundle above 20 MB type its path in the field of that window. Persons, unknown groups, face photos, "seen together" links with the number of shared photos and video segments, videos with their transcripts and the "speaks in" / "appears in" links arrive in the current case. The photos are copied under `data/media/cognitor/`, the transcripts into the sources folder, where the search finds them. Importing the same case again updates the nodes instead of duplicating them. Face and voice embeddings stay in Cognitor: Follow the Money has no schema for them. An unknown group named in Cognitor after an export becomes a person at the next export; the old "Unknown #N" node stays here, to be merged by hand.
+
+### Where do the node icons come from?
+
+Since 1.7.0 the node types have colour icons. They were generated in October 2026 with ChatGPT and Gemini, from a prompt written by the maintainer of the fork: a colour evolution of a set of flat "incognito" glyphs (hoods, fedoras, masks, dark glasses), one icon per node type, no text. The generators returned nine sheets of icons on a white background. `scripts/icons/split_sheets.py` cuts them into single icons, `scripts/icons/labels.json` records what each cut shows, `scripts/icons/mapping.json` assigns a cut to each node type and `scripts/icons/install.py` copies the chosen ones to `static/icons/entities/`. The sheets themselves are not in the repository. A node type without a suitable icon (today `article` and `call`) keeps the Font Awesome glyph of earlier versions, and a social profile keeps the logo of its platform. To change an icon, point its key in `mapping.json` to another cut, or generate a new sheet with the same prompt, cut it and run `install.py` again. The icons are original images of this fork, distributed under the same licence as the program.
 
 ## Help & Documentation
 

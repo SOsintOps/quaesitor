@@ -1,0 +1,33 @@
+{
+ "_note": "What every cut shows, by sheet and position (row-major, 1-based), labelled by looking at the contact sheets. Sheets not listed here are cut but not labelled: their grids are uneven (3d-investigation-and-finance, glossy-3d-investigation-icon-atlas) or they hold only payment-card variants.",
+ "mystery-and-investigation-icon-grid": {
+  "1": "person_fedora", "2": "target_crosshair_person", "3": "unknown_hooded_question", "4": "speaker_voice_waves",
+  "5": "phone_masked", "6": "email_masked", "7": "username_at_fedora", "8": "social_bubble_spy",
+  "9": "domain_globe_masked", "10": "web_link_chain", "11": "data_breach_padlock", "12": "text_note_clip",
+  "13": "photo_polaroid_hood", "14": "video_film_play", "15": "audio_microphone", "16": "place_pin_magnifier",
+  "17": "vehicle_car", "18": "real_estate_house", "19": "aircraft_binoculars", "20": "organization_building_fedora",
+  "21": "device_laptop_phone", "22": "weapon_pistol", "23": "ammunition_cartridges", "24": "explosive_bomb",
+  "25": "drug_pill_leaf", "26": "cash_banknotes", "27": "cheque", "28": "valuables_gem_gold",
+  "29": "bank_building", "30": "payment_card", "31": "crypto_wallet_bitcoin", "32": "id_passport_card",
+  "33": "financial_invoice_coins", "34": "legal_document_scales_seal", "35": "event_calendar_alert", "36": "generic_hexagon_question"
+ },
+ "glossy-investigation-and-security-icon-grid": {
+  "1": "group_of_spies", "2": "handshake_spy", "3": "org_chart_spy", "4": "couple_of_spies", "5": "secure_message", "6": "cloud_spy",
+  "7": "satellite_dish", "8": "wifi_spy", "9": "servers_spy", "10": "cloud_database", "11": "network_spy", "12": "radio_tower",
+  "13": "folder_spy", "14": "document_search", "15": "fingerprint_search", "16": "image_search", "17": "report_search", "18": "database_search",
+  "19": "map_route", "20": "globe_pin", "21": "cctv_camera", "22": "container_ship", "23": "truck", "24": "train",
+  "25": "knife", "26": "assault_rifle", "27": "crosshair", "28": "biohazard", "29": "radioactive", "30": "skull_crossbones",
+  "31": "cannabis_powder", "32": "lab_flask_spy", "33": "syringe", "34": "coins_growth", "35": "money_bag_spy", "36": "gold_bars",
+  "37": "capitol_public_body", "38": "police_shield_star", "39": "certificate_document", "40": "gavel", "41": "calendar_alert", "42": "folder_gear"
+ },
+ "corporate-finance-and-compliance-icon-grid": {
+  "1": "company_skyscrapers", "2": "subsidiaries", "3": "holding_structure", "4": "shareholder_certificate", "5": "businessman_briefcase", "6": "beneficial_owner_shadow",
+  "7": "handshake", "8": "merger_puzzle", "9": "trust_box_shield", "10": "charity_bank_heart", "11": "offshore_island", "12": "stock_exchange",
+  "13": "investment_briefcase", "14": "share_certificate", "15": "contract_signing_money", "16": "bank_transfer", "17": "international_transfer", "18": "cash_handover",
+  "19": "invoice_calculator", "20": "delivery_clipboard_package", "21": "signed_contract", "22": "sealed_tender_box", "23": "boxes_pallet", "24": "associates_network",
+  "25": "shipping_container", "26": "ship_certificate", "27": "customs_checklist_containers", "28": "port_cranes", "29": "customs_document_stamp", "30": "sanction_prohibited_stamp",
+  "31": "due_diligence_search", "32": "compliance_shield_checklist", "33": "bank_folder", "34": "court_gavel_documents", "35": "sealed_signed_document", "36": "apartment_keys",
+  "37": "watch_diamond", "38": "painting_gloves", "39": "private_jet_certificate", "40": "yacht_certificate", "41": "safe_documents", "42": "tax_calculator_documents",
+  "43": "insurance_document_shield", "44": "umbrella_coins", "45": "safe_keys", "46": "crypto_exchange", "47": "cash_to_bank", "48": "company_transfer"
+ }
+}

@@ -10,6 +10,12 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 1.7.0 — 2026
+
+- **New:** Colour icons for the node types: people, targets, unknown persons, phones, e-mails, profiles, places, vehicles, documents, weapons, drugs, money, companies, vessels and the other Follow the Money types, 78 icons in all. They come from icon sheets generated with ChatGPT and Gemini, cut and assigned by `scripts/icons/`; see the FAQ "Where do the node icons come from?". The Font Awesome glyphs stay as fallback for the types without an icon, and social profiles keep the logo of their platform.
+
+---
+
 ## 1.6.1 — 2026
 
 - **Changed:** The credits line and the credits window name the fork's maintainer, Sitticus (osintops.com). The attribution to Andrea Cumini that `NOTICE` requires stays complete and legible on its own line ("Based on OSInt Graph by Andrea Cumini - andrea@osintinfo.net - www.osintinfo.net") and as an "Original project" section of the credits window.

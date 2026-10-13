@@ -97,10 +97,25 @@
   "copyright": "Fonticons, Inc.",
   "url": "https://fontawesome.com",
   "role": {
-   "it": "Icone dei tipi di nodo (persona, telefono, email…)",
-   "en": "Node type icons (person, phone, email…)"
+   "it": "Icone di ripiego dei tipi di nodo e dell'interfaccia",
+   "en": "Fallback node type icons and interface icons"
   },
   "file": "font-awesome.txt",
+  "group": "assets",
+  "bundled": true
+ },
+ {
+  "id": "entity-icons",
+  "name": "Quaesitor node icons",
+  "version": "1.7.0",
+  "license": "GPL-3.0-or-later (as the program)",
+  "copyright": "Ramingo (SOsintOps)",
+  "url": "https://github.com/SOsintOps/quaesitor",
+  "role": {
+   "it": "Icone a colori dei tipi di nodo, generate con ChatGPT e Gemini (static/icons/entities)",
+   "en": "Colour node type icons, generated with ChatGPT and Gemini (static/icons/entities)"
+  },
+  "file": "entity-icons.txt",
   "group": "assets",
   "bundled": true
  },
