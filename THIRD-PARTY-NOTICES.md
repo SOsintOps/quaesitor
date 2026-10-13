@@ -14,7 +14,8 @@ texts are in `static/licenses/` and can be read from the program itself
 | [Font Awesome Free](https://fontawesome.com) | 6 | Icone CC BY 4.0, codice MIT | Fonticons, Inc. | Fallback node type icons and interface icons |
 | [Quaesitor node icons](https://github.com/SOsintOps/quaesitor) | 1.7.1 | GPL-3.0-or-later (as the program) | Ramingo (SOsintOps) | Colour node type icons, generated with ChatGPT and Gemini (static/icons/entities) |
 | [Simple Icons](https://simpleicons.org) |  | CC0 1.0 (pubblico dominio); i loghi restano marchi dei rispettivi titolari | Simple Icons contributors | Social platform logos (Facebook, Instagram, Telegram…) |
-| [Panchang (carattere del logo)](https://www.fontshare.com/fonts/panchang) |  | Fontshare Free Font License (solo contorni: il font non è distribuito) | Indian Type Foundry | Typeface of the original OSInt Graph logo (Quaesitor uses a provisional wordmark in a system font) |
+| [Panchang (carattere del logo)](https://www.fontshare.com/fonts/panchang) |  | Fontshare Free Font License (solo contorni: il font non è distribuito) | Indian Type Foundry | Typeface of the original OSInt Graph logo (Quaesitor has a logo of its own, set in Bodoni Moda) |
+| [Bodoni Moda (carattere del logo)](https://github.com/indestructible-type/Bodoni) |  | SIL Open Font License 1.1 (solo contorni: il font non è distribuito) | The Bodoni Moda Project Authors | Typeface of the word Quaesitor in the logo, converted to outlines |
 | [Flask](https://pypi.org/project/Flask/) | 3.1.3 | BSD-3-Clause |  | Application web server |
 | [Werkzeug](https://pypi.org/project/Werkzeug/) | 3.1.9 | BSD-3-Clause |  | Web server toolkit |
 | [Jinja2](https://pypi.org/project/Jinja2/) | 3.1.6 | BSD-3-Clause |  | Page templates |

@@ -1,6 +1,6 @@
 # Link Analysis Guidelines
 
-The method behind the graph — source evaluation, the association matrix, the link chart and the questions of association analysis — rewritten from the UNODC *Criminal Intelligence: Manual for Analysts*, with a final section on how each step maps onto Quaesitor.
+The method behind the graph — source evaluation, the association matrix, the link chart and the questions of association analysis — rewritten from the UNODC [*Criminal Intelligence: Manual for Analysts*](https://www.unodc.org/documents/organized-crime/Law-Enforcement/Criminal_Intelligence_for_Analysts.pdf), with a final section on how each step maps onto Quaesitor.
 
 ## Source and Notice
 The reference is the United Nations Office on Drugs and Crime, **Criminal Intelligence: Manual for Analysts**, United Nations, New York, 2011, 104 pages. Chapter 6 "Basic analysis techniques: link analysis" (pp. 35-48) is the core of this page; chapter 4 "Evaluation of source and data" (pp. 25-28), chapter 5 "Analysis and analytical process" (pp. 29-33) and chapter 1 supply the definitions. Chapters 7 to 9 cover the sister techniques (event charting, flow analysis, telephone analysis) and are not summarised here.
