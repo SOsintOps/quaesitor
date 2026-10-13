@@ -12,7 +12,6 @@ This file collects ideas, requirements and potential improvements to be evaluate
 
 ### Documentation
 
-- **Screenshots:** take Quaesitor's own screenshots for the built-in manual (the `IMG` map in `quaesitor/static/manual/manual.html` lists the eighteen views, `fig()` renders them again once the files are back) and for the README.
 - **English translation** of the Follow the Money guide, the Epieos guide and the Ollama setup guide, written in Italian during development and kept in the development repository until translated.
 - **Customising guide:** an equivalent of the Exploratores *Customise* page for this program: how to add an investigative node type (`quaesitor/ontology.py` and `quaesitor/ontology_i18n.py`), regenerate the Follow the Money ontology after a new release of the `followthemoney` package, add an interface language (`quaesitor/static/i18n.js`), configure `chatbot.conf` and `services.conf`, and adapt the OSINT-export import (`handle_record`) to a new tool.
 

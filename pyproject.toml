@@ -49,6 +49,8 @@ Upstream = "https://github.com/tingon11/OsintGraph"
 [dependency-groups]
 dev = ["pytest>=8"]
 build = ["pyinstaller>=6.0"]
+# the screenshots of the manual: scripts/screenshots.py (drives the installed Chrome)
+docs = ["playwright>=1.45"]
 
 [tool.setuptools.packages.find]
 include = ["quaesitor*"]

@@ -1,13 +1,13 @@
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="static/logo.svg">
-    <img src="static/logo-light.svg" alt="Quaesitor" width="420">
+    <source media="(prefers-color-scheme: dark)" srcset="quaesitor/static/logo.svg">
+    <img src="quaesitor/static/logo-light.svg" alt="Quaesitor" width="420">
   </picture>
 </p>
 
-# Quaesitor 1.9.0
+# Quaesitor 1.9.1
 
-![version](https://img.shields.io/badge/version-1.9.0-blue)
+![version](https://img.shields.io/badge/version-1.9.1-blue)
 ![licence](https://img.shields.io/github/license/SOsintOps/quaesitor)
 ![last commit](https://img.shields.io/github/last-commit/SOsintOps/quaesitor)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
@@ -16,7 +16,9 @@
 
 **Quaesitor** is a case graph for OSINT investigations: people, phones, e-mails, social profiles, companies, vehicles, places and documents as an interactive graph, with every case stored on your own computer. It is a fork of [OSInt Graph](https://github.com/tingon11/OsintGraph) by Andrea Cumini (andrea@osintinfo.net, [www.osintinfo.net](https://www.osintinfo.net)): the program, its design, its code and its illustrated manual are his work, released as free software under the GNU GPL v3 with attribution terms. The fork exists because his program was already excellent and only needed adapting to the needs of one analyst — non-Latin names, the Follow the Money data model, the Epieos API, a one-click Windows install and the bridge with Cognitor, the face-recognition program of the same holder. It adds those and nothing else; see [Credits](#credits).
 
-Version 1.9.0, the latest, lets the documents folder live outside the program folder too, with `SOURCES_DIR`, as `DATA_DIR` already does for the cases. Every release, with what it changed, is in the [version history](docs/versionhistory.md).
+Version 1.9.1, the latest, brings the screenshots back into the built-in manual, taken from the case study, and fixes the logo of this page. Every release, with what it changed, is in the [version history](docs/versionhistory.md).
+
+![Quaesitor: the left panel and the graph of the case study, with Jon Snow as the target and the contested parentages dashed](quaesitor/static/manual/img/02-overview.png)
 
 ---
 

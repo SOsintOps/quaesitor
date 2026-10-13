@@ -83,11 +83,11 @@ def add(id_, name, version, license_, holder, url, role_it, role_en, file, group
 
 
 # ------------------------------------------------------------ the program ---
-add("osint-graph", "Quaesitor (fork of OSInt Graph)", "", "GNU GPL v3 con clausole aggiuntive (attribuzione, nome e logo)",
+add("osint-graph", "Quaesitor (fork of OSInt Graph)", "", "GNU GPL v3 with additional terms (attribution, name and logo)",
     "Copyright (C) 2025-2026 Andrea Cumini", "https://www.osintinfo.net",
     "Il programma: licenza e termini aggiuntivi", "The program: license and additional terms",
     wr("NOTICE.txt", rd(os.path.join(ROOT, "NOTICE"))), "program")
-add("gpl-3.0", "GNU General Public License", "versione 3", "GPL-3.0",
+add("gpl-3.0", "GNU General Public License", "version 3", "GPL-3.0",
     "Free Software Foundation", "https://www.gnu.org/licenses/gpl-3.0.html",
     "Testo integrale della licenza del programma", "Full text of the program's license",
     wr("GPL-3.0.txt", rd(os.path.join(ROOT, "LICENSE"))), "program")

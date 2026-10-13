@@ -17,8 +17,7 @@
   * { box-sizing: border-box; }
   body { margin:0; background:var(--bg); color:#e5e5e5; font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif; line-height:1.6; }
   header { position:sticky; top:0; z-index:10; background:var(--panel); border-bottom:2px solid var(--line); padding:10px 20px; display:flex; align-items:center; gap:16px; flex-wrap:wrap; }
-  header .logo { font-weight:800; font-size:22px; letter-spacing:.5px; }
-  header .logo b { color:var(--brand); font-weight:800; }
+  header .logo img { display:block; height:30px; width:auto; }
   header .sub { color:var(--tx2); font-size:13px; }
   .langs { margin-left:auto; display:flex; gap:6px; flex-wrap:wrap; }
   .langs button { background:var(--line); color:#fff; border:0; border-radius:4px; padding:6px 12px; cursor:pointer; font-size:13px; }
@@ -40,7 +39,7 @@
   .toc a { display:block; padding:2px 0; font-size:13px; text-decoration:none; }
   .toc a:hover { text-decoration:underline; }
   figure { margin:14px 0 20px; }
-  figure img { display:block; width:100%; height:auto; border:1px solid var(--line); border-radius:6px; }
+  figure img { display:block; max-width:100%; height:auto; border:1px solid var(--line); border-radius:6px; }
   figure.narrow img { max-width:320px; }
   figcaption { color:var(--tx2); font-size:12px; margin-top:6px; }
   .two { display:flex; gap:16px; flex-wrap:wrap; }
@@ -55,27 +54,26 @@
 </head>
 <body>
 <header>
-  <div><div class="logo">OSInt<b>Graph</b></div><div class="sub" id="hsub"></div></div>
+  <div><div class="logo"><img src="../logo.svg" alt="Quaesitor"></div><div class="sub" id="hsub"></div></div>
   <div class="langs" id="langs"></div>
 </header>
 <main id="main"></main>
 <script>
 /* ------------------------------------------------------------------ texts --
    M[language] = { title, sub, toc, kbd: {k, a}, sections: [{id, h, body}] }
-   The images are shared: the interface in the screenshots is in Italian. */
+   The images are shared by the six languages: the interface in them is in English.
+   They are taken by scripts/screenshots.py from the case study of examples/ (the
+   family network of Game of Thrones): run it again after a change to the interface. */
 const IMG = {
-  first: 'img/01-primo-avvio.jpg', over: 'img/02-panoramica.jpg', search: 'img/03-ricerca.jpg',
-  card: 'img/04-scheda-nodo.jpg', add: 'img/05-nuovo-nodo.jpg', edge: 'img/06-modifica-collegamento.jpg',
-  edit: 'img/07-modifica-valori.jpg', ctx: 'img/08-menu-contestuale.jpg', link: 'img/09-collega-nodi.jpg',
-  imp1: 'img/10-import-1-file.jpg', imp2: 'img/11-import-2-colonne.jpg', imp3: 'img/12-import-3-anteprima.jpg',
-  ai: 'img/13-configurazione-ai.jpg', lic: 'img/14-licenze.jpg', caseEdit: 'img/15-modifica-caso.jpg',
-  manual: 'img/16-modifiche-manuali.jpg', sideTop: 'img/17-pannello-alto.png', sideBottom: 'img/18-pannello-basso.png'
+  first: 'img/01-first-start.png', over: 'img/02-overview.png', search: 'img/03-search.png',
+  card: 'img/04-node-card.png', add: 'img/05-new-node.png', edge: 'img/06-edit-link.png',
+  edit: 'img/07-edit-values.png', ctx: 'img/08-context-menu.png', link: 'img/09-connect-nodes.png',
+  imp1: 'img/10-import-1-file.png', imp2: 'img/11-import-2-columns.png', imp3: 'img/12-import-3-preview.png',
+  ai: 'img/13-ai-settings.png', lic: 'img/14-licences.png', caseEdit: 'img/15-edit-case.png',
+  manual: 'img/16-manual-changes.png', sideTop: 'img/17-panel-top.png', sideBottom: 'img/18-panel-bottom.png'
 };
-// The figures of the original manual showed the OSInt Graph interface and were
-// removed from Quaesitor (different name and logo); the captions stay as text
-// until Quaesitor has its own screenshots. IMG maps the old files, kept so the
-// figures can go back in their place.
-const fig = (src, cap, cls = '') => `<p class="figcap ${cls}"><i>${cap}</i></p>`;
+const fig = (src, cap, cls = '') =>
+  `<figure class="${cls}"><img src="${src}" alt="${cap.replace(/"/g, '&quot;')}" loading="lazy"><figcaption>${cap}</figcaption></figure>`;
 
 const M = {};
 
@@ -117,7 +115,7 @@ ${fig(IMG.first, 'Primo avvio: nessun caso aperto, la finestra «Nuovo caso» si
 ${fig(IMG.caseEdit, 'Modifica di nome e descrizione del caso.')}` },
    { id: 'interface', h: '3. L\'interfaccia', body: `
 <p>A sinistra il <b>pannello dei comandi</b>, a destra il <b>grafo</b> su sfondo bianco. Il pannello si scorre verticalmente e contiene, dall'alto: logo e crediti, il caso, la ricerca, i pulsanti principali, l'intelligenza artificiale, le viste salvate, le fonti documentali, i filtri per categoria, le opzioni dei collegamenti e del layout, l'esportazione, la selezione, la legenda e la riga di stato.</p>
-${fig(IMG.over, 'Panoramica: pannello a sinistra, grafo a destra. Il nodo dorato è il target, le linee tratteggiate rosse i collegamenti personalizzati.')}
+${fig(IMG.over, 'Panoramica: pannello a sinistra, grafo a destra. Il nodo dorato è il target; le linee tratteggiate sono le parentele contese nelle fonti e le ipotesi dell\'analista.')}
 <div class="two">
 ${fig(IMG.sideTop, 'Parte alta del pannello.', 'narrow')}
 ${fig(IMG.sideBottom, 'Parte bassa del pannello: layout, esportazione, selezione, legenda.', 'narrow')}
@@ -242,7 +240,7 @@ ${fig(IMG.first, 'First start: no case is open, the “New case” window opens 
 ${fig(IMG.caseEdit, 'Editing the case name and description.')}` },
    { id: 'interface', h: '3. The interface', body: `
 <p>On the left the <b>command panel</b>, on the right the <b>graph</b> on a white background. The panel scrolls vertically and contains, from the top: logo and credits, the case, the search, the main buttons, artificial intelligence, saved views, document sources, category filters, connection and layout options, export, selection, the legend and the status line.</p>
-${fig(IMG.over, 'Overview: panel on the left, graph on the right. The golden node is the target, the red dashed lines are customised connections.')}
+${fig(IMG.over, 'Overview: panel on the left, graph on the right. The golden node is the target; the dashed lines are the parentages contested in the sources and the analyst\'s hypotheses.')}
 <div class="two">
 ${fig(IMG.sideTop, 'Upper part of the panel.', 'narrow')}
 ${fig(IMG.sideBottom, 'Lower part of the panel: layout, export, selection, legend.', 'narrow')}
@@ -367,7 +365,7 @@ ${fig(IMG.first, 'Premier démarrage : aucun dossier ouvert, la fenêtre « Nouv
 ${fig(IMG.caseEdit, 'Modification du nom et de la description du dossier.')}` },
    { id: 'interface', h: '3. L\'interface', body: `
 <p>À gauche le <b>panneau de commandes</b>, à droite le <b>graphe</b> sur fond blanc. Le panneau défile verticalement et contient, de haut en bas : logo et crédits, le dossier, la recherche, les boutons principaux, l'intelligence artificielle, les vues enregistrées, les sources documentaires, les filtres par catégorie, les options des liaisons et de la disposition, l'export, la sélection, la légende et la ligne d'état.</p>
-${fig(IMG.over, 'Vue d\'ensemble : panneau à gauche, graphe à droite. Le nœud doré est la cible, les lignes rouges en pointillé sont des liaisons personnalisées.')}
+${fig(IMG.over, 'Vue d\'ensemble : panneau à gauche, graphe à droite. Le nœud doré est la cible ; les lignes en pointillé sont les filiations contestées dans les sources et les hypothèses de l\'analyste.')}
 <div class="two">
 ${fig(IMG.sideTop, 'Partie haute du panneau.', 'narrow')}
 ${fig(IMG.sideBottom, 'Partie basse du panneau : disposition, export, sélection, légende.', 'narrow')}
@@ -492,7 +490,7 @@ ${fig(IMG.first, 'Erster Start: kein Fall offen, das Fenster „Neuer Fall“ ö
 ${fig(IMG.caseEdit, 'Bearbeiten von Name und Beschreibung des Falls.')}` },
    { id: 'interface', h: '3. Die Oberfläche', body: `
 <p>Links das <b>Bedienpanel</b>, rechts der <b>Graph</b> auf weißem Hintergrund. Das Panel scrollt senkrecht und enthält von oben nach unten: Logo und Credits, den Fall, die Suche, die Hauptschaltflächen, die künstliche Intelligenz, gespeicherte Ansichten, Dokumentquellen, Kategoriefilter, Optionen für Verbindungen und Layout, Export, Auswahl, Legende und Statuszeile.</p>
-${fig(IMG.over, 'Überblick: Panel links, Graph rechts. Der goldene Knoten ist die Zielperson, die roten gestrichelten Linien sind angepasste Verbindungen.')}
+${fig(IMG.over, 'Überblick: Panel links, Graph rechts. Der goldene Knoten ist die Zielperson; die gestrichelten Linien sind die in den Quellen umstrittenen Abstammungen und die Hypothesen des Analysten.')}
 <div class="two">
 ${fig(IMG.sideTop, 'Oberer Teil des Panels.', 'narrow')}
 ${fig(IMG.sideBottom, 'Unterer Teil des Panels: Layout, Export, Auswahl, Legende.', 'narrow')}
@@ -617,7 +615,7 @@ ${fig(IMG.first, 'Primer inicio: ningún caso abierto, la ventana «Nuevo caso»
 ${fig(IMG.caseEdit, 'Modificación del nombre y la descripción del caso.')}` },
    { id: 'interface', h: '3. La interfaz', body: `
 <p>A la izquierda el <b>panel de mandos</b>, a la derecha el <b>grafo</b> sobre fondo blanco. El panel se desplaza verticalmente y contiene, de arriba abajo: logotipo y créditos, el caso, la búsqueda, los botones principales, la inteligencia artificial, las vistas guardadas, las fuentes documentales, los filtros por categoría, las opciones de conexiones y disposición, la exportación, la selección, la leyenda y la línea de estado.</p>
-${fig(IMG.over, 'Vista general: panel a la izquierda, grafo a la derecha. El nodo dorado es el objetivo, las líneas rojas discontinuas son conexiones personalizadas.')}
+${fig(IMG.over, 'Vista general: panel a la izquierda, grafo a la derecha. El nodo dorado es el objetivo; las líneas discontinuas son los parentescos disputados en las fuentes y las hipótesis del analista.')}
 <div class="two">
 ${fig(IMG.sideTop, 'Parte alta del panel.', 'narrow')}
 ${fig(IMG.sideBottom, 'Parte baja del panel: disposición, exportación, selección, leyenda.', 'narrow')}
@@ -742,7 +740,7 @@ ${fig(IMG.first, 'التشغيل الأول: لا قضية مفتوحة، ونا
 ${fig(IMG.caseEdit, 'تعديل اسم القضية ووصفها.')}` },
    { id: 'interface', h: '3. الواجهة', body: `
 <p>على اليسار <b>لوحة الأوامر</b>، وعلى اليمين <b>الرسم البياني</b> على خلفية بيضاء. تُمرَّر اللوحة عمودياً وتحتوي من الأعلى: الشعار والاعتمادات، القضية، البحث، الأزرار الرئيسية، الذكاء الاصطناعي، طرق العرض المحفوظة، المصادر الوثائقية، مرشّحات الفئات، خيارات الروابط والتخطيط، التصدير، التحديد، المفتاح، وسطر الحالة.</p>
-${fig(IMG.over, 'نظرة عامة: اللوحة على اليسار والرسم على اليمين. العقدة الذهبية هي الهدف، والخطوط الحمراء المتقطعة روابط مخصّصة.')}
+${fig(IMG.over, 'نظرة عامة: اللوحة على اليسار والرسم على اليمين. العقدة الذهبية هي الهدف، والخطوط المتقطعة هي صلات القرابة المتنازع عليها في المصادر وفرضيات المحلّل.')}
 <div class="two">
 ${fig(IMG.sideTop, 'الجزء العلوي من اللوحة.', 'narrow')}
 ${fig(IMG.sideBottom, 'الجزء السفلي من اللوحة: التخطيط، التصدير، التحديد، المفتاح.', 'narrow')}

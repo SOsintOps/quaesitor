@@ -3,7 +3,7 @@
   "id": "osint-graph",
   "name": "Quaesitor (fork of OSInt Graph)",
   "version": "",
-  "license": "GNU GPL v3 con clausole aggiuntive (attribuzione, nome e logo)",
+  "license": "GNU GPL v3 with additional terms (attribution, name and logo)",
   "copyright": "Copyright (C) 2025-2026 Andrea Cumini",
   "url": "https://www.osintinfo.net",
   "role": {
@@ -17,7 +17,7 @@
  {
   "id": "gpl-3.0",
   "name": "GNU General Public License",
-  "version": "versione 3",
+  "version": "version 3",
   "license": "GPL-3.0",
   "copyright": "Free Software Foundation",
   "url": "https://www.gnu.org/licenses/gpl-3.0.html",

@@ -10,6 +10,15 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 1.9.1 — 2026
+
+- **New:** The built-in manual shows its eighteen figures again, in all six languages: screenshots of Quaesitor in English, taken from the [case study](case-study-game-of-thrones.md) by `scripts/screenshots.py`, which drives the installed Chrome (`pip install --group docs`) and can be run again after a change to the interface. The README opens with the overview.
+- **Fixed:** The header of the built-in manual showed the wordmark of OSInt Graph, reserved to its author by the NOTICE: it shows the logo of Quaesitor.
+- **Fixed:** The logo at the top of the README pointed to the folder `static/` of 1.7.x and did not show.
+- **Fixed:** The licences window named the licence of the program ("GNU GPL v3 con clausole aggiuntive") and the GPL version in Italian in every language.
+
+---
+
 ## 1.9.0 — 2026
 
 - **New:** `SOURCES_DIR` keeps the documents to index outside the program folder, as `DATA_DIR` does for the cases: an encrypted volume, a home folder on Linux. Without it the program stays portable, with `data/` and `sources/` next to it. See the FAQ, *Where are my cases?*.

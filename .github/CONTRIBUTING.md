@@ -40,6 +40,10 @@ DATA_DIR=/tmp/quaesitor-test PORT=5002 .venv/bin/python app.py
 
 `DATA_DIR` keeps a test archive away from your cases. Run `python scripts/smoke_test.py` against a running server before a pull request that touches the import or the API.
 
+## Screenshots of the Manual
+
+The eighteen figures of the built-in manual (`quaesitor/static/manual/img/`) and the overview in the README are taken from the case study by `scripts/screenshots.py`, in English. After a change to the interface, run it again: `pip install --group docs`, then `python scripts/screenshots.py`. It starts a copy of the last commit with an empty archive and drives the installed Chrome; nothing leaves the computer and the settings files of your copy are not read.
+
 ## Pull Requests
 
 One change per pull request, with a short description of what changes for the user. Add or update the tests, and the entry of `docs/versionhistory.md` when the change is visible in the program.
