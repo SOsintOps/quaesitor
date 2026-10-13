@@ -10,6 +10,13 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 1.9.0 — 2026
+
+- **New:** `SOURCES_DIR` keeps the documents to index outside the program folder, as `DATA_DIR` does for the cases: an encrypted volume, a home folder on Linux. Without it the program stays portable, with `data/` and `sources/` next to it. See the FAQ, *Where are my cases?*.
+- **Changed:** The icon tools write their cuts to `_cuts/` and the contact sheets as `_contact_<sheet>.png` (English names).
+
+---
+
 ## 1.8.1 — 2026
 
 - **Fixed:** The built-in manual, in all six languages, names the documents folder `sources` where it still said `fonti` (the sources section and the backup note).

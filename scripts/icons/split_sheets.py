@@ -10,8 +10,8 @@ Every sheet is a grid of icons on a white background. The script finds the icons
 connected areas of non-white pixels (dilated, so that the parts of one icon stay
 together), orders them by row and column, makes the white background transparent with
 a flood fill from the border (the white inside an icon stays), and writes a square
-128x128 PNG per icon into <sheets>/../_tagli/<sheet>/NNN.png, plus a numbered contact
-sheet per source (<sheets>/_tagli/_contatto_<sheet>.png) used to label the icons.
+128x128 PNG per icon into <sheets>/../_cuts/<sheet>/NNN.png, plus a numbered contact
+sheet per source (<sheets>/_cuts/_contact_<sheet>.png) used to label the icons.
 
 A development tool: it needs numpy and scipy (requirements-audio.txt), the program
 does not. The sheets live in docs/evaluation/icons/sheets, in the development repository
@@ -181,7 +181,7 @@ def split(path, out_root, dilate=6):
             crop = img.crop((max(0, x0 - m), max(0, y0 - m), min(img.width, x1 + m), min(img.height, y1 + m)))
             square(transparent(crop)).save(os.path.join(dest, f"{k:03d}.png"), optimize=True)
             cuts.append({"n": k, "row": r + 1, "col": c + 1, "box": [x0, y0, x1, y1]})
-    contact(dest, cuts, os.path.join(out_root, f"_contatto_{name}.png"))
+    contact(dest, cuts, os.path.join(out_root, f"_contact_{name}.png"))
     return name, [len(r) for r in rows], cuts
 
 
@@ -200,7 +200,7 @@ def contact(dest, cuts, path, per_row=12, cell=96):
 
 def main():
     src = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "docs", "evaluation", "icons", "sheets")
-    out_root = os.path.join(os.path.dirname(os.path.abspath(src)), "_tagli")
+    out_root = os.path.join(os.path.dirname(os.path.abspath(src)), "_cuts")
     os.makedirs(out_root, exist_ok=True)
     report = {}
     for f in sorted(os.listdir(src)):

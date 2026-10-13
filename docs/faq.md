@@ -138,6 +138,8 @@ git merge osintgraph
 
 In the `data` folder next to the program, one SQLite archive per case. Imports, Epieos responses and Follow the Money ids live inside the same archive. Back up that folder.
 
+The program is portable by design: `data/` and the documents folder `sources/` sit next to it, so the whole folder moves to another computer with its cases. To keep them elsewhere (an encrypted volume, a home folder on Linux), set `DATA_DIR` for the cases and `SOURCES_DIR` for the documents before starting it, as the Argos, Speculator and Wukong launchers do for `DATA_DIR`. On Windows: `set DATA_DIR=D:\cases` and `set SOURCES_DIR=D:\documents` in the console, then `start.bat`.
+
 ### What leaves my computer?
 
 Nothing, unless you switch something on. Three features talk to the outside; each is off by default, each asks for confirmation when enabled, and each says what it sends:

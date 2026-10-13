@@ -46,5 +46,5 @@ Thumbs.db
 desktop.ini
 .DS_Store
 
-# ritagli dei fogli di icone: si rigenerano con scripts/icons/split_sheets.py
-docs/evaluation/icons/_tagli/
+# cuts of the icon sheets: regenerated with scripts/icons/split_sheets.py
+docs/evaluation/icons/_cuts/

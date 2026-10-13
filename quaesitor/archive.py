@@ -40,8 +40,9 @@ logging.info(f"Archivio: {store.path() or 'nessun caso aperto'} (caso {store.cur
 
 # Sources index (indexed documents): in the database, key 'sources_index'.
 SOURCES_BLOB = "sources_index"
-# default sources folder: 'sources' NEXT TO the executable (fully portable;
-# 'fonti' in installations before 1.8.0, see sources.sources_folder).
+# default sources folder: SOURCES_DIR if set, otherwise 'sources' NEXT TO the
+# executable (fully portable; 'fonti' in installations before 1.8.0, see
+# sources.sources_folder).
 # Created right away so the user finds it and puts the documents in it.
 SOURCES_DEFAULT = _src.sources_folder(BASE_DIR)
 try:

@@ -309,9 +309,13 @@ LEGACY_FOLDER = "fonti"      # name of the folder up to 1.7.x
 
 
 def sources_folder(base_dir):
-    """Documents folder next to the program: 'sources'. Installations made
-    before 1.8.0 have 'fonti': as long as 'sources' does not exist and 'fonti'
-    does, the latter is still used, so the index and documents stay valid."""
+    """Documents folder: the SOURCES_DIR environment variable when set (the
+    documents kept outside the program folder, like DATA_DIR for the cases),
+    otherwise 'sources' next to the program. Installations made before 1.8.0
+    have 'fonti': as long as 'sources' does not exist and 'fonti' does, the
+    latter is still used, so the index and documents stay valid."""
+    if os.environ.get("SOURCES_DIR"):
+        return os.path.abspath(os.environ["SOURCES_DIR"])
     new = os.path.join(base_dir, SOURCES_FOLDER)
     old = os.path.join(base_dir, LEGACY_FOLDER)
     if not os.path.isdir(new) and os.path.isdir(old):

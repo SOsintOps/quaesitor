@@ -12,6 +12,12 @@ def test_old_install_keeps_fonti(tmp_path):
     assert sources.sources_folder(str(tmp_path)) == str(tmp_path / "fonti")
 
 
+def test_sources_dir_overrides(tmp_path, monkeypatch):
+    (tmp_path / "fonti").mkdir()
+    monkeypatch.setenv("SOURCES_DIR", str(tmp_path / "elsewhere"))
+    assert sources.sources_folder(str(tmp_path)) == str(tmp_path / "elsewhere")
+
+
 def test_sources_wins_when_both_exist(tmp_path):
     (tmp_path / "fonti").mkdir()
     (tmp_path / "sources").mkdir()
