@@ -90,14 +90,28 @@ def logos():
     return len(LOGOS)
 
 
+def nanp_area_codes(territory):
+    """Area codes of the United States or Canada: the three digits after +1 that the
+    fixed-line or mobile pattern of the territory accepts. libphonenumber gives the two
+    countries no leading digits; toll-free codes (800...) belong to neither list."""
+    pats = [re.sub(r"\s", "", e.findtext("nationalNumberPattern") or "")
+            for e in (territory.find("fixedLine"), territory.find("mobile")) if e is not None]
+    return [str(a) for a in range(200, 1000)
+            if any(re.fullmatch(p, f"{a}{rest}") for p in pats if p
+                   for rest in ("2345678", "5550100", "7654321", "9876543"))]
+
+
 def calling_codes():
     """{code: {"main": cc or None, "lead": [[cc, leadingDigits], ...]}}. The main country
     is the one libphonenumber marks as such (+44 United Kingdom, +212 Morocco); +1 has none,
-    because the United States and Canada share it without leading digits."""
+    because the United States and Canada share it: their area codes are listed as leading
+    digits instead, so a toll-free number stays without a country."""
     xml = get("https://raw.githubusercontent.com/google/libphonenumber/"
               f"{LIBPHONENUMBER}/resources/PhoneNumberMetadata.xml")
-    by_code = {}
+    by_code, nanp = {}, {}
     for t in ET.fromstring(xml).iter("territory"):
+        if t.get("id") in ("US", "CA"):
+            nanp[t.get("id").lower()] = "|".join(nanp_area_codes(t))
         cc, code = t.get("id"), t.get("countryCode")
         if not cc or not code or cc == "001":
             continue
@@ -108,9 +122,11 @@ def calling_codes():
         plain = [t for t in terr if not t[2]]
         flagged = [t[0] for t in terr if t[1]]
         main = flagged[0] if flagged else (plain[0][0] if len(plain) == 1 else None)
+        lead = [[c, ld] for c, _, ld in terr if ld]
         if code == "1":
             main = None
-        out[code] = {"main": main, "lead": [[c, ld] for c, _, ld in terr if ld]}
+            lead += [[cc, nanp[cc]] for cc in ("us", "ca")]
+        out[code] = {"main": main, "lead": lead}
     return out
 
 

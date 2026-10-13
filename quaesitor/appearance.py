@@ -58,7 +58,9 @@ def _fold(s):
 _COUNTRY_ALIASES = {"uk": "gb", "england": "gb", "great britain": "gb", "usa": "us",
                     "united states of america": "us", "america": "us", "holland": "nl",
                     "russia": "ru", "czech republic": "cz", "inghilterra": "gb",
-                    "stati uniti d america": "us", "olanda": "nl", "vatican": "va"}
+                    "stati uniti d america": "us", "olanda": "nl", "vatican": "va",
+                    "repubblica ceca": "cz", "republique tcheque": "cz",
+                    "tschechische republik": "cz", "republica checa": "cz"}
 _NAME_INDEX = None
 
 
@@ -152,20 +154,28 @@ CARD_BRANDS = {"Visa": ("logo", "visa"), "Mastercard": ("logo", "mastercard"),
                "Mir": ("letter", "M:#0f754e"), "Postepay": ("letter", "P:#ffd200")}
 
 
+_ELLIPSIS = re.compile(r"\.{2,}|…")
+
+
 def card_digits(number):
     return re.sub(r"\D", "", str(number or ""))
 
 
 def card_network(number):
-    """Network of a card from its first digits; also for a masked number
-    ('4111 **** **** 1111'), which keeps the prefix."""
+    """Network of a card from its first digits and its length; also for a masked
+    number ('4111 **** **** 1111'), which keeps the prefix and whose masked digits
+    count towards the length."""
     s = re.sub(r"[\s-]", "", str(number or ""))
     head = re.match(r"\d+", s)
     if not head:
         return None
     head = head.group(0)
+    # an ellipsis ('4111...1111') hides how many digits are missing
+    known_len = not _ELLIPSIS.search(s)
     best, best_len = None, 0
-    for name, ranges, _ in _CARD_RANGES:
+    for name, ranges, lengths in _CARD_RANGES:
+        if known_len and len(s) not in lengths:
+            continue
         for lo, hi in ranges:
             n = len(str(lo))
             if len(head) >= n and lo <= int(head[:n]) <= hi and n > best_len:
@@ -176,7 +186,7 @@ def card_network(number):
 def luhn_ok(number):
     """True/False for a complete number, None for a masked or short one."""
     s = str(number or "")
-    if re.search(r"[*xX•#]", s):
+    if re.search(r"[*xX•#]", s) or _ELLIPSIS.search(s):
         return None
     d = card_digits(s)
     if len(d) < 12:
@@ -223,12 +233,13 @@ _B58 = "[1-9A-HJ-NP-Za-km-z]"
 _CHAINS = [
     ("Bitcoin", re.compile(rf"^(?:bc1[02-9ac-hj-np-z]{{11,71}}|[13]{_B58}{{25,34}})$")),
     ("Litecoin", re.compile(rf"^(?:ltc1[02-9ac-hj-np-z]{{11,71}}|[LM]{_B58}{{26,33}})$")),
-    ("Tether (USDT) - TRON", re.compile(rf"^T{_B58}{{33}}$")),
+    ("TRON", re.compile(rf"^T{_B58}{{33}}$")),
     ("Monero", re.compile(rf"^[48][0-9AB]{_B58}{{93}}$")),
     ("Ethereum", re.compile(r"^0x[0-9a-fA-F]{40}$")),
     ("Solana", re.compile(rf"^{_B58}{{43,44}}$")),
 ]
 CHAIN_BRANDS = {"Bitcoin": ("logo", "bitcoin"), "Ethereum": ("logo", "ethereum"),
+                "TRON": ("letter", "T:#eb0029"),
                 "Tether (USDT) - TRON": ("letter", "T:#eb0029"),
                 "Tether (USDT) - Ethereum": ("logo", "tether"), "Monero": ("logo", "monero"),
                 "Litecoin": ("logo", "litecoin"), "Solana": ("logo", "solana"),
@@ -236,13 +247,16 @@ CHAIN_BRANDS = {"Bitcoin": ("logo", "bitcoin"), "Ethereum": ("logo", "ethereum")
 # FtM currency codes of a wallet -> chain
 _CURRENCY_CHAINS = {"btc": "Bitcoin", "eth": "Ethereum", "usdt": "Tether (USDT) - Ethereum",
                     "xmr": "Monero", "ltc": "Litecoin", "sol": "Solana", "bnb": "BNB Chain",
-                    "trx": "Tether (USDT) - TRON"}
+                    "trx": "TRON"}
 
 
 def crypto_chain(address):
     """Blockchain of a wallet address from its form; an address of an Ethereum-like
-    chain (0x...) is reported as Ethereum."""
+    chain (0x...) is reported as Ethereum, one of TRON (T...) as TRON: the form does not
+    say which token it holds."""
     s = re.sub(r"\s", "", str(address or ""))
+    if re.fullmatch(r"(?:BC|LTC)1[0-9A-Z]+", s):      # bech32 is valid all in upper case
+        s = s.lower()
     return next((name for name, rx in _CHAINS if rx.match(s)), None)
 
 
@@ -253,7 +267,8 @@ def chain_of(text):
         return None
     if t in _CURRENCY_CHAINS:
         return _CURRENCY_CHAINS[t]
-    return next((name for name in CHAIN_BRANDS if _fold(name) == t or t in _fold(name).split()), None)
+    exact = next((name for name in CHAIN_BRANDS if _fold(name) == t), None)
+    return exact or next((name for name in CHAIN_BRANDS if t in _fold(name).split()), None)
 
 
 # --------------------------------------------------------------- e-mail ---

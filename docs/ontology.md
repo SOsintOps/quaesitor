@@ -1409,10 +1409,10 @@ Computed by `quaesitor/appearance.py` every time the graph is built, from the no
 
 | Node types | Rule | Corner |
 | :--- | :--- | :--- |
-| `card` | network from `network` or from the first digits of `number` (IIN ranges); Luhn check; `expiry` MM/YY passed | NE, SE |
+| `card` | network from `network` or from the first digits and the length of `number` (IIN ranges); Luhn check; `expiry` MM/YY passed | NE, SE |
 | `crypto`, `cryptowallet` | chain from `blockchain` / `currency` or from the form of the address (bc1/1/3, 0x, T…, ltc1/L/M, 4/8 of 95 characters, base58 of 43-44) | NE |
 | `bankaccount`, `ftmbankaccount` | country of the IBAN, else of the BIC, else `country`; IBAN check digits (ISO 13616, mod 97) | SW, SE |
-| `phone` | country of the international prefix (+CC or 00CC, libphonenumber; +1 only with an area code that names the country), else the country in the cards of the checkers | SW |
+| `phone` | country of the international prefix (+CC or 00CC, libphonenumber; +1 by the area code: United States, Canada, Caribbean; toll-free numbers have no country), else the country in the cards of the checkers | SW |
 | `email` | provider of the domain: Gmail, Outlook, Yahoo, Proton Mail, iCloud, GMX, Mail.ru, Yandex, Zoho | NE |
 | `document`, `identification`, `passport` | `country`; `forged`, else `expiry` / `endDate` passed | SW, SE |
 | `weapon` | `serial_removed` | SE |

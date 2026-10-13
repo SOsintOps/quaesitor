@@ -12,7 +12,12 @@ from quaesitor import appearance as ap
     ("36227206271667", "Diners Club"), ("6011111111111117", "Discover"),
     ("3530111333300000", "JCB"), ("6200000000000005", "UnionPay"),
     ("6759649826438453", "Maestro"), ("2200 0000 0000 0004", "Mir"),
-    ("4111 **** **** 1111", "Visa"), ("9999 9999 9999 9999", None), ("", None)])
+    ("4111 **** **** 1111", "Visa"), ("9999 9999 9999 9999", None), ("", None),
+    # the length must be one the network issues
+    ("411111111", None), ("4111", None), ("51051051051051", None),
+    ("37828224631000", None), ("4111 **** 1111", None),
+    # an ellipsis hides the length
+    ("4111...1111", "Visa"), ("4111…1111", "Visa")])
 def test_card_network(number, network):
     assert ap.card_network(number) == network
 
@@ -22,6 +27,14 @@ def test_luhn():
     assert ap.luhn_ok("4111 1111 1111 1112") is False
     assert ap.luhn_ok("4111 **** **** 1111") is None
     assert ap.luhn_ok("1234") is None
+    assert ap.luhn_ok("4111 1111...1111 1111") is None
+
+
+def test_bech32_upper_case_and_country_aliases():
+    assert ap.crypto_chain("BC1QAR0SRRR7XFKVY5L643LYDNW9RE59GTZZWF5MDQ") == "Bitcoin"
+    assert ap.crypto_chain("bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq") == "Bitcoin"
+    assert ap.country_code("Repubblica Ceca") == "cz"
+    assert ap.country_code("République tchèque") == "cz"
 
 
 def test_iban_and_bic():
@@ -37,7 +50,7 @@ def test_iban_and_bic():
     ("bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq", "Bitcoin"),
     ("1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2", "Bitcoin"),
     ("0x32Be343B94f860124dC4fEe278FDCBD38C102D88", "Ethereum"),
-    ("TNPeeaaFB7K9cmo4uQpcU32zGK8G1NYqeL", "Tether (USDT) - TRON"),
+    ("TNPeeaaFB7K9cmo4uQpcU32zGK8G1NYqeL", "TRON"),
     ("LM2WMpR1Rp6j3Sa59cMXMs1SPzj9eXpGc1", "Litecoin"),
     ("4AdUndXHHZ6cfufTMvppY6JwXNouMBzSkbLYfpAV5Usx3skxNgYeYTRj5UzqtReoS44qo9mtmXCqY45DJ852K5Jv2684Rge",
      "Monero"),
@@ -49,12 +62,17 @@ def test_crypto_chain(address, chain):
 
 def test_chain_named_in_a_field():
     assert ap.chain_of("BTC") == "Bitcoin" and ap.chain_of("Monero") == "Monero"
+    assert ap.chain_of("tron") == "TRON" and ap.chain_of("TRX") == "TRON"
+    assert ap.chain_of("Tether (USDT) - TRON") == "Tether (USDT) - TRON"
+    assert ap.chain_of("usdt") == "Tether (USDT) - Ethereum"
 
 
 @pytest.mark.parametrize("number, cc", [
     ("+39 333 1234567", "it"), ("0039 06 1234567", "it"), ("+39 06698 12345", "va"),
     ("+44 7700 900123", "gb"), ("+49 30 123456", "de"), ("+7 495 123 4567", "ru"),
-    ("+7 727 123 4567", "kz"), ("+1 242 555 0100", "bs"), ("+1 202 555 0100", None),
+    ("+7 727 123 4567", "kz"), ("+1 242 555 0100", "bs"), ("+1 202 555 0100", "us"),
+    ("+1 212 555 0100", "us"), ("+1 416 555 0100", "ca"), ("+1 (905) 555-0100", "ca"),
+    ("+1 876 555 0100", "jm"), ("+1 800 555 0100", None),
     ("333 1234567", None), ("+999 12", None)])
 def test_phone_country(number, cc):
     assert ap.phone_country(number) == cc

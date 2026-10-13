@@ -10,6 +10,15 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 2.1.1 — 2026
+
+- **Fixed:** The network of a payment card is recognised only when the number has a length that network issues: a 4 followed by a few digits is no longer taken for a Visa, a 14-digit number starting with 51 for a Mastercard. A masked number counts its masked digits.
+- **Fixed:** A card number masked with an ellipsis ("4111...1111") keeps its network and is not checked with Luhn; a Bitcoin or Litecoin address written in capitals ("BC1Q...") is recognised; "Repubblica Ceca" and the other older names of Czechia give the flag.
+- **Fixed:** A phone number with +1 gets the flag of the United States or of Canada from its area code (from libphonenumber, as the Caribbean ones already did); a toll-free number stays without a country.
+- **Fixed:** A wallet address of TRON ("T...") or the currency TRX is marked as TRON, not as Tether: the address does not say which token it holds, and Tether is shown when the *Blockchain* field says so.
+
+---
+
 ## 2.1.0 — 2026
 
 - **New:** Corner marks on the nodes, as the overlays of Maltego: top right the network of a payment card (recognised from its first digits, also when masked), the chain of a crypto wallet (from the form of the address) or the provider of an e-mail; bottom left the flag of the country of an IBAN or BIC, of the international prefix of a phone, of a document, of the jurisdiction of a company, of the flag of a vessel, of the nationality of a person; bottom right an alert for a card number that fails the Luhn check, a wrong IBAN, a forged or expired document, an expired card, a removed serial number, counterfeit banknotes. They are listed in the card of the node and in the key on the graph, and *Corner marks on the nodes* hides them. The rules are in [Graph Entities](ontology.md#5-node-appearance).
