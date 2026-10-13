@@ -2,7 +2,7 @@
 
 Quaesitor, a fork of OSInt Graph by Andrea Cumini, is free software under the GNU GPL version 3 (see LICENSE and NOTICE).
 It includes or uses the following third-party components. The full license
-texts are in `static/licenses/` and can be read from the program itself
+texts are in `quaesitor/static/licenses/` and can be read from the program itself
 (link «Licenze» in the left panel).
 
 | Component | Version | License | Copyright | Used for |
@@ -12,7 +12,7 @@ texts are in `static/licenses/` and can be read from the program itself
 | [cose-base](https://github.com/iVis-at-Bilkent/cose-base) | 2.2.0 | MIT | Copyright (c) i-Vis Research Group, Bilkent University | Automatic node layout (organic layout) |
 | [layout-base](https://github.com/iVis-at-Bilkent/layout-base) | 2.0.1 | MIT | Copyright (c) i-Vis Research Group, Bilkent University | Automatic node layout (organic layout) |
 | [Font Awesome Free](https://fontawesome.com) | 6 | Icone CC BY 4.0, codice MIT | Fonticons, Inc. | Fallback node type icons and interface icons |
-| [Quaesitor node icons](https://github.com/SOsintOps/quaesitor) | 1.7.1 | GPL-3.0-or-later (as the program) | Ramingo (SOsintOps) | Colour node type icons, generated with ChatGPT and Gemini (static/icons/entities) |
+| [Quaesitor node icons](https://github.com/SOsintOps/quaesitor) | 1.7.1 | GPL-3.0-or-later (as the program) | Ramingo (SOsintOps) | Colour node type icons, generated with ChatGPT and Gemini (quaesitor/static/icons/entities) |
 | [Simple Icons](https://simpleicons.org) |  | CC0 1.0 (pubblico dominio); i loghi restano marchi dei rispettivi titolari | Simple Icons contributors | Social platform logos (Facebook, Instagram, Telegram…) |
 | [Panchang (carattere del logo)](https://www.fontshare.com/fonts/panchang) |  | Fontshare Free Font License (solo contorni: il font non è distribuito) | Indian Type Foundry | Typeface of the original OSInt Graph logo (Quaesitor has a logo of its own, set in Bodoni Moda) |
 | [Bodoni Moda (carattere del logo)](https://github.com/indestructible-type/Bodoni) |  | SIL Open Font License 1.1 (solo contorni: il font non è distribuito) | The Bodoni Moda Project Authors | Typeface of the word Quaesitor in the logo, converted to outlines |

@@ -10,6 +10,17 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 1.8.0 — 2026
+
+- **Changed:** The repository is reorganised, following the Flask project layout. The program lives in the `quaesitor/` package; `app.py` in the root starts it as before, so `start.bat`, the Linux launchers of Argos, Speculator and Wukong and `python app.py` are unchanged. The 6,100 lines of the old `app.py` are split into `quaesitor/blueprints/` (the routes, one module per area) and ten shared modules layered without import cycles; the URLs of the page and of the API are the same. The generated Follow the Money ontology sits in `quaesitor/generated/`, marked as generated for GitHub; `build_app.py` moved to `scripts/`.
+- **Changed:** The documents folder next to the program is `sources/`. An install that already has `fonti/` keeps using it, with its index; `install.bat` creates `sources/` only where neither exists.
+- **Changed:** English file names: `static/manual/manual.html`, `audio/accelerator.py`, `audio/voices.py`.
+- **New:** `pyproject.toml` with the dependencies, the `audio` extra and the `dev` and `build` dependency groups (`pip install --group dev`), replacing `requirements-dev.txt` and `requirements-build.txt`; `requirements.txt` and `requirements-audio.txt` stay for the installers, and a test keeps them in step. `.github/SECURITY.md` and `.github/CONTRIBUTING.md`.
+- **Fixed:** The fields of the Follow the Money relations come in the order of the schema; they changed order at every start, in the link form and in `docs/ontology.md`.
+- **Fixed:** The smoke test stops the server on Windows too, and prints non-Latin names on a Windows console.
+
+---
+
 ## 1.7.4 — 2026
 
 - **Fixed:** The English interface and manual spell the *Licences* link and window in British English, like the rest of the documentation.

@@ -25,9 +25,9 @@ from PIL import Image, ImageDraw
 HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(os.path.dirname(HERE))
 sys.path.insert(0, ROOT)
-import ontology as onto  # noqa: E402
+from quaesitor import ontology as onto  # noqa: E402
 
-DEST = os.path.join(ROOT, "static", "icons", "entities")
+DEST = os.path.join(ROOT, "quaesitor", "static", "icons", "entities")
 
 
 def known_keys():

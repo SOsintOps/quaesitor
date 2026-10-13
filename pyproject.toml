@@ -1,0 +1,60 @@
+# Project metadata and dependencies. The program runs from source (python app.py)
+# and is not published on PyPI. requirements.txt and requirements-audio.txt stay
+# for install.bat, update.bat and the Linux installers of Argos, Speculator and
+# Wukong: tests/test_requirements.py checks that they match the lists below.
+
+[build-system]
+requires = ["setuptools>=69"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "quaesitor"
+version = "1.8.0"
+description = "Graph exploration of OSINT data for investigative cases, fork of OSInt Graph"
+readme = "README.md"
+requires-python = ">=3.10"
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Andrea Cumini", email = "andrea@osintinfo.net" }]
+maintainers = [{ name = "SOsintOps" }]
+dependencies = [
+    "Flask>=3.0",
+    "anyascii>=0.3",
+    "pdfminer.six>=20231228",
+    "pypdf>=4.0",
+    "python-docx>=1.1",
+    "openpyxl>=3.1",
+    "xlrd>=2.0",
+    "Pillow>=10.0",
+    "pytesseract>=0.3.10",
+    "regex>=2024.0",
+]
+
+[project.optional-dependencies]
+# video transcription (quaesitor/audio): pip install -r requirements-audio.txt
+audio = [
+    "faster-whisper>=1.0",
+    "scipy>=1.10",
+    "sentencepiece>=0.2",
+    "onnxruntime>=1.17",
+    "numpy>=1.24",
+    "av<19",
+]
+
+[project.urls]
+Repository = "https://github.com/SOsintOps/quaesitor"
+Upstream = "https://github.com/tingon11/OsintGraph"
+
+# pip 25.1 or newer: pip install --group dev   /   pip install --group build
+[dependency-groups]
+dev = ["pytest>=8"]
+build = ["pyinstaller>=6.0"]
+
+[tool.setuptools.packages.find]
+include = ["quaesitor*"]
+
+[tool.setuptools.package-data]
+quaesitor = ["templates/**/*", "static/**/*", "generated/*.json"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

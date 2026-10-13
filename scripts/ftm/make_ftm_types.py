@@ -11,7 +11,7 @@ translations/) due file per OsintGraph:
                         'featured'), con etichette italiane; FTM_I18N: le
                         traduzioni (it -> en, fr, de, es, ar) per ontology_i18n
 
-Uso:  python make_ftm_types.py <dir pacchetto followthemoney> <dir OsintGraph>
+Uso:  python scripts/ftm/make_ftm_types.py <dir pacchetto followthemoney> quaesitor/generated
 
 Richiede PyYAML. Le etichette italiane stanno nel dizionario IT qui sotto:
 FtM non ha una traduzione italiana. Un'etichetta senza voce resta in inglese.

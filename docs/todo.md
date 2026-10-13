@@ -8,13 +8,13 @@ This file collects ideas, requirements and potential improvements to be evaluate
 
 ### Packaging
 
-- **Docker:** a `Dockerfile` (python:3.12-slim, `tesseract-ocr` with the ita, eng, chi_sim, rus and ara language packs, the app bound to 127.0.0.1 behind the published port) and a `docker-compose.yml` with volumes for `data/`, `fonti/`, `chatbot.conf` and `services.conf`. Ollama stays outside the image (host or second service). The native folder picker is unavailable in a container; the manual path entry already covers it. The program has no authentication: never publish the port beyond localhost without a proxy with login. The venv plus the four `.bat` files remain the primary Windows installation. Decided on 2026-10-09, not started.
+- **Docker:** a `Dockerfile` (python:3.12-slim, `tesseract-ocr` with the ita, eng, chi_sim, rus and ara language packs, the app bound to 127.0.0.1 behind the published port) and a `docker-compose.yml` with volumes for `data/`, `sources/`, `chatbot.conf` and `services.conf`. Ollama stays outside the image (host or second service). The native folder picker is unavailable in a container; the manual path entry already covers it. The program has no authentication: never publish the port beyond localhost without a proxy with login. The venv plus the four `.bat` files remain the primary Windows installation. Decided on 2026-10-09, not started.
 
 ### Documentation
 
-- **Screenshots:** take Quaesitor's own screenshots for the built-in manual (the `IMG` map in `static/manual/manuale.html` lists the eighteen views, `fig()` renders them again once the files are back) and for the README.
+- **Screenshots:** take Quaesitor's own screenshots for the built-in manual (the `IMG` map in `quaesitor/static/manual/manual.html` lists the eighteen views, `fig()` renders them again once the files are back) and for the README.
 - **English translation** of the Follow the Money guide, the Epieos guide and the Ollama setup guide, written in Italian during development and kept in the development repository until translated.
-- **Customising guide:** an equivalent of the Exploratores *Customise* page for this program: how to add an investigative node type (`ontology.py` and `ontology_i18n.py`), regenerate the Follow the Money ontology after a new release of the `followthemoney` package, add an interface language (`static/i18n.js`), configure `chatbot.conf` and `services.conf`, and adapt the OSINT-export import (`handle_record`) to a new tool.
+- **Customising guide:** an equivalent of the Exploratores *Customise* page for this program: how to add an investigative node type (`quaesitor/ontology.py` and `quaesitor/ontology_i18n.py`), regenerate the Follow the Money ontology after a new release of the `followthemoney` package, add an interface language (`quaesitor/static/i18n.js`), configure `chatbot.conf` and `services.conf`, and adapt the OSINT-export import (`handle_record`) to a new tool.
 
 ### Integrations
 

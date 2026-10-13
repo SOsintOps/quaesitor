@@ -57,6 +57,11 @@ def start(python, app_dir, data_dir, port, log):
 
 
 def stop(proc):
+    if os.name == "nt":
+        # no process groups: taskkill /T also stops the reloader's child server
+        subprocess.run(["taskkill", "/T", "/F", "/PID", str(proc.pid)], capture_output=True)
+        proc.wait(10)
+        return
     if proc.poll() is None:
         try:
             os.killpg(proc.pid, signal.SIGTERM)
@@ -119,6 +124,7 @@ print("fixtures ok")
 
 
 def main():
+    sys.stdout.reconfigure(encoding="utf-8", errors="replace")   # Cyrillic names on a Windows console
     ap = argparse.ArgumentParser()
     ap.add_argument("--app-dir", required=True)
     ap.add_argument("--python", required=True)
@@ -131,7 +137,7 @@ def main():
     base = f"http://127.0.0.1:{a.port}"
     shutil.rmtree(data_dir, ignore_errors=True)
     os.makedirs(data_dir, exist_ok=True)
-    fixtures = os.path.join(data_dir, "_fonti_test")
+    fixtures = os.path.join(data_dir, "_sources_test")
     logpath = os.path.join(data_dir, "smoke_server.log")
     log = open(logpath, "ab")
     print(f"app={app_dir}\npython={a.python}\ndata={data_dir}\nport={a.port}", flush=True)

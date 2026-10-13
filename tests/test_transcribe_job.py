@@ -5,6 +5,7 @@ np = pytest.importorskip("numpy")
 pytest.importorskip("scipy")
 
 from conftest import wait  # noqa: E402
+from quaesitor.blueprints import transcription  # noqa: E402
 
 
 class _Seg:
@@ -31,8 +32,8 @@ class _StubModel:
 
 @pytest.fixture
 def fake_audio(monkeypatch):
-    from audio import diarize as D
-    from audio import transcribe as T
+    from quaesitor.audio import diarize as D
+    from quaesitor.audio import transcribe as T
 
     def fake_diarize_audio(audio, **kw):
         wins, labels = [(0.0, 1.5), (3.5, 5.0)], [0, 1]
@@ -89,16 +90,16 @@ def test_same_file_again_updates_the_same_nodes(qapp, fake_audio, tmp_path):
 
 
 def test_stop_keeps_the_partial_transcript(qapp, fake_audio, tmp_path, monkeypatch):
-    q, client = qapp
-    monkeypatch.setattr(fake_audio, "load_model", lambda *a, **k: _StubModel(gate=q._tr_stop.set))
+    _, client = qapp
+    monkeypatch.setattr(fake_audio, "load_model", lambda *a, **k: _StubModel(gate=transcription._tr_stop.set))
     st = _run(client, _video(tmp_path, "parziale.mp4"), diarize=False)
     assert not st["error"] and st["result"]["partial"] and st["result"]["segments"] == 1
     assert any(n.get("ntype") == "video" for n in client.get("/api/graph").get_json()["nodes"])
 
 
 def test_without_the_packages(qapp, monkeypatch, tmp_path):
-    q, client = qapp
-    monkeypatch.setattr(q._audio, "available", lambda: (False, "missing packages: faster-whisper"))
+    _, client = qapp
+    monkeypatch.setattr(transcription._audio, "available", lambda: (False, "missing packages: faster-whisper"))
     r = client.post("/api/transcribe", json={"path": str(_video(tmp_path))})
     assert r.status_code == 503 and "faster-whisper" in r.get_json()["reason"]
     assert client.get("/api/transcribe/status").get_json()["models"][0] == "tiny"

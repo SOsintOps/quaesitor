@@ -5,7 +5,7 @@ pytest.importorskip("numpy")
 pytest.importorskip("scipy")
 
 """Diarizzazione avanzata (pyannote): opzionale, e con un ripiego che non lascia a piedi."""
-from audio import diarize
+from quaesitor.audio import diarize
 
 
 def test_stato_dice_che_cosa_manca():

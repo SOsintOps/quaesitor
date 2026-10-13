@@ -1,7 +1,7 @@
 """Follow the Money import: the defects fixed on 2026-10-12 for the Cognitor bundle."""
 import json
 
-import ftm
+from quaesitor import ftm
 
 from conftest import wait
 

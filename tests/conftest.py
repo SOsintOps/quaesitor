@@ -1,6 +1,6 @@
 """Shared fixtures: the Flask app on a temporary data folder, one new case per test.
 
-DATA_DIR is read when app.py is imported, so it is set here, before the import. The
+DATA_DIR is read when quaesitor.core is imported, so it is set here, before the import. The
 sources folder of the tests is a temporary folder too: nothing is written next to
 the program."""
 import os
@@ -17,16 +17,16 @@ _DATA = tempfile.mkdtemp(prefix="quaesitor-test-")
 os.environ["DATA_DIR"] = _DATA
 sys.path.insert(0, str(ROOT))
 
-import app as quaesitor  # noqa: E402
+from quaesitor import app as quaesitor, archive  # noqa: E402
 
 
 @pytest.fixture
 def qapp(tmp_path, monkeypatch):
-    """(module, test client) with a new current case and a private sources folder."""
-    fonti = tmp_path / "fonti"
-    fonti.mkdir()
-    monkeypatch.setattr(quaesitor, "SOURCES_DEFAULT", str(fonti))
-    quaesitor._sources_cache["idx"] = None
+    """(quaesitor.app module, test client) with a new current case and a private sources folder."""
+    folder = tmp_path / "sources"
+    folder.mkdir()
+    monkeypatch.setattr(archive, "SOURCES_DEFAULT", str(folder))
+    archive._sources_cache["idx"] = None
     client = quaesitor.app.test_client()
     r = client.post("/api/cases/add", json={"name": f"test {tmp_path.name}"})
     assert r.status_code == 200, r.get_json()

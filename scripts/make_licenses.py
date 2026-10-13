@@ -1,11 +1,11 @@
 # OSInt Graph - esplorazione grafica di dati OSINT per casi investigativi
 # Copyright (C) 2025-2026 Andrea Cumini <andrea@osintinfo.net>
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Raccoglie le licenze di TUTTI i componenti del programma in static/licenses/
+"""Raccoglie le licenze di TUTTI i componenti del programma in quaesitor/static/licenses/
 (un file di testo per licenza + index.json) e genera THIRD-PARTY-NOTICES.md.
 
 I testi vengono presi dai pacchetti Python installati nel venv, dai file in
-static/vendor e dall'interprete Python: cosi' sono quelli veri delle versioni
+quaesitor/static/vendor e dall'interprete Python: cosi' sono quelli veri delle versioni
 usate. Da rilanciare quando si aggiorna una dipendenza:
 
     .venv\\Scripts\\python.exe scripts\\make_licenses.py
@@ -20,7 +20,8 @@ import sys
 from importlib.metadata import distribution, PackageNotFoundError
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-OUT = os.path.join(ROOT, "static", "licenses")
+RES = os.path.join(ROOT, "quaesitor")          # templates/ e static/ del programma
+OUT = os.path.join(RES, "static", "licenses")
 os.makedirs(OUT, exist_ok=True)
 
 
@@ -92,10 +93,10 @@ add("gpl-3.0", "GNU General Public License", "versione 3", "GPL-3.0",
     wr("GPL-3.0.txt", rd(os.path.join(ROOT, "LICENSE"))), "program")
 
 # ------------------------------------------------- librerie JavaScript -----
-cy_src = rd(os.path.join(ROOT, "static", "vendor", "cytoscape.min.js"))
+cy_src = rd(os.path.join(RES, "static", "vendor", "cytoscape.min.js"))
 m = re.match(r"/\*\*(.*?)\*/", cy_src, re.S)
 cy_text = re.sub(r"^\s*\* ?", "", m.group(1), flags=re.M).strip() if m else MIT.format(holder="2016-2024, The Cytoscape Consortium")
-cy_ver = re.search(r"cytoscape\s+([\d.]+)", rd(os.path.join(ROOT, "templates", "index.html")))
+cy_ver = re.search(r"cytoscape\s+([\d.]+)", rd(os.path.join(RES, "templates", "index.html")))
 add("cytoscape", "Cytoscape.js", cy_ver.group(1) if cy_ver else "", "MIT",
     "Copyright (c) 2016-2024, The Cytoscape Consortium", "https://js.cytoscape.org",
     "Disegno e interazione del grafo", "Graph rendering and interaction",
@@ -112,12 +113,12 @@ for id_, name, ver in (("cytoscape-fcose", "cytoscape-fcose", "2.2.0"),
 add("font-awesome", "Font Awesome Free", "6", "Icone CC BY 4.0, codice MIT",
     "Fonticons, Inc.", "https://fontawesome.com",
     "Icone di ripiego dei tipi di nodo e dell'interfaccia", "Fallback node type icons and interface icons",
-    wr("font-awesome.txt", rd(os.path.join(ROOT, "static", "vendor", "fa", "LICENSE.txt"))), "assets")
+    wr("font-awesome.txt", rd(os.path.join(RES, "static", "vendor", "fa", "LICENSE.txt"))), "assets")
 add("entity-icons", "Quaesitor node icons", "1.7.1", "GPL-3.0-or-later (as the program)",
     "Ramingo (SOsintOps)", "https://github.com/SOsintOps/quaesitor",
-    "Icone a colori dei tipi di nodo, generate con ChatGPT e Gemini (static/icons/entities)",
-    "Colour node type icons, generated with ChatGPT and Gemini (static/icons/entities)",
-    wr("entity-icons.txt", """Quaesitor node icons - static/icons/entities/
+    "Icone a colori dei tipi di nodo, generate con ChatGPT e Gemini (quaesitor/static/icons/entities)",
+    "Colour node type icons, generated with ChatGPT and Gemini (quaesitor/static/icons/entities)",
+    wr("entity-icons.txt", """Quaesitor node icons - quaesitor/static/icons/entities/
 
 Colour icons of the node types, generated in October 2026 with ChatGPT and Gemini
 from a prompt written by the maintainer of the fork, cut and assigned with the
@@ -146,7 +147,7 @@ add("panchang", "Panchang (carattere del logo)", "", "Fontshare Free Font Licens
     wr("panchang.txt", """Panchang - a typeface by Indian Type Foundry (ITF)
 https://www.fontshare.com/fonts/panchang
 
-The logo and the icon of OSInt Graph (static/logo.svg, static/icon.svg and
+The logo and the icon of OSInt Graph (quaesitor/static/logo.svg, quaesitor/static/icon.svg and
 the same artwork inside the pages) are vector outlines set in Panchang. They
 contain outlines only: the font files are NOT distributed with this program.
 Panchang is available from Fontshare under the Fontshare Free Font License,
@@ -158,7 +159,7 @@ add("bodoni-moda", "Bodoni Moda (carattere del logo)", "", "SIL Open Font Licens
     "The Bodoni Moda Project Authors", "https://github.com/indestructible-type/Bodoni",
     "Carattere della parola Quaesitor nel logo, convertita in tracciati", "Typeface of the word Quaesitor in the logo, converted to outlines",
     wr("bodoni-moda.txt", """Bodoni Moda - https://github.com/indestructible-type/Bodoni
-The word "Quaesitor" in the logo (static/logo.svg, static/logo-light.svg and the
+The word "Quaesitor" in the logo (quaesitor/static/logo.svg, quaesitor/static/logo-light.svg and the
 same artwork inside the pages) is set in Bodoni Moda and converted to outlines:
 the font files are not distributed with this program.
 
@@ -383,7 +384,7 @@ with io.open(os.path.join(OUT, "index.json"), "w", encoding="utf-8", newline="\n
 lines = ["# Third-party notices", "",
          "Quaesitor, a fork of OSInt Graph by Andrea Cumini, is free software under the GNU GPL version 3 (see LICENSE and NOTICE).",
          "It includes or uses the following third-party components. The full license",
-         "texts are in `static/licenses/` and can be read from the program itself",
+         "texts are in `quaesitor/static/licenses/` and can be read from the program itself",
          "(link «Licenze» in the left panel).", "",
          "| Component | Version | License | Copyright | Used for |", "|---|---|---|---|---|"]
 for e in entries:
@@ -396,4 +397,4 @@ lines += ["", "Brand names and logos of the social platforms are trademarks of t
           "affiliated with, endorsed by or sponsored by any of them.", ""]
 with io.open(os.path.join(ROOT, "THIRD-PARTY-NOTICES.md"), "w", encoding="utf-8", newline="\n") as f:
     f.write("\n".join(lines))
-print(f"{len(entries)} componenti -> static/licenses/ e THIRD-PARTY-NOTICES.md")
+print(f"{len(entries)} componenti -> quaesitor/static/licenses/ e THIRD-PARTY-NOTICES.md")

@@ -1,0 +1,7 @@
+Quaesitor node icons - quaesitor/static/icons/entities/
+
+Colour icons of the node types, generated in October 2026 with ChatGPT and Gemini
+from a prompt written by the maintainer of the fork, cut and assigned with the
+scripts in scripts/icons/. They are part of Quaesitor and are distributed under
+the same licence as the program (GNU GPL v3 or later). See the FAQ, "Where do the
+node icons come from?".

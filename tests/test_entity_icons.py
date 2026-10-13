@@ -2,10 +2,10 @@
 import json
 from pathlib import Path
 
-import ontology as onto
+from quaesitor import ontology as onto
 
 ROOT = Path(__file__).resolve().parent.parent
-DEST = ROOT / "static" / "icons" / "entities"
+DEST = ROOT / "quaesitor" / "static" / "icons" / "entities"
 
 
 def _known():

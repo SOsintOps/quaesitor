@@ -11,8 +11,8 @@ import math
 import numpy as np
 import pytest
 
-from audio import diarize as D
-from audio.transcribe import transcribe_video, write_transcript
+from quaesitor.audio import diarize as D
+from quaesitor.audio.transcribe import transcribe_video, write_transcript
 
 
 def test_fbank_shape_and_cmn():
@@ -147,7 +147,7 @@ def test_le_impronte_finiscono_nel_npz_e_non_nel_json(tmp_path, monkeypatch):
     """Una run con embedding scrive voices.npz e la chiave voiceprints (solo metadati):
     il parlante con poco parlato ha l'impronta assente e il motivo scritto."""
     import json
-    from audio import voci as V
+    from quaesitor.audio import voices as V
     embs, _ = _fake_embeddings(n_per=5, k=2)
     wins = [(t, t + 3.0) for t in np.arange(0.0, 7.5, 1.5)] + [(20.0, 23.0), (21.5, 24.5), (23.0, 26.0),
                                                                 (24.5, 27.5), (26.0, 29.0)]

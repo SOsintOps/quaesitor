@@ -4,7 +4,7 @@ rem  install.bat - installs (or reinstalls) Quaesitor on Windows
 rem  Double-click it, or from PowerShell:  .\install.bat
 rem  What it does: finds Python 3.10+, creates the .venv environment next to
 rem  the program, installs the libraries, prepares chatbot.conf and
-rem  services.conf from the example copies, creates the "fonti" folder for the
+rem  services.conf from the example copies, creates the "sources" folder for the
 rem  document sources, asks whether to download Tesseract (OCR) and whether to
 rem  install the video transcription (requirements-audio.txt).
 rem  It can be run again as often as needed: it never overwrites the settings
@@ -73,9 +73,10 @@ if not exist "services.conf" (
     copy /y "services.conf.example" "services.conf" >nul
     echo  Created services.conf (OpenSanctions and Epieos: off until you configure them)
 )
-if not exist "fonti" (
-    mkdir "fonti"
-    echo  Created the "fonti" folder for the documents to index
+rem installs older than 1.8.0 keep their "fonti" folder: the program still reads it
+if not exist "sources" if not exist "fonti" (
+    mkdir "sources"
+    echo  Created the "sources" folder for the documents to index
 )
 
 rem --- 5) Tesseract (OCR), optional --------------------------------------------
@@ -83,7 +84,7 @@ echo.
 set "OCR=N"
 set /p "OCR=  Download Tesseract to read the text in images (OCR)? [y/N] "
 if /i "%OCR%"=="y" (
-    "%VPY%" setup_tesseract.py
+    "%VPY%" -m quaesitor.setup_tesseract
     if errorlevel 1 echo  Tesseract not installed: you can retry from the program, Sources panel.
 )
 

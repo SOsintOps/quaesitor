@@ -7,7 +7,7 @@ import zipfile
 
 import pytest
 
-import ftm_bundle
+from quaesitor import core, ftm_bundle
 from conftest import FIXTURES, wait
 
 SAMPLE = FIXTURES / "cognitor_sample.cognitor.zip"
@@ -30,7 +30,7 @@ def test_inspect_reports_the_bundle(qapp):
 
 
 def test_import_bundle(qapp):
-    q, client = qapp
+    _, client = qapp
     st = _import_path(client, SAMPLE)
     assert st["images"] == 6 and st["images_refused"] == 0 and st["transcripts"] == 2
     g = client.get("/api/graph").get_json()
@@ -44,7 +44,7 @@ def test_import_bundle(qapp):
     for n in photos:
         path = n["image"][len("/media/"):]
         assert client.get("/media/" + path.split("/media/", 1)[-1]).status_code == 200 or \
-            os.path.isfile(os.path.join(q.DATA_DIR, *path.split("/")))
+            os.path.isfile(os.path.join(core.DATA_DIR, *path.split("/")))
     kinds = [e.get("evid") for e in g["edges"]]
     assert kinds.count("seen") == 3 and kinds.count("speaks") == 2 and kinds.count("appears") == 2
     video = next(n for n in g["nodes"] if n.get("ntype") == "video")

@@ -92,7 +92,7 @@ Nothing is triggered: copyleft and the renaming clause apply to distribution. Th
 
 ### How do I install it on Windows?
 
-Double-click `install.bat` in the program folder (or run `.\install.bat` from PowerShell). It finds Python 3.10 or newer, creates `.venv`, installs the libraries, prepares `chatbot.conf` and `services.conf` from the examples, creates the `fonti` folder and asks whether to download Tesseract for OCR. Then `start.bat` starts the program and opens the browser on http://127.0.0.1:5000. `update.bat` pulls the repository and updates the libraries; `uninstall.bat` removes `.venv` and asks before touching the cases.
+Double-click `install.bat` in the program folder (or run `.\install.bat` from PowerShell). It finds Python 3.10 or newer, creates `.venv`, installs the libraries, prepares `chatbot.conf` and `services.conf` from the examples, creates the `sources` folder and asks whether to download Tesseract for OCR. Then `start.bat` starts the program and opens the browser on http://127.0.0.1:5000. `update.bat` pulls the repository and updates the libraries; `uninstall.bat` removes `.venv` and asks before touching the cases.
 
 ### How do I run it from source on any system?
 
@@ -105,11 +105,11 @@ One command per line in PowerShell: `&&` is not accepted there. Another port: se
 
 ### Does it run in Docker?
 
-Not yet. A `Dockerfile` and a `docker-compose.yml` are queued, with the requirements written down in [Ideas & Roadmap](todo.md): a `python:3.12-slim` image with Tesseract and its language packs, volumes for `data/`, `fonti/`, `chatbot.conf` and `services.conf`, the app bound to localhost behind the published port, Ollama outside the image. The program has no authentication: never publish its port beyond localhost without a proxy with login.
+Not yet. A `Dockerfile` and a `docker-compose.yml` are queued, with the requirements written down in [Ideas & Roadmap](todo.md): a `python:3.12-slim` image with Tesseract and its language packs, volumes for `data/`, `sources/`, `chatbot.conf` and `services.conf`, the app bound to localhost behind the published port, Ollama outside the image. The program has no authentication: never publish its port beyond localhost without a proxy with login.
 
 ### Is there a Windows executable?
 
-Upstream provides `build_app.py`, which compiles the server into a single executable with a small launcher. The fork has not changed it. The `.bat` scripts are the primary Windows install.
+Upstream provides the build script, now `scripts/build_app.py`, which compiles the server into a single executable (`pip install --group build` first); `python -m quaesitor.launcher` opens a small launcher window. The `.bat` scripts are the primary Windows install.
 
 ### Does it run on Linux?
 
@@ -178,7 +178,7 @@ An online search against the OpenSanctions API (or your own yente instance): sea
 
 ### A new version of Follow the Money came out. What do I regenerate?
 
-`ftm_schema.json` and `ontology_ftm.py`, with `scripts/ftm/make_ftm_types.py` on a machine where the `followthemoney` package installs. At runtime the program does not depend on that package.
+`quaesitor/generated/ftm_schema.json` and `quaesitor/generated/ontology_ftm.py`, with `scripts/ftm/make_ftm_types.py` on a machine where the `followthemoney` package installs. At runtime the program does not depend on that package.
 
 ## Epieos
 
@@ -230,7 +230,7 @@ Through a file, since 1.6.0. Cognitor (face recognition with cases and a co-appe
 
 ### Where do the node icons come from?
 
-Since 1.7.0 the node types have colour icons. They were generated in October 2026 with ChatGPT and Gemini, from a prompt written by the maintainer of the fork: a colour evolution of a set of flat "incognito" glyphs (hoods, fedoras, masks, dark glasses), one icon per node type, no text. The generators returned nine sheets of icons on a white background, and a tenth, two icons (a microscope and an encrypted phone), was generated for 1.7.1 in the same glossy style. `scripts/icons/split_sheets.py` cuts them into single icons, `scripts/icons/labels.json` records what each cut shows, `scripts/icons/mapping.json` assigns a cut to each node type and `scripts/icons/install.py` copies the chosen ones to `static/icons/entities/`. The sheets themselves are not in the repository. Since 1.7.1 every node type has one, `article` and `call` included, and so do most sub-types: the substance of a drug (pills, leaf, droplet...), the kind of identity document, financial document, judicial act and device each pick a more specific icon, listed in the icon tables of `ontology.py`; a sub-type without one ("Altro" and a few others) shows the icon of its type. Font Awesome glyphs remain only as fallback, and a social profile keeps the logo of its platform. To change an icon, point its key in `mapping.json` to another cut, or generate a new sheet with the same prompt, cut it and run `install.py` again. The icons are original images of this fork, distributed under the same licence as the program.
+Since 1.7.0 the node types have colour icons. They were generated in October 2026 with ChatGPT and Gemini, from a prompt written by the maintainer of the fork: a colour evolution of a set of flat "incognito" glyphs (hoods, fedoras, masks, dark glasses), one icon per node type, no text. The generators returned nine sheets of icons on a white background, and a tenth, two icons (a microscope and an encrypted phone), was generated for 1.7.1 in the same glossy style. `scripts/icons/split_sheets.py` cuts them into single icons, `scripts/icons/labels.json` records what each cut shows, `scripts/icons/mapping.json` assigns a cut to each node type and `scripts/icons/install.py` copies the chosen ones to `quaesitor/static/icons/entities/`. The sheets themselves are not in the repository. Since 1.7.1 every node type has one, `article` and `call` included, and so do most sub-types: the substance of a drug (pills, leaf, droplet...), the kind of identity document, financial document, judicial act and device each pick a more specific icon, listed in the icon tables of `quaesitor/ontology.py`; a sub-type without one ("Altro" and a few others) shows the icon of its type. Font Awesome glyphs remain only as fallback, and a social profile keeps the logo of its platform. To change an icon, point its key in `mapping.json` to another cut, or generate a new sheet with the same prompt, cut it and run `install.py` again. The icons are original images of this fork, distributed under the same licence as the program.
 
 ## Method & Analysis
 

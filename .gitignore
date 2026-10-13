@@ -2,7 +2,8 @@
 # archivio dei casi (nodi, schede, note, viste) e copie di sicurezza
 data/
 backup/
-# documenti delle fonti (cartella «fonti» accanto al programma)
+# documenti delle fonti (cartella «sources» accanto al programma; «fonti» fino alla 1.7.x)
+sources/
 fonti/
 # configurazione del chatbot: contiene la chiave API e l'indirizzo del proxy
 chatbot.conf

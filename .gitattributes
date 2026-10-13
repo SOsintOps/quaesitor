@@ -1,2 +1,8 @@
 # i file batch di Windows vanno con fine riga CRLF anche se committati da Linux
 *.bat text eol=crlf
+# generated files (scripts/ftm/make_ftm_types.py): hidden in GitHub diffs and
+# left out of the language statistics; never edit them by hand
+quaesitor/generated/ontology_ftm.py linguist-generated
+quaesitor/generated/ftm_schema.json linguist-generated
+# third-party libraries copied as they are
+quaesitor/static/vendor/** linguist-vendored

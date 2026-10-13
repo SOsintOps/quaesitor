@@ -7,8 +7,8 @@ pytest.importorskip("scipy")
 """Test di fumo della traduzione (ROADMAP Fase 3): senza modelli, rete né pacchetti Argos."""
 import numpy as np
 
-from audio import translate as T
-from audio.transcribe import transcribe_video, write_transcript
+from quaesitor.audio import translate as T
+from quaesitor.audio.transcribe import transcribe_video, write_transcript
 
 
 def test_align_to_segments_by_overlap_and_nearest():
@@ -136,7 +136,7 @@ def test_transcribe_video_with_translation_and_fallback(tmp_path, monkeypatch):
 
 
 def test_diarize_then_translate_keeps_speakers(tmp_path, monkeypatch):
-    from audio import diarize as D
+    from quaesitor.audio import diarize as D
     monkeypatch.setattr(D, "decode_audio", lambda p: np.zeros(16000, dtype=np.float32))
     monkeypatch.setattr(D, "diarize_audio", lambda audio, **kw: {
         "speakers": 2, "windows": [(0.0, 2.0), (2.0, 4.0)], "labels": [0, 1],

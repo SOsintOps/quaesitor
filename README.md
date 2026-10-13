@@ -5,9 +5,9 @@
   </picture>
 </p>
 
-# Quaesitor 1.7.4
+# Quaesitor 1.8.0
 
-![version](https://img.shields.io/badge/version-1.7.4-blue)
+![version](https://img.shields.io/badge/version-1.8.0-blue)
 ![licence](https://img.shields.io/github/license/SOsintOps/quaesitor)
 ![last commit](https://img.shields.io/github/last-commit/SOsintOps/quaesitor)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
@@ -16,7 +16,7 @@
 
 **Quaesitor** is a case graph for OSINT investigations: people, phones, e-mails, social profiles, companies, vehicles, places and documents as an interactive graph, with every case stored on your own computer. It is a fork of [OSInt Graph](https://github.com/tingon11/OsintGraph) by Andrea Cumini (andrea@osintinfo.net, [www.osintinfo.net](https://www.osintinfo.net)): the program, its design, its code and its illustrated manual are his work, released as free software under the GNU GPL v3 with attribution terms. The fork exists because his program was already excellent and only needed adapting to the needs of one analyst — non-Latin names, the Follow the Money data model, the Epieos API, a one-click Windows install and the bridge with Cognitor, the face-recognition program of the same holder. It adds those and nothing else; see [Credits](#credits).
 
-Version 1.7.4 spells the Licences link of the English interface in British English. Version 1.7.3 corrects the guidelines where they departed from the Field Notes (the 6 x 6 conversion, customer relevance, the likelihood table) and adds FAQ entries on the method. Version 1.7.2 aligns the guidelines with the [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes), the method shared by the SOsintOps tools, links every text they cite and fixes the FAQ. Version 1.7.1 completes the colour icons: articles, calls and the sub-types of drugs, documents, judicial acts and devices. Version 1.7.0 gives every node type a colour icon, generated for this fork (see the FAQ). Version 1.6.1 named the fork's maintainer in the credits, with the attribution of the original author kept on its own line. Version 1.6.0 opened the cases of Cognitor (face photos, co-appearances, videos with their transcripts) through the Follow the Money import, read large files by their path, fixed the import of every Follow the Money file, and brought the transcription of videos on this computer with the modules of Cognitor, released by their holder under the GPL. Version 1.5.1 verifies the Linux install used by Argos and Speculator and makes OCR use every installed Tesseract language. Version 1.5.0 was the first public release: the fork carries its own name, wordmark and icon in the interface, as the licence requires, while the attribution of the original author stays in every place it was. Version 1.4.0 named the fork and brought the FAQ, the guidelines, the link analysis primer and this documentation layout. See the full [version history](docs/versionhistory.md) for previous releases and for what is planned next.
+Version 1.8.0 reorganises the repository: the program lives in the `quaesitor/` package, its routes in one Flask blueprint per area and its shared code in modules layered without cycles, with `pyproject.toml`, a security policy and contributing notes; the documents folder is now `sources/` (an existing `fonti/` keeps working). Nothing changes in the interface. Version 1.7.4 spells the Licences link of the English interface in British English. Version 1.7.3 corrects the guidelines where they departed from the Field Notes (the 6 x 6 conversion, customer relevance, the likelihood table) and adds FAQ entries on the method. Version 1.7.2 aligns the guidelines with the [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes), the method shared by the SOsintOps tools, links every text they cite and fixes the FAQ. Version 1.7.1 completes the colour icons: articles, calls and the sub-types of drugs, documents, judicial acts and devices. Version 1.7.0 gives every node type a colour icon, generated for this fork (see the FAQ). Version 1.6.1 named the fork's maintainer in the credits, with the attribution of the original author kept on its own line. Version 1.6.0 opened the cases of Cognitor (face photos, co-appearances, videos with their transcripts) through the Follow the Money import, read large files by their path, fixed the import of every Follow the Money file, and brought the transcription of videos on this computer with the modules of Cognitor, released by their holder under the GPL. Version 1.5.1 verifies the Linux install used by Argos and Speculator and makes OCR use every installed Tesseract language. Version 1.5.0 was the first public release: the fork carries its own name, wordmark and icon in the interface, as the licence requires, while the attribution of the original author stays in every place it was. Version 1.4.0 named the fork and brought the FAQ, the guidelines, the link analysis primer and this documentation layout. See the full [version history](docs/versionhistory.md) for previous releases and for what is planned next.
 
 ---
 
@@ -56,7 +56,7 @@ Version 1.7.4 spells the Licences link of the English interface in British Engli
    ```bash
    git clone https://github.com/SOsintOps/quaesitor.git
    ```
-2. Double-click **`install.bat`**: it finds Python 3.10+, creates the `.venv` environment, installs the libraries, prepares `chatbot.conf` and `services.conf` from the examples, creates the `fonti` folder and asks whether to download Tesseract. It can be run again at any time: it never overwrites configuration or data.
+2. Double-click **`install.bat`**: it finds Python 3.10+, creates the `.venv` environment, installs the libraries, prepares `chatbot.conf` and `services.conf` from the examples, creates the `sources` folder and asks whether to download Tesseract. It can be run again at any time: it never overwrites configuration or data.
 3. Double-click **`start.bat`**: the program starts and the browser opens on http://127.0.0.1:5000. Closing the window stops it.
 
 `update.bat` pulls the repository and updates the libraries; `uninstall.bat` removes `.venv` and the temporary files and asks before touching the cases in `data\`. The program is not "installed" in Windows: it is only this folder.
@@ -82,7 +82,7 @@ Tesseract is found in the `PATH`; every installed language pack is used for OCR 
 3. Install the libraries: `pip install -r requirements.txt`.
 4. Start it: `python app.py`. The browser opens on http://127.0.0.1:5000; another port with the `PORT` environment variable.
 
-One command per line in PowerShell: `&&` is not accepted there. The Windows single-file executable is built with `python build_app.py` (unchanged from upstream). Docker is not available yet; see the [roadmap](docs/todo.md).
+One command per line in PowerShell: `&&` is not accepted there. The Windows single-file executable is built with `python scripts/build_app.py`, after `pip install --group build` (pip 25.1 or newer). Docker is not available yet; see the [roadmap](docs/todo.md).
 
 ## Program Sections
 
@@ -119,6 +119,17 @@ The built-in manual (link **Manuale** in the left panel) covers the interface st
 ---
 
 ## Repository
+
+| Path | Contents |
+|---|---|
+| `app.py` | Starts the program: `python app.py`. |
+| `quaesitor/` | The program: the Flask app, `blueprints/` (the routes, one module per area), the shared modules, the archive, the importers, the ontology, `audio/` (video transcription), `templates/` and `static/` (the page, the manual, icons, licences), `generated/` (the Follow the Money ontology, never edited by hand). |
+| `tests/`, `scripts/` | The test suite; build, release, licences, icons and Follow the Money tools. |
+| `docs/`, `examples/` | Documentation and sample files to import. |
+| `*.bat`, `requirements*.txt`, `*.conf.example` | Windows install, start, update and uninstall; the libraries; the settings templates. |
+| `pyproject.toml` | Metadata, dependencies, the `audio` extra, the `dev` and `build` dependency groups. |
+
+[Contributing](.github/CONTRIBUTING.md) and the [security policy](.github/SECURITY.md) are in `.github/`.
 
 - `main`: Quaesitor, the branch you install from.
 - `osintgraph`: a mirror of the upstream `main`, never edited, updated only by merging `upstream/main` (`git remote add upstream https://github.com/tingon11/OsintGraph.git`). Upstream changes reach Quaesitor by merging `osintgraph` into `main`.
