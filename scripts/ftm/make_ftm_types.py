@@ -8,13 +8,17 @@ translations/) two files for OsintGraph:
                         import FtM exports without depending on the package
     ontology_ftm.py     FTM_TYPES: the FtM schemata without an equivalent in
                         OsintGraph as ontology.py types (own fields and
-                        'featured'), with Italian labels; FTM_I18N: the
-                        translations (it -> en, fr, de, es, ar) for ontology_i18n
+                        'featured'), with the English labels of FtM; FTM_I18N:
+                        the translations (en -> it, fr, de, es, ar) for
+                        ontology_i18n
 
 Usage: python scripts/ftm/make_ftm_types.py <followthemoney package dir> quaesitor/generated
 
 Requires PyYAML. The Italian labels are in the IT dictionary below:
 FtM has no Italian translation. A label without an entry stays in English.
+The package need not be installed (it needs PyICU): the folder of its
+unpacked wheel is enough (pip download followthemoney --no-deps; 4.11.0 gives
+the files of Quaesitor 2.0).
 """
 # "Amicus certus in re incerta cernitur." (Ennius, quoted by Cicero in Laelius de Amicitia)
 # A sure friend is seen in an unsure matter.
@@ -145,9 +149,9 @@ IT = {
     "Unique Entity ID": "Id entità univoco", "V.A.T. Identifier": "Partita IVA", "VOEN": "VOEN",
     "Vessel": "Nave", "Video": "Video", "Website": "Sito web", "Workbook": "Cartella di lavoro",
     "FtM id": "Id FtM",
-    "FtM · Soggetti": "FtM · Soggetti", "FtM · Finanza": "FtM · Finanza",
-    "FtM · Documenti d'identità": "FtM · Documenti d'identità", "FtM · Beni e mezzi": "FtM · Beni e mezzi",
-    "FtM · Procedimenti": "FtM · Procedimenti", "FtM · Documenti": "FtM · Documenti",
+    "FtM · Entities": "FtM · Soggetti", "FtM · Finance": "FtM · Finanza",
+    "FtM · Identity documents": "FtM · Documenti d'identità", "FtM · Assets and vehicles": "FtM · Beni e mezzi",
+    "FtM · Proceedings": "FtM · Procedimenti", "FtM · Documents": "FtM · Documenti",
     "Follow the Money": "Follow the Money",
 }
 
@@ -226,19 +230,19 @@ GENERIC_SKIP = {"summary", "description", "sourceUrl", "alias", "previousName", 
                 "emailMentioned", "contentHash", "parent", "ancestors", "crawler", "indexUpdatedAt",
                 "bodyHtml", "headers", "generator", "encoding", "extension"}
 GROUPS = {
-    "FtM · Soggetti": {"Company", "Organization", "PublicBody", "LegalEntity"},
-    "FtM · Finanza": {"BankAccount", "CryptoWallet", "Security", "Asset", "Contract", "EconomicActivity",
+    "FtM · Entities": {"Company", "Organization", "PublicBody", "LegalEntity"},
+    "FtM · Finance": {"BankAccount", "CryptoWallet", "Security", "Asset", "Contract", "EconomicActivity",
                       "CallForTenders", "TaxRoll", "License"},
-    "FtM · Documenti d'identità": {"Passport", "Identification"},
-    "FtM · Beni e mezzi": {"RealEstate", "Vessel", "Airplane"},
-    "FtM · Procedimenti": {"CourtCase", "Sanction", "Event", "Risk", "Position", "Project", "Trip",
+    "FtM · Identity documents": {"Passport", "Identification"},
+    "FtM · Assets and vehicles": {"RealEstate", "Vessel", "Airplane"},
+    "FtM · Proceedings": {"CourtCase", "Sanction", "Event", "Risk", "Position", "Project", "Trip",
                            "Call", "Territory"},
 }
 def group_of(n):
     for g, ss in GROUPS.items():
         if n in ss:
             return g
-    return "FtM · Documenti"
+    return "FtM · Documents"
 # alternative identifying keys (without an FtM id): the first one present in the schema
 IDENT_PREF = {
     "Company": ["name"], "Organization": ["name"], "PublicBody": ["name"], "LegalEntity": ["name"],
@@ -275,7 +279,7 @@ def it(en):
     return IT.get(en, en)
 
 
-# keys already used by ontology.py (Italian types) and by the built-in types: an FtM
+# keys already used by ontology.py (own types) and by the built-in types: an FtM
 # type with the same name gets the 'ftm' prefix (ftmbankaccount, ftmdocument, ftmevent,
 # ftmorganization) instead of overwriting the existing type
 TAKEN = {"weapon", "explosive", "ammo", "drug", "cash", "cheque", "valuable", "bankaccount",
@@ -291,18 +295,17 @@ def type_key(schema):
 
 types, rows = {}, {}
 def add_row(en):
-    i = it(en)
-    if i not in rows:
-        rows[i] = (en, tr(en, "fr"), tr(en, "de"), tr(en, "es"), tr(en, "ar"))
+    if en not in rows:
+        rows[en] = (it(en), tr(en, "fr"), tr(en, "de"), tr(en, "es"), tr(en, "ar"))
 
 add_row("Follow the Money")
 for g in GROUPS:
     add_row(g)
-add_row("FtM · Documenti")
+add_row("FtM · Documents")
 add_row("FtM id")
 new = [n for n, s in raw.items() if not s.get("abstract") and not s.get("edge") and n not in BUILTIN]
-COLORS = {"FtM · Soggetti": "#7c2d12", "FtM · Finanza": "#0f766e", "FtM · Documenti d'identità": "#1d4ed8",
-          "FtM · Beni e mezzi": "#4338ca", "FtM · Procedimenti": "#831843", "FtM · Documenti": "#475569"}
+COLORS = {"FtM · Entities": "#7c2d12", "FtM · Finance": "#0f766e", "FtM · Identity documents": "#1d4ed8",
+          "FtM · Assets and vehicles": "#4338ca", "FtM · Proceedings": "#831843", "FtM · Documents": "#475569"}
 for n in sorted(new):
     s = raw[n]
     props = all_props(n)
@@ -317,13 +320,12 @@ for n in sorted(new):
             continue
         en = p.get("label", k)
         add_row(en)
-        fields.append({"key": k, "label": it(en), "en": en, "type": TYPE_MAP[t],
-                       "options": [], "ph": ""})
+        fields.append({"key": k, "label": en, "type": TYPE_MAP[t], "options": [], "ph": ""})
     feat = s.get("featured") or []
     fields.sort(key=lambda f: (f["key"] not in feat, feat.index(f["key"]) if f["key"] in feat else 0))
     # FtM id: hidden field (not in the form, yes in the record), primary identity
-    fields.append({"key": "ftmId", "label": it("FtM id"), "en": "FtM id", "type": "text",
-                   "options": [], "ph": "", "hidden": True})
+    fields.append({"key": "ftmId", "label": "FtM id", "type": "text", "options": [], "ph": "",
+                   "hidden": True})
     keys = [f["key"] for f in fields if f["key"] != "ftmId"]
     caption = [c for c in (s.get("caption") or []) if c in keys] or keys[:1]
     alt = next((k for k in IDENT_PREF.get(n, []) if k in keys), None) or caption[0]
@@ -331,7 +333,7 @@ for n in sorted(new):
     add_row(en)
     grp = group_of(n)
     types[type_key(n)] = {
-        "label": it(en), "en": en, "group": grp,
+        "label": en, "group": grp,
         "icon": ICONS.get(n) or ICONS_MORE.get(n, "file-lines"), "color": COLORS[grp],
         "fields": fields,
         "ident": ["ftmId"], "ident_alt": [alt], "norm": {"ftmId": "compact_case"},
@@ -350,17 +352,17 @@ def py(obj):
 
 with open(os.path.join(OUT, "ontology_ftm.py"), "w", encoding="utf-8") as f:
     f.write("# -*- coding: utf-8 -*-\n")
-    f.write("# Generato da scripts/ftm/make_ftm_types.py: tipi Follow the Money senza\n")
-    f.write("# equivalente in OsintGraph (ontology.TYPES.update(FTM_TYPES)) e le loro\n")
-    f.write("# traduzioni (ontology_i18n.ROWS). Non modificare a mano: rigenerare.\n")
+    f.write("# Generated by scripts/ftm/make_ftm_types.py: Follow the Money types without\n")
+    f.write("# an equivalent among the built-in ones (ontology.TYPES.update(FTM_TYPES)) and\n")
+    f.write("# their translations (ontology_i18n.ROWS). Do not edit by hand: regenerate.\n")
     f.write("# \"Nihil est ab omni parte beatum.\" (Horace, Odes)\n")
     f.write("# Nothing is blessed in every respect.\n")
     f.write("FTM_TYPES = " + py(types) + "\n\n")
-    f.write("# italiano -> (en, fr, de, es, ar); fr/de/es/ar dai cataloghi di FtM\n")
+    f.write("# English -> (it, fr, de, es, ar); fr/de/es/ar from the FtM catalogues\n")
     f.write("FTM_I18N = " + py(rows) + "\n\n")
-    f.write("# schema FtM <-> tipo di OsintGraph (per importazione ed esportazione)\n")
+    f.write("# FtM schema <-> node type (for import and export)\n")
     f.write("FTM_SCHEMA_OF = " + py({t: v["ftm"] for t, v in types.items()}) + "\n")
     f.write("FTM_TYPE_OF = " + py({v["ftm"]: t for t, v in types.items()}) + "\n")
-missing = sorted({f["en"] for t in types.values() for f in t["fields"]} - set(IT))
+missing = sorted({f["label"] for t in types.values() for f in t["fields"]} - set(IT))
 print(f"ontology_ftm.py: {len(types)} tipi, {sum(len(t['fields']) for t in types.values())} campi, "
       f"{len(rows)} righe i18n; etichette senza italiano: {missing}")

@@ -61,7 +61,7 @@ def download(url, dst, progress=None):
     """Download 'url' into 'dst'. Calls 'progress(done, total)' if given,
     otherwise prints the progress to the terminal."""
     if progress is None:
-        print(f"Scarico:\n  {url}")
+        print(f"Downloading:\n  {url}")
     req = urllib.request.Request(url, headers={
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                       "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36"})
@@ -104,7 +104,7 @@ def setup_windows(url, dest=DEST, progress=None, stage=None):
     tell("download")
     download(url, tmp, progress)
     size = os.path.getsize(tmp) / (1024 * 1024)
-    say(f"Scaricato {size:.0f} MB.")
+    say(f"Downloaded {size:.0f} MB.")
     exe = os.path.join(dest, "tesseract.exe")
 
     tell("extract")
@@ -112,13 +112,13 @@ def setup_windows(url, dest=DEST, progress=None, stage=None):
     if sevenzip:
         # EXTRACTION (no admin privileges): the NSIS installer is an archive,
         # 7-Zip extracts its files directly into the local folder.
-        say(f"Estraggo con 7-Zip in:\n  {dest}")
+        say(f"Extracting with 7-Zip into:\n  {dest}")
         subprocess.run([sevenzip, "x", tmp, f"-o{dest}", "-y"],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     else:
         # no 7-Zip: try the silent installer (it may ask for admin rights)
-        say("7-Zip non trovato: uso l'installer silenzioso "
-            "(potrebbe chiedere privilegi di amministratore)…")
+        say("7-Zip not found: using the silent installer "
+            "(it may ask for administrator rights)…")
         subprocess.run([tmp, "/S", f"/D={dest}"])
 
     try:
@@ -128,31 +128,31 @@ def setup_windows(url, dest=DEST, progress=None, stage=None):
 
     tell("verify")
     if not os.path.isfile(exe):
-        raise RuntimeError(f"Non trovo tesseract.exe in {dest}. "
-                           "Installa 7-Zip (per l'estrazione senza admin) e riprova, "
-                           "oppure esegui l'installer manualmente.")
+        raise RuntimeError(f"tesseract.exe not found in {dest}: "
+                           "install 7-Zip (for the extraction without admin rights) and try again, "
+                           "or run the installer by hand")
     ver = subprocess.run([exe, "--version"], capture_output=True, text=True)
     line = (ver.stdout or ver.stderr).splitlines()
     say("\nOK  ->  " + exe)
     if line:
         say(line[0])
-    say("\nAvvia (o riavvia) il programma: l'OCR sarà attivo.")
+    say("\nStart (or restart) the program: OCR will be on.")
     return exe
 
 
 def setup_unix():
-    print("Su Linux/Mac installa Tesseract dal gestore pacchetti:\n")
+    print("On Linux/Mac install Tesseract with the package manager:\n")
     print("  Debian/Ubuntu:  sudo apt-get install tesseract-ocr tesseract-ocr-ita")
     print("  Fedora:         sudo dnf install tesseract")
     print("  macOS (brew):   brew install tesseract\n")
-    print("In alternativa metti un binario 'tesseract' in:")
+    print("Or put a 'tesseract' binary in:")
     print(f"  {DEST}")
-    print("e l'app lo userà da lì.")
+    print("and the program will use it from there.")
 
 
 def main():
     if shutil.which("tesseract"):
-        print("Nota: Tesseract è già nel PATH di sistema; l'OCR funziona già.")
+        print("Note: Tesseract is already in the system PATH; OCR already works.")
     url = _arg("--url", DEFAULT_URL)
     if os.name == "nt":
         try:

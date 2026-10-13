@@ -828,13 +828,13 @@ ${fig(IMG.lic, 'نافذة التراخيص: المكوّنات على اليس�
 };
 
 /* ------------------------------------------------------------- rendering -- */
-const LANGS = [['it', 'Italiano'], ['en', 'English'], ['fr', 'Français'], ['de', 'Deutsch'], ['es', 'Español'], ['ar', 'العربية']];
+const LANGS = [['en', 'English'], ['it', 'Italiano'], ['fr', 'Français'], ['de', 'Deutsch'], ['es', 'Español'], ['ar', 'العربية']];
 function pickLang() {
   const q = new URLSearchParams(location.search).get('lang');
   if (q && M[q]) return q;
   try { const s = localStorage.getItem('manualLang'); if (s && M[s]) return s; } catch (_) {}
-  const nav = (navigator.language || 'it').slice(0, 2).toLowerCase();
-  return M[nav] ? nav : 'it';
+  const nav = (navigator.language || 'en').slice(0, 2).toLowerCase();
+  return M[nav] ? nav : 'en';
 }
 function render(lang) {
   const m = M[lang];

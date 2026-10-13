@@ -88,18 +88,18 @@ def api_transcribe():
     data = request.get_json(silent=True) or {}
     ok, why = _audio.available()
     if not ok:
-        return jsonify({"error": "trascrizione non installata: pip install -r requirements-audio.txt",
+        return jsonify({"error": "transcription not installed: pip install -r requirements-audio.txt",
                         "reason": why}), 503
     path = str(data.get("path") or "").strip().strip('"')
     path = os.path.abspath(os.path.expanduser(path)) if path else ""
     if not path or not os.path.isfile(path):
-        return jsonify({"error": f"file non trovato: {path}"}), 400
+        return jsonify({"error": f"file not found: {path}"}), 400
     case_id = store.current_case()
     if not case_id:
-        return jsonify({"error": "nessun caso aperto"}), 400
+        return jsonify({"error": "no case open"}), 400
     model = str(data.get("model_size") or "small")
     if model not in WHISPER_MODELS:
-        return jsonify({"error": f"modello sconosciuto: {model}"}), 400
+        return jsonify({"error": f"unknown model: {model}"}), 400
     try:
         speakers = max(0, min(20, int(data.get("speakers") or 0)))
     except (TypeError, ValueError):
@@ -108,7 +108,7 @@ def api_transcribe():
             "translate": [x for x in (data.get("translate") or []) if x in ("en", "it")]}
     with _tr_lock:
         if _tr_job["running"]:
-            return jsonify({"error": "trascrizione gia' in corso", "running": True}), 409
+            return jsonify({"error": "transcription already running", "running": True}), 409
         _tr_stop.clear()
         _tr_job.update({"running": True, "finished": False, "error": "", "stage": "hash", "done": 0,
                         "total": 0, "log": [], "result": None, "file": os.path.basename(path)})
@@ -140,7 +140,7 @@ def _run_transcribe(path, opts, case_id):
                                num_speakers=opts["speakers"], translate=tuple(opts["translate"]),
                                cancel=_tr_stop.is_set, log=_tr_log)
         if store.current_case() != case_id:
-            raise NodeError(f"il caso aperto e' cambiato durante la trascrizione: il trascritto resta in {out}")
+            raise NodeError(f"the open case changed during the transcription: the transcript stays in {out}")
         _tr_job.update(stage="import", done=0, total=0)
         ents, names, body = _transcripts.entities(res, path, case_id, sha)
         table = ftm.rows_from_entities({e["id"]: e for e in ents}, native_types=onto.TYPES,
@@ -180,7 +180,7 @@ def _run_transcribe(path, opts, case_id):
                              "updated": r.get("updated", 0), "sources": files, "sources_scan": scan}
         _tr_log(f"[import] {r.get('nodes', 0)} nodes, {r.get('links', 0)} links, {r.get('updated', 0)} updated")
     except Exception as e:
-        logging.error(f"Trascrizione fallita: {e}", exc_info=not isinstance(e, NodeError))
+        logging.error(f"Transcription failed: {e}", exc_info=not isinstance(e, NodeError))
         _tr_job["error"] = str(e)
     finally:
         _tr_job["running"] = False

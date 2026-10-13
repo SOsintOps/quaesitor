@@ -96,7 +96,7 @@ def write_pending(pending):
     """New words, still to be transliterated (by hand or with the AI)."""
     n = store.translit_add_pending(sorted(pending or []), script_of)
     if n:
-        logging.info(f"{n} parole da traslitterare aggiunte al dizionario")
+        logging.info(f"{n} words to transliterate added to the dictionary")
     return n
 
 
@@ -166,7 +166,7 @@ def chatbot_translit(parole):
             if val:
                 fuori[k] = val
     if not fuori:
-        logging.warning("Chatbot: risposta senza traslitterazioni utilizzabili: "
+        logging.warning("Chatbot: answer without usable transliterations: "
                         + re.sub(r"\s+", " ", risposta)[:200])
     return fuori
 
@@ -177,7 +177,7 @@ def save_ai_translit(nuove):
     try:
         return store.translit_save_ai(nuove, CHATBOT["model"])
     except Exception as e:
-        logging.error(f"Impossibile salvare le traslitterazioni: {e}")
+        logging.error(f"Cannot save the transliterations: {e}")
         return 0
 
 
@@ -207,21 +207,21 @@ def parole_da_traslitterare(graph=None, wdict=None):
 
 def ai_fill_translit(todo, budget=None, max_words=None, force=False):
     """Has the chatbot transliterate the words of 'todo', in batches, and saves them.
-    Returns the statistics; if the chatbot stays silent, 'tradotte' is 0, nothing more."""
-    stat = {"chieste": 0, "tradotte": 0, "restano": len(todo), "errore": "",
-            "salvate": 0}
+    Returns the statistics; if the chatbot stays silent, 'translated' is 0, nothing more."""
+    stat = {"requested": 0, "translated": 0, "remaining": len(todo), "error": "",
+            "saved": 0}
     if not todo or not chatbot_ready():
-        stat["errore"] = "" if todo else "niente da tradurre"
+        stat["error"] = "" if todo else "nothing to transliterate"
         return stat
     if not force and time.time() < _bot["down_until"]:
-        stat["errore"] = _bot["reason"] or "chatbot non raggiungibile"
+        stat["error"] = _bot["reason"] or "chatbot not reachable"
         return stat
     if force:
         _bot["down_until"] = 0.0
     vivo, perche = chatbot_probe()             # quick probe, no long waits
     if not vivo:
         _bot_down(perche)
-        stat["errore"] = perche
+        stat["error"] = perche
         return stat
 
     limite = max_words or CHATBOT["max_words"]
@@ -232,18 +232,18 @@ def ai_fill_translit(todo, budget=None, max_words=None, force=False):
         if time.time() > scadenza:
             break
         gruppo = todo[i:i + lotto]
-        stat["chieste"] += len(gruppo)
+        stat["requested"] += len(gruppo)
         got = chatbot_translit(gruppo)
         if not got and _bot["reason"]:
-            stat["errore"] = _bot["reason"]
+            stat["error"] = _bot["reason"]
             break
         fatte.update(got)
-    stat["tradotte"] = len(fatte)
-    stat["salvate"] = save_ai_translit(fatte)
-    stat["restano"] = len(todo) - len(fatte)
+    stat["translated"] = len(fatte)
+    stat["saved"] = save_ai_translit(fatte)
+    stat["remaining"] = len(todo) - len(fatte)
     if fatte:
-        logging.info(f"Chatbot: {len(fatte)} parole traslitterate "
-                     f"({stat['restano']} ancora da fare)")
+        logging.info(f"Chatbot: {len(fatte)} words transliterated "
+                     f"({stat['remaining']} still to do)")
     return stat
 
 
@@ -355,7 +355,7 @@ def add_translit(graph, only=None, offline=False):
     if not _romanize_raw and not offline:
         # carry on anyway: the words already in the dictionary (AI or by hand)
         # still yield their Latin node
-        logging.warning("Nessun motore di traslitterazione locale: solo dizionario/AI")
+        logging.warning("No local transliteration engine: dictionary and AI only")
 
     wdict = load_word_dict()
     # The chatbot fills in the still-uncovered words by itself. If it does not
@@ -417,7 +417,7 @@ def add_translit(graph, only=None, offline=False):
     if not offline:
         write_pending(pending)
         done = sum(1 for v in wdict.values() if v.strip())
-        logging.info(f"Traslitterazione ({TRANSLIT_ENGINE}): {added} nodi latini · "
-                     f"dizionario {done}/{len(wdict)} parole compilate · "
-                     f"{len(pending)} nuove")
+        logging.info(f"Transliteration ({TRANSLIT_ENGINE}): {added} Latin nodes · "
+                     f"dictionary {done}/{len(wdict)} words filled in · "
+                     f"{len(pending)} new")
     return graph

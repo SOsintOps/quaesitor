@@ -63,9 +63,9 @@ def main():
         import threading
         import webbrowser
         threading.Timer(1.5, lambda: webbrowser.open(f"http://127.0.0.1:{port}")).start()
-        logging.info(f"Quaesitor avviato su http://127.0.0.1:{port}")
-        logging.info(f"Dati letti da: {DATA_DIR}")
+        logging.info(f"Quaesitor running at http://127.0.0.1:{port}")
+        logging.info(f"Data read from: {DATA_DIR}")
         if not os.path.isdir(DATA_DIR):
-            logging.warning("La cartella 'data' non è accanto all'eseguibile: "
-                            "il grafo sarà vuoto finché non la copi qui.")
+            logging.warning("The 'data' folder is not next to the executable: "
+                            "the graph stays empty until you copy it here.")
     app.run(debug=not frozen, port=port, use_reloader=not frozen)

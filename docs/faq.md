@@ -20,6 +20,7 @@ Frequently asked questions about Quaesitor — the project, the licence, install
 * [Which languages does the OCR read?](#which-languages-does-the-ocr-read)
 * [Which branch do I use? What is `osintgraph`?](#which-branch-do-i-use-what-is-osintgraph)
 * [Where are my cases?](#where-are-my-cases)
+* [Can 2.0 open the cases of 1.x?](#can-20-open-the-cases-of-1x)
 * [What leaves my computer?](#what-leaves-my-computer)
 * [Does the program use AI? Do I have to?](#does-the-program-use-ai-do-i-have-to)
 * [Where do API keys go?](#where-do-api-keys-go)
@@ -140,6 +141,10 @@ In the `data` folder next to the program, one SQLite archive per case. Imports, 
 
 The program is portable by design: `data/` and the documents folder `sources/` sit next to it, so the whole folder moves to another computer with its cases. To keep them elsewhere (an encrypted volume, a home folder on Linux), set `DATA_DIR` for the cases and `SOURCES_DIR` for the documents before starting it, as the Argos, Speculator and Wukong launchers do for `DATA_DIR`. On Windows: `set DATA_DIR=D:\cases` and `set SOURCES_DIR=D:\documents` in the console, then `start.bat`.
 
+### Can 2.0 open the cases of 1.x?
+
+No. Since 2.0 what the program saves is English: the field keys and the drop-down values of the investigative types (`serial_number`, "Semi-automatic pistol"), the keys of the nodes added by hand, the names of the links it draws itself; the interface shows them in its language. A case written by 1.x keeps the Italian keys, so 2.0 lists it with "(1.x, rebuild)" and does not open it. Rebuild it by importing its source files again: the import still reads the Italian columns and values (`cognome`, `nascita`, `collegamento`, "Cocaina"), and so does the AI extraction. Keep the 1.x folder if you need to look at the old case meanwhile.
+
 ### What leaves my computer?
 
 Nothing, unless you switch something on. Three features talk to the outside; each is off by default, each asks for confirmation when enabled, and each says what it sends:
@@ -172,7 +177,7 @@ Drop a `.json`, `.jsonl` or `.ftm` file on **Import CSV/Excel**: the Follow the 
 
 ### How do I export a case?
 
-**Export Follow the Money** writes the case (or only the visible nodes) as JSON lines. Native types keep their schema, built-in and Italian types are mapped, types without an FtM equivalent become `Note`. Importing the export back into the same case creates nothing new.
+**Export Follow the Money** writes the case (or only the visible nodes) as JSON lines. Native types keep their schema, built-in and investigative types are mapped, types without an FtM equivalent become `Note`. Importing the export back into the same case creates nothing new.
 
 ### What is the OpenSanctions panel?
 
@@ -232,7 +237,7 @@ Through a file, since 1.6.0. Cognitor (face recognition with cases and a co-appe
 
 ### Where do the node icons come from?
 
-Since 1.7.0 the node types have colour icons. They were generated in October 2026 with ChatGPT and Gemini, from a prompt written by the maintainer of the fork: a colour evolution of a set of flat "incognito" glyphs (hoods, fedoras, masks, dark glasses), one icon per node type, no text. The generators returned nine sheets of icons on a white background, and a tenth, two icons (a microscope and an encrypted phone), was generated for 1.7.1 in the same glossy style. `scripts/icons/split_sheets.py` cuts them into single icons, `scripts/icons/labels.json` records what each cut shows, `scripts/icons/mapping.json` assigns a cut to each node type and `scripts/icons/install.py` copies the chosen ones to `quaesitor/static/icons/entities/`. The sheets themselves are not in the repository. Since 1.7.1 every node type has one, `article` and `call` included, and so do most sub-types: the substance of a drug (pills, leaf, droplet...), the kind of identity document, financial document, judicial act and device each pick a more specific icon, listed in the icon tables of `quaesitor/ontology.py`; a sub-type without one ("Altro" and a few others) shows the icon of its type. Font Awesome glyphs remain only as fallback, and a social profile keeps the logo of its platform. To change an icon, point its key in `mapping.json` to another cut, or generate a new sheet with the same prompt, cut it and run `install.py` again. The icons are original images of this fork, distributed under the same licence as the program.
+Since 1.7.0 the node types have colour icons. They were generated in October 2026 with ChatGPT and Gemini, from a prompt written by the maintainer of the fork: a colour evolution of a set of flat "incognito" glyphs (hoods, fedoras, masks, dark glasses), one icon per node type, no text. The generators returned nine sheets of icons on a white background, and a tenth, two icons (a microscope and an encrypted phone), was generated for 1.7.1 in the same glossy style. `scripts/icons/split_sheets.py` cuts them into single icons, `scripts/icons/labels.json` records what each cut shows, `scripts/icons/mapping.json` assigns a cut to each node type and `scripts/icons/install.py` copies the chosen ones to `quaesitor/static/icons/entities/`. The sheets themselves are not in the repository. Since 1.7.1 every node type has one, `article` and `call` included, and so do most sub-types: the substance of a drug (pills, leaf, droplet...), the kind of identity document, financial document, judicial act and device each pick a more specific icon, listed in the icon tables of `quaesitor/ontology.py`; a sub-type without one ("Other" and a few others) shows the icon of its type. Font Awesome glyphs remain only as fallback, and a social profile keeps the logo of its platform. To change an icon, point its key in `mapping.json` to another cut, or generate a new sheet with the same prompt, cut it and run `install.py` again. The icons are original images of this fork, distributed under the same licence as the program.
 
 ## Method & Analysis
 

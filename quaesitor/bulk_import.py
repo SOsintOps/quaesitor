@@ -103,14 +103,14 @@ _NODE_COLS = {
     "url": {"url", "link", "profilo", "profile", "sito", "website"},
     "platform": {"piattaforma", "platform", "social", "servizio", "service"},
     "text": {"testo", "text", "descrizione", "description", "contenuto"},
-    "cognome": {"cognome", "surname", "lastname", "familyname"},
-    "colore": {"colore", "color", "colour"},
-    "nascita": {"nascita", "datanascita", "datadinascita", "natoil", "birthdate",
+    "surname": {"cognome", "surname", "lastname", "familyname"},
+    "color": {"colore", "color", "colour"},
+    "birth": {"nascita", "datanascita", "datadinascita", "natoil", "birth", "birthdate",
                 "dateofbirth", "dob", "birthday"},
     "flag": {"target", "evidenzia", "flagtarget"},
     "sex": {"sex", "sesso", "gender", "genere"},
     "address": {"indirizzo", "address", "via", "street"},
-    "civico": {"civico", "numerocivico", "ncivico", "nr", "housenumber", "streetnumber"},
+    "house_number": {"civico", "numerocivico", "ncivico", "nr", "housenumber", "streetnumber"},
     "lat": {"lat", "latitudine", "latitude"},
     "lon": {"lon", "lng", "long", "longitudine", "longitude"},
     "note": {"nota", "note", "notes", "commento", "comment"},
@@ -247,11 +247,11 @@ def import_node_spec(row, side):
         if t and ntype is None:
             ntype = onto.type_of(g("type"))         # weapon, narcotic, cheque...
         if t and ntype is None:
-            raise NodeError(f"tipo di nodo sconosciuto: «{g('type')}»")
+            raise NodeError(f"unknown node type: «{g('type')}»")
         ntype = ntype or _guess_type(name, url)
     spec = {"ntype": ntype, "value": name, "label": g("label"), "url": url,
-            "text": g("text"), "address": g("address"), "civico": g("civico"),
-            "cognome": g("cognome"), "nascita": g("nascita"), "colore": g("colore"),
+            "text": g("text"), "address": g("address"), "house_number": g("house_number"),
+            "surname": g("surname"), "birth": g("birth"), "color": g("color"),
             "sex": parse_sex(g("sex")) if ntype in ("name", "target") else "",
             "fields": _json_obj(g("fields")),
             "target": ntype == "target" or _truthy(g("flag")),
@@ -266,7 +266,7 @@ def import_node_spec(row, side):
             spec["label"] = spec["label"] or (name if name and not parse_social_url(name) else "")
             spec["url"] = url or (name if re.match(r"^https?://", name, re.I) else "")
         elif not spec["platform"]:
-            raise NodeError("social: serve l'URL del profilo o la piattaforma")
+            raise NodeError("social: the profile URL or the platform is needed")
         if spec["platform"] == "twitter":
             spec["platform"] = "x"
     elif ntype == "link":
@@ -353,7 +353,7 @@ def plan_rows(rows):
                 if fixed:                              # node already in the graph
                     n = have.get(fixed)
                     if n is None:
-                        raise NodeError("il nodo di partenza non esiste piu'")
+                        raise NodeError("the starting node no longer exists")
                     item["nodes"].append({"side": side, "id": fixed, "label": n.get("label"),
                                           "ntype": n.get("ntype"), "platform": n.get("platform"),
                                           "exists": True, "spec": None})
@@ -368,7 +368,7 @@ def plan_rows(rows):
                                       "ntype": ntype, "platform": platform,
                                       "exists": nid in have, "spec": spec})
             if not item["nodes"]:
-                raise NodeError("riga senza nodi")
+                raise NodeError("row without nodes")
             if len(item["nodes"]) == 2:
                 item["edge"] = import_edge_props(row)
         except NodeError as e:
@@ -379,8 +379,8 @@ def plan_rows(rows):
 
 # columns the user can assign in the wizard (besides
 # "extra1:<name>" / "extra2:<name>", which end up in the node's card)
-IMPORT_NODE_KEYS = ("name", "type", "label", "url", "platform", "text", "cognome", "nascita",
-                    "sex", "colore", "flag", "address", "civico", "lat", "lon", "note")
+IMPORT_NODE_KEYS = ("name", "type", "label", "url", "platform", "text", "surname", "birth",
+                    "sex", "color", "flag", "address", "house_number", "lat", "lon", "note")
 IMPORT_EDGE_KEYS = ("rel", "arrow", "curve", "color", "lstyle", "width", "ftm", "ftm_props")
 
 
@@ -390,7 +390,7 @@ def plan_import(table, mapping=None, has_header=None, defaults=None):
     header, in the fixed order name1, type1, link, name2, type2);
     with 'mapping' ({column index: key}) the user's choice applies."""
     if not table:
-        raise NodeError("il file e' vuoto")
+        raise NodeError("the file is empty")
     defaults = defaults or {}
     if mapping:
         header = dict(mapping)
@@ -402,11 +402,11 @@ def plan_import(table, mapping=None, has_header=None, defaults=None):
         if not header:                      # no header: fixed order
             header = dict(enumerate(["name1", "type1", "rel", "name2", "type2"]))
     if "name1" not in header.values():
-        raise NodeError("serve una colonna con il nome (o il valore) del nodo 1")
+        raise NodeError("a column with the name (or the value) of node 1 is needed")
     first = 2 if has_header else 1          # number of the first data row
     body = table[1:] if has_header else table
     if len(body) > IMPORT_MAX_ROWS:
-        raise NodeError(f"troppe righe (massimo {IMPORT_MAX_ROWS})")
+        raise NodeError(f"too many rows: max {IMPORT_MAX_ROWS}")
     rows = []
     for i, cells in enumerate(body):
         row = {}
@@ -473,7 +473,7 @@ def _ftm_schema_of(spec, ntype):
     if sc:
         return sc
     ex = spec.get("extra") if isinstance(spec.get("extra"), dict) else {}
-    return str(ex.get("Schema FtM") or "")
+    return str(ex.get("FtM schema") or "")
 
 
 def commit_plan(plan, skip=(), update=False, ftm_dataset=None):
@@ -578,7 +578,7 @@ def commit_plan(plan, skip=(), update=False, ftm_dataset=None):
             made_links += 1
 
     if (made_nodes or made_links or updated) and not save_annotations(ann):
-        raise NodeError("salvataggio fallito")
+        raise NodeError("saving failed")
     if ftm_pairs:
         store.ftm_set(ftm_pairs)
     if made_nodes:                               # import and nodes proposed by the AI

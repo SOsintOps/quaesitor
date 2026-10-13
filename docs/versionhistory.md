@@ -10,6 +10,17 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 2.0.0 — 2026
+
+- **Changed:** What the program saves is English. The investigative types have English field keys (`serial_number`, `substance`, `network`...), drop-down values ("Semi-automatic pistol", "Cocaine", "Passport", "Other"), labels and groups; a node added by hand keeps its data under English keys (`surname`, `birth`, `city`, `house_number`...) and its card shows English headings ("Date of birth", "Added on"); the links the program draws itself are `manual_link`, `same_name` and `same_street`; collections, sources, saved views, the API and the files it writes (dictionary CSV, import template, default names) are English too. The interface shows all of it in its language: Italian is now one of the translations, and English is the language the page falls back to.
+- **Changed:** The input still reads Italian. The import recognises the Italian columns and values as before (`cognome`, `nascita`, `collegamento`, `colore`, "Cocaina"), a field of an investigative type accepts its option written in any interface language ("Kokain", "cocaina" -> "Cocaine"), and the AI extraction maps an answer with the Italian keys of 1.x onto the English ones. The AI is now asked for English keys, options and link labels; names, addresses and notes stay as the text writes them.
+- **Changed:** Cases carry a schema version. A case written by 1.x is listed as "(1.x, rebuild)" and is not opened nor merged: rebuild it by importing its source files again (see the [FAQ](faq.md#can-20-open-the-cases-of-1x)).
+- **Changed:** Error messages of the server and the log are English; the interface translates the messages into its language.
+- **Changed:** The Follow the Money types use the English labels of FtM, with Italian among the translations; `make_ftm_types.py` runs on the unpacked wheel of `followthemoney` (4.11.0 gives the files of this release) without installing it.
+- **Changed:** Labels of investigative nodes write numbers the English way ("15,000.5 EUR").
+
+---
+
 ## 1.10.0 — 2026
 
 - **New:** Sex of the persons: male, female or not known, from the new node dialog, Edit values and the import (`sex1`/`sex2`, also `sesso`, `gender`, `genere`), exported and imported as the `gender` of Follow the Money Person. A person of known sex shows the man or the woman of the colour icons; not known keeps the generic person, and a target keeps the target icon.

@@ -43,12 +43,12 @@ EP_KEYS = ("enabled", "endpoint", "api_key", "pack", "timeout")
 # turned into nodes by the epieos.py adapter.
 EP_STATE = {"credits": None, "credits_at": "", "ratelimit": {}}
 EP_EXPLAIN = {
-    400: "richiesta non valida",
-    401: "chiave API mancante o non valida",
-    402: "crediti esauriti",
-    403: "pack non disponibile per questa chiave",
-    429: "limite di richieste raggiunto: attendere e riprovare",
-    500: "errore del servizio Epieos",
+    400: "invalid request",
+    401: "API key missing or invalid",
+    402: "credits exhausted",
+    403: "pack not available for this key",
+    429: "rate limit reached: wait and try again",
+    500: "Epieos service error",
 }
 EP_QUERY_MAX = 200
 
@@ -91,9 +91,9 @@ def _ep_note_headers(hdrs):
 
 def _ep_call(path, payload=None):
     if not SERVICES["epieos_enabled"]:
-        return None, "Epieos disattivato (pannello Epieos)", 0
+        return None, "Epieos switched off (Epieos panel)", 0
     if not SERVICES.get("epieos_api_key"):
-        return None, "chiave API Epieos mancante (Configura)", 0
+        return None, "Epieos API key missing (Configure)", 0
     url = SERVICES["epieos_endpoint"] + path
     headers = {"api-key": SERVICES["epieos_api_key"]}
     data, err, hdrs, code = _http_json_full(url, payload, headers, SERVICES["epieos_timeout"], EP_EXPLAIN)
@@ -185,22 +185,22 @@ def api_ep_config():
         if k == "api_key" and not v and not data.get("clear_key"):
             continue
         if k == "endpoint" and v and not re.match(r"^https?://[^\s]+$", v, re.I):
-            return jsonify({"error": "endpoint non valido (serve http:// o https://)"}), 400
+            return jsonify({"error": "invalid endpoint (http:// or https:// needed)"}), 400
         if k == "timeout":
             try:
                 v = str(max(10, min(300, int(float(v)))))
             except ValueError:
-                return jsonify({"error": "timeout non valido"}), 400
+                return jsonify({"error": "invalid timeout"}), 400
         if k == "pack":
             v = re.sub(r"[^a-z0-9_\-]", "", v.lower()) or "osinter"
         up["epieos_" + k] = v
     try:
-        _save_kv_conf(SERVICES_CONF, up, "# services.conf - servizi online facoltativi (OpenSanctions, Epieos). Non pubblicare: contiene le chiavi API.")
+        _save_kv_conf(SERVICES_CONF, up, "# services.conf - optional online services (OpenSanctions, Epieos). Do not publish: it holds the API keys.")
     except OSError as e:
-        return jsonify({"error": f"impossibile scrivere services.conf: {e}"}), 500
+        return jsonify({"error": f"cannot write services.conf: {e}"}), 500
     SERVICES.clear()
     SERVICES.update(_load_services_conf())
-    logging.info(f"Configurazione Epieos aggiornata: {sorted(up)}")
+    logging.info(f"Epieos configuration updated: {sorted(up)}")
     return jsonify(_ep_public())
 
 
@@ -213,7 +213,7 @@ def api_ep_schema():
         return jsonify({"ok": False, "error": err}), 502
     packs = _ep_packs_from_schema(spec)
     store.set_gmeta("epieos_packs", json.dumps(packs))
-    logging.info(f"Epieos: schema letto, pack disponibili: {[p['pack'] for p in packs]}")
+    logging.info(f"Epieos: schema read, packs available: {[p['pack'] for p in packs]}")
     return jsonify({"ok": True, "packs": packs, "credits": EP_STATE["credits"], "ratelimit": EP_STATE["ratelimit"]})
 
 
@@ -226,14 +226,14 @@ def api_ep_search():
     interface creates it before asking for confirmation)."""
     data = request.get_json(silent=True) or {}
     if not store.current_case():
-        return jsonify({"error": "nessun caso aperto"}), 400
+        return jsonify({"error": "no case open"}), 400
     query, kind = _ep_kind(data.get("query"), data.get("kind"))
     if kind not in ("email", "phone") or not query:
-        return jsonify({"error": "indica una email o un numero di telefono"}), 400
+        return jsonify({"error": "enter an email or a phone number"}), 400
     pack = re.sub(r"[^a-z0-9_\-]", "", str(data.get("pack") or SERVICES["epieos_pack"]).lower()) or "osinter"
     node = _ep_anchor_node(str(data.get("anchor") or "").strip(), query, kind)
     if node is None:
-        return jsonify({"error": "nodo non trovato: crea prima il nodo dell'identificativo"}), 404
+        return jsonify({"error": "node not found: create the node of the identifier first"}), 404
     body = {"query": query}
     for key in ("modules", "excluded_modules"):
         mods = [re.sub(r"[^a-z0-9_]", "", str(m).lower()) for m in (data.get(key) or [])]
@@ -245,13 +245,13 @@ def api_ep_search():
         return jsonify({"error": err, "code": code, "credits": EP_STATE["credits"]}), 502
     result = res.get("result") if isinstance(res, dict) else None
     if not isinstance(result, dict):
-        return jsonify({"error": "risposta Epieos non riconosciuta"}), 502
+        return jsonify({"error": "Epieos response not recognised"}), 502
     wrapper = epieos.wrap(result, kind, query, pack, datetime.now().strftime("%Y-%m-%d %H:%M:%S"), EP_STATE["credits"])
     content = json.dumps(wrapper, ensure_ascii=False)
     iid, filename = _ep_store(node, kind, query, content)
     summ = epieos.summary(wrapper)
-    logging.info(f"Epieos: {kind} {query} ({pack}) -> {len(summ['modules'])} moduli, {summ['records']} record, "
-                 f"crediti residui {EP_STATE['credits']}")
+    logging.info(f"Epieos: {kind} {query} ({pack}) -> {len(summ['modules'])} modules, {summ['records']} records, "
+                 f"credits left {EP_STATE['credits']}")
     return jsonify({"ok": True, "id": iid, "filename": filename, "anchor": node["id"], "kind": kind, "query": query,
                     "modules": summ["modules"], "records": summ["records"], "credits": EP_STATE["credits"]})
 
@@ -263,29 +263,29 @@ def api_ep_import():
     Does not call the service and consumes no credits."""
     data = request.get_json(silent=True) or {}
     if not store.current_case():
-        return jsonify({"error": "nessun caso aperto"}), 400
+        return jsonify({"error": "no case open"}), 400
     content = str(data.get("content") or "")
     if len(content.encode("utf-8")) > IMPORT_MAX_MB * 1024 * 1024:
-        return jsonify({"error": f"file troppo grande (max {IMPORT_MAX_MB} MB)"}), 400
+        return jsonify({"error": f"file too large: max {IMPORT_MAX_MB} MB"}), 400
     obj = epieos.loads(content)
     if not epieos.is_epieos(obj):
-        return jsonify({"error": "il file non e' una risposta Epieos"}), 400
+        return jsonify({"error": "the file is not an Epieos response"}), 400
     meta, result = epieos.unwrap(obj)
     query, kind = _ep_kind(data.get("query") or meta.get("query"), data.get("kind") or meta.get("kind"))
     if not query or kind not in ("email", "phone"):
         # response without 'query' in the modules: taken from the file name
         query, kind = _ep_kind(export_query(str(data.get("filename") or "")))
     if not query or kind not in ("email", "phone"):
-        return jsonify({"error": "identificativo cercato non riconoscibile: indicalo (query)"}), 400
+        return jsonify({"error": "searched identifier not recognisable: give it (query)"}), 400
     node = _ep_anchor_node(str(data.get("anchor") or "").strip(), query, kind)
     if node is None:
-        return jsonify({"error": "nodo non trovato: crea prima il nodo dell'identificativo", "query": query,
+        return jsonify({"error": "node not found: create the node of the identifier first", "query": query,
                         "kind": kind}), 404
     wrapper = epieos.wrap(result, kind, query, meta.get("pack") or SERVICES["epieos_pack"],
                           meta.get("fetched_at") or "", meta.get("credits_left"))
     iid, filename = _ep_store(node, kind, query, json.dumps(wrapper, ensure_ascii=False))
     summ = epieos.summary(wrapper)
-    logging.info(f"Epieos: importato da file {kind} {query} -> {len(summ['modules'])} moduli, {summ['records']} record")
+    logging.info(f"Epieos: imported from file {kind} {query} -> {len(summ['modules'])} modules, {summ['records']} records")
     return jsonify({"ok": True, "id": iid, "filename": filename, "anchor": node["id"], "kind": kind, "query": query,
                     "modules": summ["modules"], "records": summ["records"]})
 

@@ -70,7 +70,7 @@ def fa_icons():
                         svg = re.sub(r"<!--.*?-->", "", f.read(), flags=re.S).strip()
                     _fa_cache[fn[:-4]] = svg
         except OSError as e:
-            logging.warning(f"Icone non trovate in {_FA_DIR}: {e}")
+            logging.warning(f"Icons not found in {_FA_DIR}: {e}")
     return _fa_cache
 
 

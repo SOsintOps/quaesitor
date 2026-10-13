@@ -22,7 +22,8 @@
                               links, notes, labels, edited values,
                               styles, hidden nodes
         views                 saved graph views
-        meta                  data version (invalidates the graph cache)
+        meta                  data version (invalidates the graph cache) and
+                              schema version (SCHEMA_VERSION)
 
 Annotations are read as a single dictionary (load_annotations) and saved
 as a DIFF against what was read (save_annotations): only the changed rows
@@ -43,6 +44,10 @@ import uuid
 
 DB_NAME = "osintgraph.db"
 CASES_DIR = "cases"
+# 2 = saved keys and values in English (2.0.0). A case written by 1.x has Italian
+# keys: it is not converted, it is refused (old_case), and it is rebuilt from
+# its source files, whose Italian columns the import still reads.
+SCHEMA_VERSION = 2
 _data_dir = None
 _g_path = None                  # global store
 _db_path = None                 # database of the current case
@@ -138,6 +143,10 @@ class NoCaseError(RuntimeError):
     links, notes, views, imported JSON) is unavailable."""
 
 
+class OldCaseError(RuntimeError):
+    """A case written by Quaesitor 1.x (Italian keys): it is not opened."""
+
+
 def init(data_dir):
     """Open the global store and the current case. If no case exists, one is
     NOT created: the user must create one from the interface (on first
@@ -154,7 +163,11 @@ def init(data_dir):
         rows = list_cases()
         cid = rows[0]["id"] if rows else None
     if cid:
-        open_case(cid)
+        try:
+            open_case(cid)
+        except OldCaseError:
+            logging.warning(f"Case {cid} was written by Quaesitor 1.x: not opened")
+            _close_case()
     else:
         _close_case()
     return _g_path
@@ -204,7 +217,7 @@ def _migrate_single_db():
     try:
         g.executescript(SCHEMA_GLOBAL)
         g.execute("INSERT INTO cases(id, name, description, created_at, updated_at) "
-                  "VALUES(?, 'Caso 1', '', ?, ?)", (cid, _now(), _now()))
+                  "VALUES(?, 'Case 1', '', ?, ?)", (cid, _now(), _now()))
         g.execute("INSERT OR REPLACE INTO meta(key, value) VALUES('current_case', ?)", (cid,))
         g.execute("DELETE FROM meta WHERE key = 'data_version'")
         for t in _CASE_TABLES:
@@ -213,7 +226,7 @@ def _migrate_single_db():
         g.commit()
     finally:
         g.close()
-    logging.info(f"Archivio convertito: i dati esistenti sono ora il caso {cid}")
+    logging.info(f"Archive converted: the existing data are now case {cid}")
 
 
 # tables that belong to a case (the old single database had all of them)
@@ -227,8 +240,33 @@ def _new_case_id():
 
 def _case_file(cid):
     if not re.fullmatch(r"[A-Za-z0-9_-]{1,64}", str(cid or "")):
-        raise ValueError("id del caso non valido")
+        raise ValueError("invalid case id")
     return os.path.join(_data_dir, CASES_DIR, f"{cid}.db")
+
+
+def _schema_of(c):
+    """Schema version of an open case database. A case with no version and no
+    data is empty: it gets the current version. With data it is a 1.x case."""
+    r = c.execute("SELECT value FROM meta WHERE key = 'schema_version'").fetchone()
+    if r:
+        return int(r["value"])
+    for t in _CASE_TABLES:
+        if t != "meta" and c.execute(f"SELECT 1 FROM {t} LIMIT 1").fetchone():
+            return 1
+    c.execute("INSERT OR REPLACE INTO meta(key, value) VALUES('schema_version', ?)", (str(SCHEMA_VERSION),))
+    return SCHEMA_VERSION
+
+
+def is_old_case(cid):
+    try:
+        c = _connect(_case_file(cid))
+    except (sqlite3.Error, ValueError):
+        return False
+    try:
+        c.executescript(SCHEMA)
+        return _schema_of(c) < SCHEMA_VERSION
+    finally:
+        c.close()
 
 
 def path():
@@ -252,7 +290,7 @@ def conn():
     """Connection to the current CASE database, one per thread (Flask serves
     requests on several threads). It reopens by itself when the case changes."""
     if _db_path is None:
-        raise NoCaseError("nessun caso aperto: crea un caso o scegline uno esistente")
+        raise NoCaseError("no case open: create a case or choose an existing one")
     c = getattr(_local, "conn", None)
     if c is None or getattr(_local, "path", None) != _db_path:
         if c is not None:
@@ -312,6 +350,7 @@ def list_cases():
             d["size"] = os.path.getsize(_case_file(d["id"]))
         except OSError:
             d["size"] = 0
+        d["old"] = is_old_case(d["id"])
         out.append(d)
     return out
 
@@ -331,6 +370,7 @@ def create_case(name, description=""):
     c = _connect(_case_file(cid))
     try:
         c.executescript(SCHEMA)
+        _schema_of(c)                    # empty: stamped with the current version
     finally:
         c.close()
     with tx(True) as g:
@@ -357,6 +397,8 @@ def open_case(cid):
     c = _connect(p)
     try:
         c.executescript(SCHEMA)          # create or update the case tables
+        if _schema_of(c) < SCHEMA_VERSION:
+            raise OldCaseError(cid)
     finally:
         c.close()
     with _write_lock:
@@ -386,6 +428,9 @@ def merge_cases(ids, name, description=""):
     """New case with the content of all the given cases. Items with the same
     id (same person, same phone...) become ONE node: if the data differ, the
     entry from the second case becomes an extra card."""
+    old = [cid for cid in ids if is_old_case(cid)]
+    if old:
+        raise OldCaseError(old[0])
     new = create_case(name, description)
     dest = _connect(_case_file(new["id"]))
     try:

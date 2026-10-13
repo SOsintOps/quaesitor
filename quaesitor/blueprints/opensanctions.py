@@ -51,7 +51,7 @@ def _http_json(url, payload=None, headers=None, timeout=20):
 
 def _osa_call(path, payload=None, query=None):
     if not osa_ready():
-        return None, "OpenSanctions disattivato (pannello OpenSanctions)"
+        return None, "OpenSanctions switched off (OpenSanctions panel)"
     url = SERVICES["opensanctions_endpoint"] + path
     if query:
         url += "?" + "&".join(f"{k}={quote(str(v))}" for k, v in query.items() if v not in (None, ""))
@@ -110,20 +110,20 @@ def api_osa_config():
         if k == "api_key" and not v and not data.get("clear_key"):
             continue
         if k == "endpoint" and v and not re.match(r"^https?://[^\s]+$", v, re.I):
-            return jsonify({"error": "endpoint non valido (serve http:// o https://)"}), 400
+            return jsonify({"error": "invalid endpoint (http:// or https:// needed)"}), 400
         if k == "timeout":
             try:
                 v = str(max(3, min(120, int(float(v)))))
             except ValueError:
-                return jsonify({"error": "timeout non valido"}), 400
+                return jsonify({"error": "invalid timeout"}), 400
         up["opensanctions_" + k] = v
     try:
-        _save_kv_conf(SERVICES_CONF, up, "# services.conf - servizi online facoltativi (OpenSanctions). Non pubblicare: contiene la chiave API.")
+        _save_kv_conf(SERVICES_CONF, up, "# services.conf - optional online services (OpenSanctions). Do not publish: it holds the API key.")
     except OSError as e:
-        return jsonify({"error": f"impossibile scrivere services.conf: {e}"}), 500
+        return jsonify({"error": f"cannot write services.conf: {e}"}), 500
     SERVICES.clear()
     SERVICES.update(_load_services_conf())
-    logging.info(f"Configurazione OpenSanctions aggiornata: {sorted(up)}")
+    logging.info(f"OpenSanctions configuration updated: {sorted(up)}")
     return jsonify(_osa_public())
 
 
@@ -144,7 +144,7 @@ def api_osa_search():
     """Text search: ?q=&schema=&limit= -> reduced list."""
     q = str(request.args.get("q") or "").strip()[:200]
     if len(q) < 2:
-        return jsonify({"error": "termine troppo corto"}), 400
+        return jsonify({"error": "search term too short"}), 400
     schema = str(request.args.get("schema") or "").strip()
     try:
         limit = max(1, min(50, int(request.args.get("limit", 20))))
@@ -167,7 +167,7 @@ def api_osa_match():
     schema = str(data.get("schema") or "Person").strip()
     props = {k: ([v] if not isinstance(v, list) else v) for k, v in (data.get("properties") or {}).items() if v}
     if not props.get("name"):
-        return jsonify({"error": "serve almeno il nome"}), 400
+        return jsonify({"error": "at least the name is needed"}), 400
     body = {"queries": {"q1": {"schema": schema, "properties": props}}}
     out, err = _osa_call(f"/match/{SERVICES['opensanctions_dataset']}", payload=body, query={"limit": 10})
     if err:
@@ -183,9 +183,9 @@ def api_osa_import():
     data = request.get_json(silent=True) or {}
     ids = [str(x) for x in (data.get("ids") or []) if str(x).strip()][:50]
     if not ids:
-        return jsonify({"error": "nessuna entita' indicata"}), 400
+        return jsonify({"error": "no entity given"}), 400
     if not store.current_case():
-        return jsonify({"error": "nessun caso aperto"}), 400
+        return jsonify({"error": "no case open"}), 400
     ents, errors, datasets = {}, [], set()
     for eid in ids:
         e, err = _osa_call(f"/entities/{quote(eid)}", query={"nested": "true"})
@@ -196,7 +196,7 @@ def api_osa_import():
         datasets.update(e.get("datasets") or [])
     ents = {i: e for i, e in ents.items() if e["schema"] in ftm.schema()}
     if not ents:
-        return jsonify({"error": "; ".join(errors) or "nessuna entita' ricevuta"}), 502
+        return jsonify({"error": "; ".join(errors) or "no entity received"}), 502
     table = ftm.rows_from_entities(ents, native_types=onto.TYPES, reserved=ftm_reserved)
     header, body = table[0], table[1:]
     totals = {"nodes": 0, "links": 0, "updated": 0, "same_links": 0}
@@ -206,5 +206,5 @@ def api_osa_import():
         for k in totals:
             totals[k] += res.get(k, 0)
     _cache["key"] = None
-    logging.info(f"OpenSanctions: importate {len(ents)} entita' -> {totals['nodes']} nodi, {totals['links']} collegamenti")
+    logging.info(f"OpenSanctions: {len(ents)} entities imported -> {totals['nodes']} nodes, {totals['links']} links")
     return jsonify(dict(totals, ok=True, entities=len(ents), errors=errors))

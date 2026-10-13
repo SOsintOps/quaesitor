@@ -62,32 +62,33 @@ Rules:
   never put the city in address.
   NEVER create a separate node for the city and another for the street of the same location.
   If only a city is mentioned, address = "". "address" is used only for place nodes.
-  Link the person/organization to the place (label e.g. "residenza", "sede", "domicilio").
+  Link the person/organization to the place (label e.g. "residence", "registered office",
+  "domicile").
 - Place of birth ("nato a", "nata a", "born in"): ALWAYS a SEPARATE place node with the
   birth city only (address = ""), even when it is the same city as the residence, linked
-  from the person with label exactly "città di nascita". Never put it only in a note.
+  from the person with label exactly "place of birth". Never put it only in a note.
   Example: "Mario Rossi che abita a Brescia in via papa leone nr. 13" ->
   nodes: {{"key":"n1","type":"person","value":"Mario Rossi"}},
          {{"key":"n2","type":"place","value":"Brescia","address":"Via Papa Leone 13"}};
-  links: {{"from":"n1","to":"n2","label":"residenza","direction":"forward"}}.
+  links: {{"from":"n1","to":"n2","label":"residence","direction":"forward"}}.
   Example: "Giulia Verdi, nata a Roma, vive a Milano in corso Buenos Aires 45" ->
   nodes: {{"key":"n1","type":"person","value":"Giulia Verdi"}},
          {{"key":"n2","type":"place","value":"Roma","address":""}},
          {{"key":"n3","type":"place","value":"Milano","address":"Corso Buenos Aires 45"}};
-  links: {{"from":"n1","to":"n2","label":"città di nascita","direction":"forward"}},
-         {{"from":"n1","to":"n3","label":"residenza","direction":"forward"}}.
+  links: {{"from":"n1","to":"n2","label":"place of birth","direction":"forward"}},
+         {{"from":"n1","to":"n3","label":"residence","direction":"forward"}}.
 - vehicle: value = the licence plate ONLY (e.g. "AB123CD"), never the make or model;
   brand = the make (e.g. "Fiat"), model = the model (e.g. "Panda"), color = the colour
-  (e.g. "Bianco"), each "" if not stated. "brand", "model", "color" are used only for vehicles.
+  (e.g. "White", in English), each "" if not stated. "brand", "model", "color" are used only for vehicles.
   The TEXT may be a table (CSV, ";" or tab separated, with a header row such as
   marca;modello;targa;colore): then EVERY data row is one vehicle, read each value from
   its column, and do not create nodes for the header. A vehicle linked to nobody gets no link.
   Example: "marca;modello;targa;colore\nFiat;Panda;AB123CD;Bianco" ->
-  nodes: {{"key":"n1","type":"vehicle","value":"AB123CD","brand":"Fiat","model":"Panda","color":"Bianco"}}.
+  nodes: {{"key":"n1","type":"vehicle","value":"AB123CD","brand":"Fiat","model":"Panda","color":"White"}}.
 - Investigative items (weapons, drugs, money, documents, devices, organizations, events,
   real estate): put the details in "fields" (an object with the keys listed below; only
-  keys that the TEXT states, use the exact option text when one fits) and set value to the
-  main detail. One node per distinct item (e.g. each seized drug with its own quantity).
+  keys that the TEXT states; for a field with options write the English option that fits,
+  whatever the language of the TEXT) and set value to the main detail. One node per distinct item (e.g. each seized drug with its own quantity).
 {onto_rules}
 - social: value = the profile URL if present, otherwise the username; always set platform
   (instagram, facebook, tiktok, x, telegram, whatsapp, linkedin, youtube, vk, snapchat, github...).
@@ -95,7 +96,10 @@ Rules:
 - note: optional short context taken from the text (max 200 characters), otherwise "".
 - text: only for a relevant free-text fact; value = short title, note = the content.
 - links: relationships stated or clearly implied by the text. label = a short relationship
-  written in the language of the TEXT (e.g. "fratello", "socio", "utenza", "profilo", "residenza").
+  in English, whatever the language of the TEXT (e.g. "brother", "business partner",
+  "phone in use", "profile", "residence").
+- Names, addresses, titles and notes stay as they are written in the TEXT: only the field
+  keys, the options and the link labels are English.
   direction: "forward" (from -> to), "backward", "both" or "none".
 {root}- Never invent data that is not in the TEXT. One node per distinct identifier. Max {max_nodes} nodes.
 TEXT:
@@ -130,7 +134,7 @@ def _is_street(v):
     return bool(_STREET_RE.search(str(v or "").strip()))
 
 
-BIRTH_LABEL = "città di nascita"
+BIRTH_LABEL = "place of birth"
 _BIRTH_RE = re.compile(r"nascit|nato|nata\b|natal|birth|born", re.I)
 
 
@@ -146,7 +150,7 @@ def _ai_merge_places(nodes, links):
     If the model split them (a place 'Brescia' and a place 'Via Papa Leone 13'),
     the street is merged into the linked city: linked to it directly, or to the
     same node (e.g. the person who lives there). Returns the updated links."""
-    luoghi = [k for k, n in nodes.items() if n["type"] == "luogo"]
+    luoghi = [k for k, n in nodes.items() if n["type"] == "place"]
     nascita = set()                        # city of birth: always a node of its own
     for l in links:
         if _BIRTH_RE.search(_ai_str(l.get("label"), 120)):
@@ -210,15 +214,15 @@ def _ai_merge_places(nodes, links):
 def _ai_vehicle(node, raw):
     """Vehicle proposed by the model: the identifier is the LICENCE PLATE; make and
     model (if any) go in the label, the colour in the note.
-    'AB 123 CD' + white Fiat Panda -> 'AB123CD Fiat Panda', colour 'Bianco' (it goes
+    'AB 123 CD' + white Fiat Panda -> 'AB123CD Fiat Panda', colour 'White' (it goes
     only in the card, not in the notes)."""
     targa = re.sub(r"[\s.-]+", "", node["value"]).upper()
     marca = _ai_str(raw.get("brand"), 60)
     modello = _ai_str(raw.get("model"), 60)
-    colore = _ai_str(raw.get("color"), 40)
+    color = _ai_str(raw.get("color"), 40)
     node["value"] = targa
     node["label"] = " ".join(p for p in (targa, marca, modello) if p)
-    node["colore"] = colore[:1].upper() + colore[1:] if colore else ""
+    node["color"] = color[:1].upper() + color[1:] if color else ""
 
 
 def _safe_birth(v):
@@ -244,7 +248,7 @@ def ai_rows_from_json(d, parent=None):
         raw_f = dict(n.get("fields") or {}) if isinstance(n.get("fields"), dict) else {}
         if typ in onto.TYPES:
             # the model sometimes puts make/model in the vehicle fields
-            for k_ai, k_f in (("brand", "marca"), ("model", "modello")):
+            for k_ai, k_f in (("brand", "make"), ("model", "model")):
                 if n.get(k_ai) and not raw_f.get(k_f):
                     raw_f[k_f] = n.get(k_ai)
         fields = onto.clean_fields(typ, raw_f) if typ in onto.TYPES else {}
@@ -261,9 +265,9 @@ def ai_rows_from_json(d, parent=None):
         nodes[key] = {"type": typ, "value": value, "label": _ai_str(n.get("label"), 200),
                       "url": url, "platform": plat if plat in SOCIAL_PLATFORMS else "",
                       "note": _ai_str(n.get("note"), 400),
-                      "address": _ai_str(n.get("address"), 300) if typ == "luogo" else "",
-                      "birth": _safe_birth(n.get("birth")) if typ == "persona" else ""}
-        if typ == "veicolo":
+                      "address": _ai_str(n.get("address"), 300) if typ == "place" else "",
+                      "birth": _safe_birth(n.get("birth")) if typ == "person" else ""}
+        if typ == "vehicle":
             _ai_vehicle(nodes[key], n)
         nodes[key]["fields"] = fields
     raw_links = _ai_merge_places(nodes, [l for l in raw_links[:AI_MAX_LINKS]
@@ -279,9 +283,9 @@ def ai_rows_from_json(d, parent=None):
         row.update({f"name{s}": n["value"], f"type{s}": n["type"], f"url{s}": n["url"],
                     f"label{s}": n["label"], f"platform{s}": n["platform"],
                     f"note{s}": n["note"], f"address{s}": n["address"],
-                    f"nascita{s}": n["birth"], f"colore{s}": n.get("colore", ""),
+                    f"birth{s}": n["birth"], f"color{s}": n.get("color", ""),
                     f"fields{s}": json.dumps(n.get("fields") or {}, ensure_ascii=False)})
-        if n["type"] == "testo":
+        if n["type"] == "text":
             row[f"text{s}"] = n["note"]
         return True
 
@@ -335,20 +339,20 @@ def api_ai_nodes():
     text = str(data.get("text") or "").strip()
     parent = str(data.get("parent") or "").strip()
     if not ai_ready():
-        return jsonify({"error": "AI disattivata o non configurata", "config": True}), 400
+        return jsonify({"error": "AI switched off or not configured", "config": True}), 400
     if len(text) < 3:
-        return jsonify({"error": "testo mancante"}), 400
+        return jsonify({"error": "text missing"}), 400
     text = text[:AI_MAX_TEXT]
     root = ""
     if parent:
         p = next((n for n in current_graph()["nodes"] if n["id"] == parent), None)
         if p is None:
-            return jsonify({"error": "nodo di partenza non trovato"}), 404
+            return jsonify({"error": "starting node not found"}), 404
         root = AI_ROOT_RULE.format(label=_ai_str(p.get("label"), 120).replace('"', "'"),
                                    ntype=p.get("ntype") or "")
     ok, why = chatbot_probe()                  # quick probe: no pointless waiting
     if not ok:
-        return jsonify({"error": f"il chatbot non risponde ({CHATBOT['endpoint']}): {why}"}), 502
+        return jsonify({"error": f"the chatbot does not answer: {why} ({CHATBOT['endpoint']})"}), 502
     prompt = AI_NODES_PROMPT.format(root=root, text=text, max_nodes=AI_MAX_NODES,
                                     onto_types=", ".join(onto.TYPES), onto_rules=onto.ai_rules())
     old = CHATBOT["timeout"]
@@ -358,12 +362,12 @@ def api_ai_nodes():
     finally:
         CHATBOT["timeout"] = old
     if answer is None:
-        return jsonify({"error": "il chatbot non risponde: " + (_bot["reason"] or "nessuna risposta")}), 502
+        return jsonify({"error": "the chatbot does not answer: " + (_bot["reason"] or "no answer")}), 502
     rows = ai_rows_from_json(_estrai_json(answer), parent or None)
     if not rows:
-        return jsonify({"error": "l'AI non ha trovato entita' nel testo"}), 422
+        return jsonify({"error": "the AI found no entity in the text"}), 422
     plan = plan_rows(rows)
-    logging.info(f"AI: proposti {len(rows)} elementi dal testo ({len(text)} caratteri)")
+    logging.info(f"AI: {len(rows)} items proposed from the text ({len(text)} characters)")
     return jsonify({"ok": True, "rows": _plan_json(plan), "items": rows,
                     "model": CHATBOT["model"]})
 
@@ -380,7 +384,7 @@ def api_ai_commit():
         res = commit_plan(plan_rows(rows), skip)
     except NodeError as e:
         return jsonify({"error": str(e)}), 400
-    logging.info(f"AI: creati {res['nodes']} nodi e {res['links']} collegamenti")
+    logging.info(f"AI: {res['nodes']} nodes and {res['links']} links created")
     return jsonify(res)
 
 
@@ -412,7 +416,7 @@ def save_chatbot_conf(updates):
             eol = "\r\n"
         lines = testo.splitlines()
     except FileNotFoundError:
-        lines = ["# chatbot.conf - configurazione del chatbot (AI)."]
+        lines = ["# chatbot.conf - configuration of the chatbot (AI)."]
     todo = dict(updates)
     for i, riga in enumerate(lines):
         s = riga.strip()
@@ -452,21 +456,21 @@ def api_ai_config():
         if k == "api_key" and not v and not data.get("clear_key"):
             continue                              # empty = keep the current one
         if k == "endpoint" and v and not re.match(r"^https?://[^\s]+$", v, re.I):
-            return jsonify({"error": "endpoint non valido (serve http:// o https://)"}), 400
+            return jsonify({"error": "invalid endpoint (http:// or https:// needed)"}), 400
         if k == "api" and v not in ("auto", "ollama", "openai"):
-            return jsonify({"error": "formato API non valido"}), 400
+            return jsonify({"error": "invalid API format"}), 400
         if k == "timeout":
             try:
                 v = str(max(1, min(600, int(float(v)))))
             except ValueError:
-                return jsonify({"error": "timeout non valido"}), 400
+                return jsonify({"error": "invalid timeout"}), 400
         up[k] = v
     try:
         save_chatbot_conf(up)
     except OSError as e:
-        return jsonify({"error": f"impossibile scrivere chatbot.conf: {e}"}), 500
+        return jsonify({"error": f"cannot write chatbot.conf: {e}"}), 500
     reload_chatbot_conf()
-    logging.info(f"Configurazione AI aggiornata: {sorted(up)}")
+    logging.info(f"AI configuration updated: {sorted(up)}")
     return jsonify(_conf_public())
 
 
@@ -474,15 +478,15 @@ def api_ai_config():
 def api_ai_test():
     """Connection test: a trivial question to the configured model."""
     if not CHATBOT["endpoint"]:
-        return jsonify({"ok": False, "error": "endpoint non impostato"})
+        return jsonify({"ok": False, "error": "endpoint not set"})
     t0 = time.time()
     ok, why = chatbot_probe()
     if not ok:
-        return jsonify({"ok": False, "error": f"server irraggiungibile: {why}",
+        return jsonify({"ok": False, "error": f"server unreachable: {why}",
                         "ms": int((time.time() - t0) * 1000)})
     answer = chatbot_ask('Reply with the single word: OK', force=True, ignore_switch=True)
     ms = int((time.time() - t0) * 1000)
     if answer is None:
-        return jsonify({"ok": False, "error": _bot["reason"] or "nessuna risposta", "ms": ms})
+        return jsonify({"ok": False, "error": _bot["reason"] or "no answer", "ms": ms})
     return jsonify({"ok": True, "answer": _ai_str(answer, 80), "ms": ms,
                     "api": _bot["api"], "model": CHATBOT["model"]})

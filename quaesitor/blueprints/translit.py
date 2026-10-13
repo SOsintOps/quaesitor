@@ -54,10 +54,10 @@ def api_translit_mode():
         data = request.get_json(silent=True) or {}
         mode = str(data.get("mode") or "").strip()
         if mode not in TRANSLIT_MODES:
-            return jsonify({"error": "modalita' non valida"}), 400
+            return jsonify({"error": "invalid mode"}), 400
         store.set_gmeta("translit_mode", mode)
         _cache["key"] = None                   # the graph must be rebuilt
-        logging.info(f"Traslitterazione: modalita' {mode}")
+        logging.info(f"Transliteration: mode {mode}")
     return jsonify({"ok": True, "mode": translit_mode()})
 
 
@@ -66,20 +66,21 @@ def api_translit_ai():
     """Has the chatbot transliterate all the words still uncovered.
     If the chatbot does not respond it says so and changes nothing."""
     if not chatbot_ready():
-        return jsonify({"error": "AI disattivata o endpoint non impostato "
-                                 "(pannello Intelligenza artificiale)"}), 400
+        return jsonify({"error": "AI switched off or endpoint not set "
+                                 "(Artificial intelligence panel)"}), 400
     wdict = load_word_dict()
     todo = parole_da_traslitterare(current_graph(), wdict)
     if not todo:
-        return jsonify({"ok": True, "tradotte": 0, "restano": 0, "errore": ""})
+        return jsonify({"ok": True, "translated": 0, "remaining": 0, "error": ""})
     stat = ai_fill_translit(todo, force=True,
                             budget=max(CHATBOT["budget"], 120),
                             max_words=max(CHATBOT["max_words"], len(todo)))
-    if not stat["tradotte"] and stat["errore"]:
-        return jsonify({"error": stat["errore"]}), 502
-    if stat["tradotte"]:
+    if not stat["translated"] and stat["error"]:
+        return jsonify({"error": stat["error"]}), 502
+    if stat["translated"]:
         _cache["key"] = None                  # the Latin labels must be redone
     stat["ok"] = True
+    stat.pop("error", None)
     return jsonify(stat)
 
 
@@ -121,13 +122,13 @@ def api_translit_set():
     word = re.sub(r"\s+", " ", str(data.get("word") or "")).strip()[:120]
     value = re.sub(r"\s+", " ", str(data.get("value") or "")).strip()[:120]
     if not word:
-        return jsonify({"error": "parola mancante"}), 400
+        return jsonify({"error": "word missing"}), 400
     if not script_of(word):
-        return jsonify({"error": "la parola e' gia' in caratteri latini"}), 400
+        return jsonify({"error": "the word is already in Latin characters"}), 400
     if value and script_of(value):
-        return jsonify({"error": "la traslitterazione deve essere in caratteri latini"}), 400
+        return jsonify({"error": "the transliteration must be in Latin characters"}), 400
     store.translit_set(word, value)
-    logging.info(f"Dizionario: {word!r} -> {value!r}" if value else f"Dizionario: {word!r} da tradurre")
+    logging.info(f"Dictionary: {word!r} -> {value!r}" if value else f"Dictionary: {word!r} to transliterate")
     return jsonify({"ok": True, "word": word, "value": value,
                     "source": "manual" if value else "pending"})
 
@@ -138,7 +139,7 @@ def api_translit_delete():
     data = request.get_json(silent=True) or {}
     word = str(data.get("word") or "").strip()
     if not word:
-        return jsonify({"error": "parola mancante"}), 400
+        return jsonify({"error": "word missing"}), 400
     n = store.translit_delete(word)
     return jsonify({"ok": True, "deleted": n})
 
@@ -173,10 +174,10 @@ def api_translit_import():
         try:
             text = _decode_upload(data).decode("utf-8-sig")
         except (NodeError, UnicodeDecodeError) as e:
-            return jsonify({"error": f"file illeggibile: {e}"}), 400
+            return jsonify({"error": f"unreadable file: {e}"}), 400
     text = text.lstrip("\ufeff")
     if not text.strip():
-        return jsonify({"error": "file vuoto"}), 400
+        return jsonify({"error": "empty file"}), 400
     sample = text[:3000]
     delim = max(";,\t|", key=sample.count) if any(d in sample for d in ";,\t|") else ";"
     done, skipped, errors = 0, 0, []
@@ -190,25 +191,26 @@ def api_translit_import():
         if not script_of(word) or (value and script_of(value)):
             skipped += 1
             if len(errors) < 10:
-                errors.append(f"riga {i}: {word} -> {value}")
+                errors.append(f"row {i}: {word} -> {value}")
             continue
         store.translit_set(word, value)
         done += 1
-    logging.info(f"Dizionario: importate {done} voci, {skipped} scartate")
+    logging.info(f"Dictionary: {done} entries imported, {skipped} discarded")
     return jsonify({"ok": True, "imported": done, "skipped": skipped, "errors": errors})
 
 
 @bp.route("/api/translit/export")
 def api_translit_export():
-    """Downloads the whole dictionary as CSV (word;transliteration;origin;script)."""
+    """Downloads the whole dictionary as CSV (word;transliteration;source;script;updated);
+    the import also reads the Italian header of the versions before 2.0."""
     import csv
     import io
     from flask import Response
     out = io.StringIO()
     w = csv.writer(out, delimiter=";", lineterminator="\n")
-    w.writerow(["parola", "traslitterazione", "origine", "scrittura", "aggiornata"])
+    w.writerow(["word", "transliteration", "source", "script", "updated"])
     for r in store.translit_rows(limit=200000):
         w.writerow([r["word"], r["value"], r["source"], r["script"], r["updated_at"]])
     data = "\ufeff" + out.getvalue()                  # BOM: Excel opens the UTF-8 correctly
     return Response(data, mimetype="text/csv; charset=utf-8",
-                    headers={"Content-Disposition": "attachment; filename=traslitterazioni.csv"})
+                    headers={"Content-Disposition": "attachment; filename=transliterations.csv"})

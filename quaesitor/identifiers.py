@@ -257,7 +257,7 @@ def build_graph():
     def node_vehicle(targa, label, record=None):
         vid = "vehicle:" + re.sub(r"\s+", "", str(targa)).upper()
         add_node(vid, label=label or str(targa), ntype="vehicle", platform="vehicle",
-                 sources=["veicolo"], record=record)
+                 sources=["vehicle"], record=record)
         map_ident(vid, targa)
         return vid
 
@@ -271,11 +271,11 @@ def build_graph():
         if not q:
             return None
         if "@" in q and "." in q.split("@")[-1]:
-            nid = node_email(q, source="ricerca")
+            nid = node_email(q, source="search")
         elif re.fullmatch(r"\+?[0-9][0-9\s().\-]{5,}", q):
-            nid = node_phone(q, source="ricerca")
+            nid = node_phone(q, source="search")
         else:
-            nid = node_username(q, source="ricerca")
+            nid = node_username(q, source="search")
         add_edge(tid, nid, "target")              # the identifier stays attached to the target
         return nid
 
@@ -417,7 +417,7 @@ def build_graph():
             bid = "breach:" + slug(name)
             add_node(bid, label=name, ntype="breach", platform="breach", sources=[coll],
                      record={"collection": coll, "images": [], "links": [],
-                             "raw": {"violazione": name, "fonte": coll}})
+                             "raw": {"Breach": name, "Source": coll}})
             extra_ids.append((bid, "breach"))
         qkey = slug(str(rec.get("query") or target))
         for site in (rec.get("websites") or []):
@@ -429,18 +429,18 @@ def build_graph():
             sid = f"acct:{svc_key}:{qkey}"
             add_node(sid, label=svc, ntype="account", platform=norm_platform(svc_key),
                      sources=[coll], record={"collection": coll, "images": [], "links": [],
-                                             "raw": {"sito": site, "registrato": str(rec.get("query") or "")}})
+                                             "raw": {"Site": site, "Registered with": str(rec.get("query") or "")}})
             extra_ids.append((sid, "registered"))
         for org in (rec.get("organizations") or []):
             if not isinstance(org, dict) or not str(org.get("name") or "").strip():
                 continue
-            fields = {"nome": str(org["name"]).strip()}
+            fields = {"name": str(org["name"]).strip()}
             oid = "organization:" + onto.ident_of("organization", fields)
-            add_node(oid, label=fields["nome"], ntype="organization", platform="organization",
+            add_node(oid, label=fields["name"], ntype="organization", platform="organization",
                      sources=[coll], record={"collection": coll, "images": [], "links": [],
-                                             "raw": {"Denominazione": fields["nome"],
-                                                     "Ruolo": org.get("role") or "", "Periodo": org.get("period") or ""}})
-            extra_ids.append((oid, org.get("role") or ("studente" if org.get("kind") == "school" else "organization")))
+                                             "raw": {"Name": fields["name"],
+                                                     "Role": org.get("role") or "", "Period": org.get("period") or ""}})
+            extra_ids.append((oid, org.get("role") or ("student" if org.get("kind") == "school" else "organization")))
 
         # --- links
         for p in primary:
@@ -479,7 +479,7 @@ def build_graph():
             if isinstance(veh, dict) and veh.get("targa"):
                 lab = f"{veh['targa']} {veh.get('marca','')} {veh.get('modello','')}".strip()
                 vid = node_vehicle(veh["targa"], lab,
-                                   {"collection": "veicolo", "images": [], "links": [], "raw": veh})
+                                   {"collection": "vehicle", "images": [], "links": [], "raw": veh})
                 add_edge(primary[0] if primary else anchor, vid, "vehicle")
 
     # ---------- investigative dossier (A22.json and similar) ----------
@@ -490,7 +490,7 @@ def build_graph():
                          "category": "dossier", "images": [], "links": [], "raw": rec})
 
         card = lambda voce: {"collection": coll, "images": [], "links": [],
-                             "raw": {"voce": voce, "fonte": fn}}
+                             "raw": {"Entry": voce, "Source": fn}}
 
         utenze = [u for u in (rec.get("utenze") or rec.get("phones") or []) if u]
         phone_ids = [node_phone(u, card(u), coll) for u in utenze]
@@ -558,7 +558,7 @@ def build_graph():
             else:
                 handle_record(rec, tid, fn, tid, on_target=dossier)
         _seed[0] = False
-    logging.info(f"JSON importati: {n_files} file")
+    logging.info(f"Imported JSON: {n_files} files")
 
     # ---- MERGE by identifier + ROMANISATION ----
     return add_translit(merge_nodes(nodes, edges, ident_map))
@@ -645,5 +645,5 @@ def merge_nodes(nodes, edges, ident_map):
             new_edges[key] = {"id": key, "source": s, "target": t, "rel": e.get("rel", "")}
 
     fused = sum(1 for b in merged.values() if b["merged"] > 1)
-    logging.info(f"Nodi fusi: {fused} gruppi · {len(nodes)} -> {len(merged)} nodi")
+    logging.info(f"Merged nodes: {fused} groups · {len(nodes)} -> {len(merged)} nodes")
     return {"nodes": list(merged.values()), "edges": list(new_edges.values())}

@@ -10,7 +10,7 @@
      any later version, with the additional terms in the file NOTICE.
      See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
 -->
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -46,29 +46,29 @@
   <!-- Fork credits in the foreground; below, the attribution to the original author
        required by the NOTICE (point 1(b)): readable, must not be removed or altered. -->
   <div id="credits"><button type="button" id="creditsLink" data-i18n-title="credits.title">Sitticus</button> - <a href="https://osintops.com" target="_blank" rel="noopener">osintops.com</a>
-    <div id="credits-orig"><span data-i18n="credits.orig">Basato su OSInt Graph di</span> Andrea Cumini - <a href="mailto:andrea@osintinfo.net">andrea@osintinfo.net</a> - <a href="https://www.osintinfo.net" target="_blank" rel="noopener">www.osintinfo.net</a></div>
+    <div id="credits-orig"><span data-i18n="credits.orig">Based on OSInt Graph by</span> Andrea Cumini - <a href="mailto:andrea@osintinfo.net">andrea@osintinfo.net</a> - <a href="https://www.osintinfo.net" target="_blank" rel="noopener">www.osintinfo.net</a></div>
   </div>
-  <div id="help-links"><a href="#" id="manualLink" data-i18n="help.manual">Manuale</a><a href="#" id="licLink" data-i18n="lic.link">Licenze</a></div>
+  <div id="help-links"><a href="#" id="manualLink" data-i18n="help.manual">User manual</a><a href="#" id="licLink" data-i18n="lic.link">Licences</a></div>
 
   <div class="grp case-box">
-    <div class="grp-t" data-i18n="case.title">Caso</div>
+    <div class="grp-t" data-i18n="case.title">Case</div>
     <select id="caseSel" data-i18n-title="case.switchTip"></select>
     <div id="caseDesc" class="case-desc"></div>
     <div class="case-btns btn-grid">
-      <button id="caseNew" class="mini" data-i18n="case.new">➕ Nuovo</button>
-      <button id="caseEdit" class="mini" data-i18n="case.edit">✏️ Modifica</button>
-      <button id="caseMerge" class="mini" data-i18n="case.merge">⧉ Unisci</button>
-      <button id="caseDel" class="mini danger" data-i18n="case.delete">🗑 Elimina</button>
+      <button id="caseNew" class="mini" data-i18n="case.new">New</button>
+      <button id="caseEdit" class="mini" data-i18n="case.edit">Edit</button>
+      <button id="caseMerge" class="mini" data-i18n="case.merge">Merge</button>
+      <button id="caseDel" class="mini danger" data-i18n="case.delete">Delete</button>
     </div>
   </div>
 
   <div class="search-container">
     <div class="search-row">
-      <input id="search" data-i18n-ph="search.ph" placeholder="Cerca nodo…" autocomplete="off">
-      <button id="searchBtn" data-i18n="search.btn">Cerca</button>
+      <input id="search" data-i18n-ph="search.ph" placeholder="Search node…" autocomplete="off">
+      <button id="searchBtn" data-i18n="search.btn">Search</button>
     </div>
     <div class="tools fuzzy-row">
-      <label><input type="checkbox" id="fuzzy"> <span data-i18n="search.fuzzy">Ricerca approssimata</span></label>
+      <label><input type="checkbox" id="fuzzy"> <span data-i18n="search.fuzzy">Fuzzy search</span></label>
       <select id="fuzzyLevel" disabled>
         <option value="1" selected>1</option>
         <option value="2">2</option>
@@ -82,31 +82,31 @@
   </div>
 
   <div class="tools btn-grid">
-    <button id="addAll" data-i18n="btn.addAll">Aggiungi tutti i risultati</button>
-    <button id="loadTargets" data-i18n="btn.loadTargets">🎯 Carica tutti i target</button>
-    <button id="clearGraph" data-i18n="btn.clearGraph">Svuota grafo</button>
-    <button id="showDeleted" data-i18n="btn.showDeleted">🗑 Nodi cancellati</button>
-    <button id="showManual" data-i18n="btn.showManual">✎ Modifiche manuali</button>
-    <button id="newNode" data-i18n="btn.newNode">➕ Nuovo nodo</button>
-    <button id="importData" data-i18n="btn.import">📥 Importa CSV/Excel</button>
-    <button id="transcribeVideo" data-i18n="btn.transcribe" data-i18n-title="tr.sub">🎙 Trascrivi video</button>
+    <button id="addAll" data-i18n="btn.addAll">Add all results</button>
+    <button id="loadTargets" data-i18n="btn.loadTargets">Load all targets</button>
+    <button id="clearGraph" data-i18n="btn.clearGraph">Clear graph</button>
+    <button id="showDeleted" data-i18n="btn.showDeleted">Deleted nodes</button>
+    <button id="showManual" data-i18n="btn.showManual">Manual changes</button>
+    <button id="newNode" data-i18n="btn.newNode">New node</button>
+    <button id="importData" data-i18n="btn.import">Import CSV/Excel</button>
+    <button id="transcribeVideo" data-i18n="btn.transcribe" data-i18n-title="tr.sub">🎙 Transcribe video</button>
     <button id="aiTranslit" hidden>Traslittera con AI</button>
-    <button id="showDict" data-i18n="btn.dict" data-i18n-title="dict.hint">Dizionario traslitterazioni</button>
-    <button id="exportFtm" data-i18n="btn.exportFtm" data-i18n-title="ftm.exportHint">Esporta Follow the Money</button>
-    <button id="reloadData" data-i18n="btn.reloadData">Ricarica dati</button>
+    <button id="showDict" data-i18n="btn.dict" data-i18n-title="dict.hint">🔤 Transliteration dictionary</button>
+    <button id="exportFtm" data-i18n="btn.exportFtm" data-i18n-title="ftm.exportHint">💰 Export Follow the Money</button>
+    <button id="reloadData" data-i18n="btn.reloadData">Reload data</button>
   </div>
 
   <div class="grp">
-    <div class="grp-t" data-i18n="grp.ai">Intelligenza artificiale</div>
+    <div class="grp-t" data-i18n="grp.ai">Artificial intelligence</div>
     <div class="ai-side">
       <label class="sw"><input type="checkbox" id="aiSwitch"><span class="sw-t"></span>
-        <span data-i18n="ai.active">AI attiva</span></label>
-      <button id="aiSettings" class="mini" data-i18n="ai.configure">⚙ Configura</button>
+        <span data-i18n="ai.active">AI on</span></label>
+      <button id="aiSettings" class="mini" data-i18n="ai.configure">Configure</button>
     </div>
     <div id="aiSideStatus" class="ai-side-st"></div>
     <div class="ai-side">
       <label class="sw" data-i18n-title="translit.modeHint"><input type="checkbox" id="translitNodes"><span class="sw-t"></span>
-        <span data-i18n="translit.modeNodes">Nodi latini separati</span></label>
+        <span data-i18n="translit.modeNodes">Separate Latin nodes</span></label>
     </div>
   </div>
 
@@ -114,13 +114,13 @@
     <div class="grp-t" data-i18n="grp.osa">OpenSanctions</div>
     <div class="ai-side">
       <label class="sw"><input type="checkbox" id="osaSwitch"><span class="sw-t"></span>
-        <span data-i18n="osa.active">Ricerca online attiva</span></label>
-      <button id="osaSettings" class="mini" data-i18n="ai.configure">⚙ Configura</button>
+        <span data-i18n="osa.active">Online lookup on</span></label>
+      <button id="osaSettings" class="mini" data-i18n="ai.configure">Configure</button>
     </div>
     <div id="osaSideStatus" class="ai-side-st"></div>
     <div class="view-save">
       <input id="osaQuery" autocomplete="off" data-i18n-ph="osa.queryPh" maxlength="200">
-      <button id="osaSearch" class="mini" data-i18n="osa.search">🔎 Cerca</button>
+      <button id="osaSearch" class="mini" data-i18n="osa.search">🔎 Search</button>
     </div>
     <div id="osaResults" class="osa-results"></div>
   </div>
@@ -129,46 +129,46 @@
     <div class="grp-t" data-i18n="grp.ep">Epieos</div>
     <div class="ai-side">
       <label class="sw"><input type="checkbox" id="epSwitch"><span class="sw-t"></span>
-        <span data-i18n="ep.active">Ricerca a pagamento attiva</span></label>
-      <button id="epSettings" class="mini" data-i18n="ai.configure">⚙ Configura</button>
+        <span data-i18n="ep.active">Paid lookup on</span></label>
+      <button id="epSettings" class="mini" data-i18n="ai.configure">Configure</button>
     </div>
     <div id="epSideStatus" class="ai-side-st"></div>
     <div class="view-save">
       <input id="epQuery" autocomplete="off" data-i18n-ph="ep.queryPh" maxlength="200">
-      <button id="epSearch" class="mini" data-i18n="ep.search">🔍 Cerca</button>
+      <button id="epSearch" class="mini" data-i18n="ep.search">🔍 Search</button>
     </div>
     <div id="epResults" class="osa-results"></div>
   </div>
 
   <div class="grp">
-    <div class="grp-t" data-i18n="grp.views">Viste salvate</div>
+    <div class="grp-t" data-i18n="grp.views">Saved views</div>
     <div class="view-save">
       <input id="viewName" autocomplete="off" data-i18n-ph="views.namePh" maxlength="80">
-      <button id="viewSave" class="mini" data-i18n="views.save">💾 Salva vista</button>
+      <button id="viewSave" class="mini" data-i18n="views.save">Save view</button>
     </div>
     <div class="view-load">
-      <select id="viewList"><option value="" data-i18n="views.none">— nessuna vista —</option></select>
-      <button id="viewLoad" class="mini" data-i18n="views.load" disabled>Apri</button>
+      <select id="viewList"><option value="" data-i18n="views.none">— no view —</option></select>
+      <button id="viewLoad" class="mini" data-i18n="views.load" disabled>Open</button>
       <button id="viewDelete" class="mini danger" data-i18n="views.delete" disabled title="Elimina">🗑</button>
     </div>
   </div>
 
   <div class="grp">
-    <div class="grp-t" data-i18n="grp.sources">Fonti documentali</div>
+    <div class="grp-t" data-i18n="grp.sources">Document sources</div>
     <div class="src-row">
-      <button id="srcScan" class="mini" data-i18n="src.scan">📁 Scansiona la cartella fonti</button>
+      <button id="srcScan" class="mini" data-i18n="src.scan">Scan</button>
     </div>
-    <div class="src-hint" data-i18n="src.folderHint">Metti i documenti nella cartella «sources» accanto al programma e premi Scansiona.</div>
+    <div class="src-hint" data-i18n="src.folderHint">Put your documents in the «sources» folder next to the program, then press Scan.</div>
     <div id="srcStatus" class="src-status"></div>
     <div class="src-row src-search">
       <input id="srcQuery" autocomplete="off" data-i18n-ph="src.queryPh">
-      <button id="srcSearch" class="mini" data-i18n="src.searchBtn">🔎 Cerca</button>
+      <button id="srcSearch" class="mini" data-i18n="src.searchBtn">Search</button>
     </div>
   </div>
 
   <div class="tools">
-    <label><input type="checkbox" id="toggleIds" checked> <span data-i18n="lbl.identifiers">Identificatori</span></label>
-    <label><span data-i18n="lbl.depth">Prof.</span>
+    <label><input type="checkbox" id="toggleIds" checked> <span data-i18n="lbl.identifiers">Identifiers</span></label>
+    <label><span data-i18n="lbl.depth">Depth</span>
       <select id="depth">
         <option value="1" selected>1</option>
         <option value="2">2</option>
@@ -179,61 +179,61 @@
   </div>
 
   <div class="grp">
-    <div class="grp-t cat-head"><span data-i18n="grp.categories">Categorie</span>
-      <button id="catToggleAll" class="mini" data-i18n="btn.hideAll">Nascondi tutto</button>
+    <div class="grp-t cat-head"><span data-i18n="grp.categories">Categories</span>
+      <button id="catToggleAll" class="mini" data-i18n="btn.hideAll">Hide all</button>
     </div>
     <div id="catFilters" class="cat-filters"></div>
   </div>
 
   <div class="grp">
-    <div class="grp-t" data-i18n="grp.altclick">Alt+Click sui social</div>
+    <div class="grp-t" data-i18n="grp.altclick">Alt+Click on socials</div>
     <div class="tools row">
-      <label class="lbl" data-i18n="lbl.openIn">Apri in</label>
+      <label class="lbl" data-i18n="lbl.openIn">Open in</label>
       <select id="openMode">
-        <option value="window" data-i18n="opt.window">Finestra affiancata</option>
-        <option value="tab" data-i18n="opt.tab">Scheda di sfondo</option>
-        <option value="copy" data-i18n="opt.copy">Copia solo il link</option>
+        <option value="window" data-i18n="opt.window">Side window</option>
+        <option value="tab" data-i18n="opt.tab">Background tab</option>
+        <option value="copy" data-i18n="opt.copy">Copy link only</option>
       </select>
     </div>
   </div>
 
   <div class="grp">
-    <div class="grp-t" data-i18n="grp.links">Collegamenti</div>
+    <div class="grp-t" data-i18n="grp.links">Connections</div>
     <div class="tools row">
-      <label class="lbl" data-i18n="lbl.showNodesWith">Mostra nodi con</label>
-      <select id="minDeg"><option value="0" data-i18n="opt.all">Tutti</option></select>
+      <label class="lbl" data-i18n="lbl.showNodesWith">Show nodes with</label>
+      <select id="minDeg"><option value="0" data-i18n="opt.all">All</option></select>
     </div>
     <button id="degOnly" hidden></button>
   </div>
 
   <div class="grp">
-    <div class="grp-t" data-i18n="gstyle.title">Stile dei collegamenti</div>
+    <div class="grp-t" data-i18n="gstyle.title">Connection style</div>
     <div class="gs-row">
-      <label class="af-lb" for="gsShape" data-i18n="gstyle.shape">Forma</label>
+      <label class="af-lb" for="gsShape" data-i18n="gstyle.shape">Shape</label>
       <select id="gsShape"></select>
     </div>
     <div class="gs-row">
-      <label class="af-lb" for="gsLine" data-i18n="edge.lineStyle">Linea</label>
+      <label class="af-lb" for="gsLine" data-i18n="edge.lineStyle">Line type</label>
       <select id="gsLine">
-        <option value="" data-i18n="gstyle.keep"></option>
-        <option value="solid" data-i18n="edge.lsSolid"></option>
-        <option value="dashed" data-i18n="edge.lsDashed"></option>
-        <option value="dotted" data-i18n="edge.lsDotted"></option>
+        <option value="" data-i18n="gstyle.keep">as set</option>
+        <option value="solid" data-i18n="edge.lsSolid">Solid</option>
+        <option value="dashed" data-i18n="edge.lsDashed">Dashed</option>
+        <option value="dotted" data-i18n="edge.lsDotted">Dotted</option>
       </select>
     </div>
     <div class="gs-row">
-      <label class="af-lb" for="gsWidth" data-i18n="edge.width">Spessore</label>
+      <label class="af-lb" for="gsWidth" data-i18n="edge.width">Width</label>
       <select id="gsWidth">
-        <option value="" data-i18n="gstyle.keep"></option>
+        <option value="" data-i18n="gstyle.keep">as set</option>
         <option value="1">1</option><option value="2">2</option><option value="3">3</option>
         <option value="4">4</option><option value="6">6</option><option value="8">8</option>
       </select>
     </div>
     <div class="gs-row">
-      <label class="af-lb" for="gsLabels" data-i18n="gstyle.labels">Etichette</label>
+      <label class="af-lb" for="gsLabels" data-i18n="gstyle.labels">Labels</label>
       <select id="gsLabels">
-        <option value="" data-i18n="gstyle.labelsOn">visibili</option>
-        <option value="off" data-i18n="gstyle.labelsOff">nascoste (spiega la legenda)</option>
+        <option value="" data-i18n="gstyle.labelsOn">shown</option>
+        <option value="off" data-i18n="gstyle.labelsOff">hidden (the key explains them)</option>
       </select>
     </div>
   </div>
@@ -241,36 +241,36 @@
   <div class="grp">
     <div class="grp-t" data-i18n="grp.layout">Layout</div>
     <div class="tools btn-grid">
-      <button id="lyFcose" class="ly on" data-i18n="ly.organic">Organico</button>
-      <button id="lyCircle" class="ly" data-i18n="ly.circle">Circolare</button>
-      <button id="lyTree" class="ly" data-i18n="ly.tree">Gerarchico</button>
-      <button id="lyLevels" class="ly" data-i18n="ly.levels" data-i18n-title="ly.levelsTip">Livelli</button>
-      <button id="lyGrid" class="ly" data-i18n="ly.grid">Griglia</button>
-      <button id="lyUntangle" data-i18n="ly.untangle">✂ Riduci incroci</button>
+      <button id="lyFcose" class="ly on" data-i18n="ly.organic">Organic</button>
+      <button id="lyCircle" class="ly" data-i18n="ly.circle">Circular</button>
+      <button id="lyTree" class="ly" data-i18n="ly.tree">Hierarchical</button>
+      <button id="lyLevels" class="ly" data-i18n="ly.levels" data-i18n-title="ly.levelsTip">Levels</button>
+      <button id="lyGrid" class="ly" data-i18n="ly.grid">Grid</button>
+      <button id="lyUntangle" data-i18n="ly.untangle">Reduce crossings</button>
     </div>
   </div>
 
   <div class="tools btn-grid">
-    <button id="expandAll" data-i18n="btn.expandAll">Espandi tutto</button>
-    <button id="collapseAll" data-i18n="btn.collapse">Comprimi</button>
+    <button id="expandAll" data-i18n="btn.expandAll">Expand all</button>
+    <button id="collapseAll" data-i18n="btn.collapse">Collapse</button>
     <button id="showHidden" hidden></button>
     <button id="fit" data-i18n="btn.fit">Fit</button>
   </div>
 
   <div class="grp">
-    <div class="grp-t" data-i18n="grp.export">Esporta</div>
+    <div class="grp-t" data-i18n="grp.export">Export</div>
     <div class="tools btn-grid">
-      <button id="expGraph" data-i18n="btn.expGraph">Grafo in PDF</button>
-      <button id="expTable" data-i18n="btn.expTable">📋 Scheda tabellare</button>
+      <button id="expGraph" data-i18n="btn.expGraph">Graph to PDF</button>
+      <button id="expTable" data-i18n="btn.expTable">Tabular report</button>
     </div>
   </div>
 
   <div id="selbox">
-    <div id="selhead"><span data-i18n="sel.title">Selezione</span> <span id="selcount">0</span>
-      <button id="selclear" class="mini" data-i18n="btn.clear">Pulisci</button></div>
+    <div id="selhead"><span data-i18n="sel.title">Selection</span> <span id="selcount">0</span>
+      <button id="selclear" class="mini" data-i18n="btn.clear">Clear</button></div>
     <ul id="sellist"></ul>
     <div class="tools row">
-      <label class="lbl" data-i18n="lbl.maxHops">Salti max</label>
+      <label class="lbl" data-i18n="lbl.maxHops">Max hops</label>
       <select id="maxHops">
         <option value="2">2</option>
         <option value="3">3</option>
@@ -278,19 +278,19 @@
         <option value="5">5</option>
         <option value="6">6</option>
       </select>
-      <button id="clearpath" class="mini" data-i18n="btn.clear">Pulisci</button>
+      <button id="clearpath" class="mini" data-i18n="btn.clear">Clear</button>
     </div>
     <div class="btn-grid">
-      <button id="findpath" disabled data-i18n="btn.findPath">Evidenzia tutti i percorsi</button>
-      <button id="linknodes" disabled data-i18n="btn.linkNodes">Collega i nodi selezionati</button>
-      <button id="pathonly" hidden data-i18n="btn.hideRest">Nascondi il resto</button>
+      <button id="findpath" disabled data-i18n="btn.findPath">Highlight all paths</button>
+      <button id="linknodes" disabled data-i18n="btn.linkNodes">Link selected nodes</button>
+      <button id="pathonly" hidden data-i18n="btn.hideRest">Hide the rest</button>
     </div>
     <div id="pathinfo"></div>
   </div>
 
-  <div id="hint" data-i18n="hint">Click = Espandi/Comprimi · Tasto Destro = Dettagli · Ctrl+Click = Seleziona · Alt+Click = Apri profilo social</div>
+  <div id="hint" data-i18n="hint">Click = Expand/Collapse · Right click = Details · Ctrl+Click = Select · Alt+Click = Open profile · H+Click = Highlight connections · N+Click = Hide node · Right click on a connection = Edit connection · Ctrl+drag on the background = Select several nodes</div>
   <label class="af-check"><input type="checkbox" id="keyShow" checked>
-    <span data-i18n="key.show">Legenda sul grafico</span></label>
+    <span data-i18n="key.show">Key on the graph</span></label>
   <div id="legend"></div>
   <div id="stat"></div>
 </aside>
@@ -302,26 +302,26 @@
 
 <!-- Right-click context menu on the graph background -->
 <div id="ctxmenu" hidden>
-  <button type="button" id="ctx-new-node" data-i18n="btn.newNode">Nuovo nodo</button>
+  <button type="button" id="ctx-new-node" data-i18n="btn.newNode">New node</button>
 </div>
 
 <div id="lightbox" hidden>
   <button id="lb-close">✕</button>
   <img id="lb-img" src="" alt="">
-  <a id="lb-open" href="#" target="_blank" rel="noopener" data-i18n="lb.openOriginal">Apri originale ↗</a>
+  <a id="lb-open" href="#" target="_blank" rel="noopener" data-i18n="lb.openOriginal">Open original ↗</a>
 </div>
 
 <div id="manmodal" hidden>
   <div id="manmodal-box">
     <div id="manmodal-head">
       <div>
-        <div id="manmodal-title" data-i18n="man.title">✎ Modifiche manuali</div>
+        <div id="manmodal-title" data-i18n="man.title">✎ Manual changes</div>
         <div id="manmodal-sub"></div>
       </div>
       <button id="manmodal-close">✕</button>
     </div>
     <div id="manmodal-tools">
-      <input id="man-filter" autocomplete="off" data-i18n-ph="man.searchPh" placeholder="Filtra per nome…">
+      <input id="man-filter" autocomplete="off" data-i18n-ph="man.searchPh" placeholder="Filter by name…">
       <button id="man-showall" class="mini"></button>
     </div>
     <div id="manmodal-body"></div>
@@ -332,27 +332,27 @@
   <div id="dictmodal-box">
     <div id="dictmodal-head">
       <div>
-        <div id="dictmodal-title" data-i18n="dict.title">🔤 Dizionario di traslitterazione</div>
+        <div id="dictmodal-title" data-i18n="dict.title">🔤 Transliteration dictionary</div>
         <div id="dictmodal-sub"></div>
       </div>
       <button id="dictmodal-close">✕</button>
     </div>
     <div id="dictmodal-tools">
-      <input id="dict-filter" autocomplete="off" data-i18n-ph="dict.filterPh" placeholder="Filtra parola o traslitterazione…">
+      <input id="dict-filter" autocomplete="off" data-i18n-ph="dict.filterPh" placeholder="Filter word or transliteration…">
       <select id="dict-source">
-        <option value="" data-i18n="dict.all">tutte</option>
-        <option value="pending" data-i18n="dict.pending">da tradurre</option>
-        <option value="manual" data-i18n="dict.manual">a mano</option>
-        <option value="ai" data-i18n="dict.ai">dall'AI</option>
+        <option value="" data-i18n="dict.all">all</option>
+        <option value="pending" data-i18n="dict.pending">to translate</option>
+        <option value="manual" data-i18n="dict.manual">by hand</option>
+        <option value="ai" data-i18n="dict.ai">by AI</option>
       </select>
-      <button id="dict-collect" class="mini" data-i18n="dict.collect" data-i18n-title="dict.collectTip">⟳ Raccogli dal grafo</button>
-      <label class="mini dict-file"><span data-i18n="dict.import">⇪ Importa CSV</span><input type="file" id="dict-import" accept=".csv,.txt,text/csv,text/plain" hidden></label>
-      <button id="dict-export" class="mini" data-i18n="dict.export">⇩ Esporta CSV</button>
+      <button id="dict-collect" class="mini" data-i18n="dict.collect" data-i18n-title="dict.collectTip">⟳ Collect from graph</button>
+      <label class="mini dict-file"><span data-i18n="dict.import">⇪ Import CSV</span><input type="file" id="dict-import" accept=".csv,.txt,text/csv,text/plain" hidden></label>
+      <button id="dict-export" class="mini" data-i18n="dict.export">⇩ Export CSV</button>
     </div>
     <div id="dictmodal-body"></div>
     <div id="dictmodal-foot">
-      <span id="dict-note" data-i18n="dict.note">Invio salva la riga. Vuoto = da tradurre. Una voce scritta a mano vince sempre sul motore automatico e sull'AI.</span>
-      <button id="dict-more" class="mini" hidden data-i18n="dict.more">Mostra altre</button>
+      <span id="dict-note" data-i18n="dict.note">Enter saves the row. Empty = to translate. A hand-written entry always wins over the automatic engine and the AI.</span>
+      <button id="dict-more" class="mini" hidden data-i18n="dict.more">Show more</button>
     </div>
   </div>
 </div>
@@ -361,7 +361,7 @@
   <div id="addmodal-box">
     <div id="addmodal-head">
       <div>
-        <div id="addmodal-title" data-i18n="add.title">➕ Aggiungi collegamento</div>
+        <div id="addmodal-title" data-i18n="add.title">➕ Add connection</div>
         <div id="addmodal-sub"></div>
       </div>
       <button id="add-ai-toggle" type="button" class="ai-toggle" data-i18n-title="ai.toggleTip">✨ AI</button>
@@ -369,18 +369,18 @@
     </div>
     <div id="addmodal-body">
      <div id="add-form">
-      <label class="af-lb" for="add-type" data-i18n="add.type">Tipo di nodo</label>
+      <label class="af-lb" for="add-type" data-i18n="add.type">Node type</label>
       <select id="add-type">
-        <option value="social" data-i18n="add.optSocial">Social — incolla l'URL del profilo</option>
-        <option value="link" data-i18n="add.optLink">Link generico (URL + nome)</option>
-        <option value="phone" data-i18n="add.optPhone">Utenza telefonica</option>
+        <option value="social" data-i18n="add.optSocial">Social — paste the profile URL</option>
+        <option value="link" data-i18n="add.optLink">Generic link (URL + name)</option>
+        <option value="phone" data-i18n="add.optPhone">Phone number</option>
         <option value="email" data-i18n="add.optEmail">Email</option>
         <option value="username" data-i18n="add.optUsername">Username</option>
-        <option value="name" data-i18n="add.optPerson">Persona / target (cognome, nome, data di nascita)</option>
-        <option value="place" data-i18n="add.optPlace">Località (città, indirizzo, coordinate)</option>
-        <option value="vehicle" data-i18n="add.optVehicle">Veicolo (targa)</option>
-        <option value="text" data-i18n="add.optText">Testo libero (titolo + testo)</option>
-        <option value="photo" data-i18n="add.optPhoto">Foto</option>
+        <option value="name" data-i18n="add.optPerson">Person / target (surname, name, date of birth)</option>
+        <option value="place" data-i18n="add.optPlace">Location (city, address, coordinates)</option>
+        <option value="vehicle" data-i18n="add.optVehicle">Vehicle (plate)</option>
+        <option value="text" data-i18n="add.optText">Free text (title + body)</option>
+        <option value="photo" data-i18n="add.optPhoto">Photo</option>
       </select>
 
       <div id="add-value-row">
@@ -389,39 +389,39 @@
       </div>
 
       <div id="add-name-row">
-        <label class="af-lb" id="add-nlabel" for="add-name" data-i18n="add.nameLabel">Nome da mostrare (facoltativo)</label>
-        <input id="add-name" autocomplete="off" data-i18n-ph="add.namePh" placeholder="lasciando vuoto usa l'identificativo">
+        <label class="af-lb" id="add-nlabel" for="add-name" data-i18n="add.nameLabel">Display name (optional)</label>
+        <input id="add-name" autocomplete="off" data-i18n-ph="add.namePh" placeholder="leave empty to use the identifier">
       </div>
 
       <div id="add-onto-row" class="af-onto" hidden></div>
 
       <div id="add-vehicle-row" hidden>
-        <label class="af-lb" for="add-colore" data-i18n="add.color">Colore (facoltativo)</label>
+        <label class="af-lb" for="add-colore" data-i18n="add.color">Colour (optional)</label>
         <input id="add-colore" autocomplete="off" data-i18n-ph="add.colorPh">
       </div>
 
       <div id="add-person-row" hidden>
         <div class="af-coords">
           <div>
-            <label class="af-lb" for="add-cognome" data-i18n="add.surname">Cognome</label>
+            <label class="af-lb" for="add-cognome" data-i18n="add.surname">Surname</label>
             <input id="add-cognome" autocomplete="off" data-i18n-ph="add.surnamePh">
           </div>
           <div>
-            <label class="af-lb" for="add-nome" data-i18n="add.firstname">Nome</label>
+            <label class="af-lb" for="add-nome" data-i18n="add.firstname">Name</label>
             <input id="add-nome" autocomplete="off" data-i18n-ph="add.firstnamePh">
           </div>
         </div>
         <div class="af-coords af-person2">
           <div>
-            <label class="af-lb" for="add-nascita" data-i18n="add.birth">Data di nascita (facoltativa)</label>
+            <label class="af-lb" for="add-nascita" data-i18n="add.birth">Date of birth (optional)</label>
             <input id="add-nascita" type="date" autocomplete="off">
           </div>
           <div>
-            <label class="af-lb" for="add-sex" data-i18n="add.sex">Sesso</label>
+            <label class="af-lb" for="add-sex" data-i18n="add.sex">Sex</label>
             <select id="add-sex">
-              <option value="" data-i18n="sex.unknown">Non noto</option>
-              <option value="male" data-i18n="sex.male">Maschio</option>
-              <option value="female" data-i18n="sex.female">Femmina</option>
+              <option value="" data-i18n="sex.unknown">Not known</option>
+              <option value="male" data-i18n="sex.male">Male</option>
+              <option value="female" data-i18n="sex.female">Female</option>
             </select>
           </div>
         </div>
@@ -430,39 +430,39 @@
       <div id="add-place-row" hidden>
         <div class="af-coords af-addr">
           <div class="af-topo">
-            <label class="af-lb" for="add-toponimo" data-i18n="add.topoLabel">Tipo</label>
+            <label class="af-lb" for="add-toponimo" data-i18n="add.topoLabel">Type</label>
             <select id="add-toponimo"></select>
           </div>
           <div>
-            <label class="af-lb" for="add-address" data-i18n="add.addrLabel">Indirizzo (facoltativo)</label>
+            <label class="af-lb" for="add-address" data-i18n="add.addrLabel">Street name (optional)</label>
             <input id="add-address" autocomplete="off" data-i18n-ph="add.addrPh">
           </div>
           <div>
-            <label class="af-lb" for="add-civico" data-i18n="add.civLabel">Civico</label>
+            <label class="af-lb" for="add-civico" data-i18n="add.civLabel">No.</label>
             <input id="add-civico" autocomplete="off" data-i18n-ph="add.civPh">
           </div>
         </div>
         <div class="af-coords">
           <div>
-            <label class="af-lb" for="add-lat" data-i18n="add.latLabel">Latitudine (facolt.)</label>
+            <label class="af-lb" for="add-lat" data-i18n="add.latLabel">Latitude (opt.)</label>
             <input id="add-lat" autocomplete="off" data-i18n-ph="add.latPh" inputmode="decimal">
           </div>
           <div>
-            <label class="af-lb" for="add-lon" data-i18n="add.lonLabel">Longitudine (facolt.)</label>
+            <label class="af-lb" for="add-lon" data-i18n="add.lonLabel">Longitude (opt.)</label>
             <input id="add-lon" autocomplete="off" data-i18n-ph="add.lonPh" inputmode="decimal">
           </div>
         </div>
       </div>
 
       <div id="add-text-row" hidden>
-        <label class="af-lb" for="add-text" data-i18n="add.textLabel">Testo</label>
+        <label class="af-lb" for="add-text" data-i18n="add.textLabel">Text</label>
         <textarea id="add-text" rows="5" data-i18n-ph="add.textPh"></textarea>
       </div>
 
       <div id="add-photo-row" hidden>
-        <label class="af-lb" data-i18n="add.photoLabel">Immagine</label>
+        <label class="af-lb" data-i18n="add.photoLabel">Image</label>
         <div id="add-drop" tabindex="0">
-          <span id="add-drop-txt" data-i18n="add.photoDrop">Trascina qui, incolla (Ctrl+V) o clicca per scegliere</span>
+          <span id="add-drop-txt" data-i18n="add.photoDrop">Drag here, paste (Ctrl+V) or click to choose</span>
           <img id="add-thumb" hidden alt="">
         </div>
         <input id="add-file" type="file" accept="image/*" hidden>
@@ -470,12 +470,12 @@
 
       <!-- Any node can be a target: just tick here -->
       <label class="af-check af-target-row"><input type="checkbox" id="add-target">
-        <span data-i18n="add.isTarget">Evidenzia come target</span></label>
+        <span data-i18n="add.isTarget">Highlight as target</span></label>
 
       <!-- LINK PROPERTIES (hidden for a standalone "New node") -->
       <div id="add-edge-sec">
         <div class="af-divider"></div>
-        <div class="af-sec-title" data-i18n="add.edgeSection">⚙️ Proprietà del collegamento</div>
+        <div class="af-sec-title" data-i18n="add.edgeSection">⚙️ Connection properties</div>
         <div class="edge-props" data-prefix="add"></div>
       </div>
 
@@ -484,19 +484,19 @@
 
      <!-- AI MODE: free text interpreted by the chatbot -->
      <div id="add-ai-sec" hidden>
-       <div class="af-hint" data-i18n="ai.hint">Incolla o scrivi un testo libero: l'AI riconosce persone, telefoni, email, profili social, luoghi, veicoli… e le loro relazioni, e propone i nodi da creare.</div>
+       <div class="af-hint" data-i18n="ai.hint">Paste or type free text: the AI recognises people, phones, emails, social profiles, places, vehicles… and their relationships, and proposes the nodes to create.</div>
        <div id="ai-glow" class="ai-glow">
          <textarea id="ai-text" rows="10" data-i18n-ph="ai.ph"></textarea>
        </div>
        <div class="ai-row">
          <span id="ai-status" class="ai-status"></span>
-         <button type="button" id="ai-run" class="ai-btn" data-i18n="ai.run">✨ Analizza con AI</button>
+         <button type="button" id="ai-run" class="ai-btn" data-i18n="ai.run">Analyse with AI</button>
        </div>
        <div id="ai-res" class="imp-res"></div>
      </div>
     </div>
     <div id="addmodal-foot">
-      <button id="addmodal-save" data-i18n="add.save">Aggiungi al grafo</button>
+      <button id="addmodal-save" data-i18n="add.save">Add to graph</button>
     </div>
   </div>
 </div>
@@ -505,20 +505,20 @@
   <div id="linkmodal-box">
     <div id="linkmodal-head">
       <div>
-        <div id="linkmodal-title" data-i18n="link.title">🔗 Collega nodi</div>
-        <div id="linkmodal-sub" data-i18n="link.sub">Crea un collegamento tra i nodi selezionati</div>
+        <div id="linkmodal-title" data-i18n="link.title">🔗 Connect nodes</div>
+        <div id="linkmodal-sub" data-i18n="link.sub">Create a connection between selected nodes</div>
       </div>
       <button id="linkmodal-close">✕</button>
     </div>
     <div id="linkmodal-body">
       <div id="link-endpoints" class="af-link-endpoints">
         <div class="af-endpoint">
-          <span class="af-lb" data-i18n="link.from">Da</span>
+          <span class="af-lb" data-i18n="link.from">From</span>
           <div id="link-from-label" class="af-node-tag"></div>
         </div>
-        <button id="link-swap-btn" type="button" class="mini" title="Inverti direzione" data-i18n-title="link.swap">⇄</button>
+        <button id="link-swap-btn" type="button" class="mini" title="Swap direction" data-i18n-title="link.swap">⇄</button>
         <div class="af-endpoint">
-          <span class="af-lb" data-i18n="link.to">A</span>
+          <span class="af-lb" data-i18n="link.to">To</span>
           <div id="link-to-label" class="af-node-tag"></div>
         </div>
       </div>
@@ -527,7 +527,7 @@
       <div class="edge-props" data-prefix="link"></div>
     </div>
     <div id="linkmodal-foot">
-      <button id="linkmodal-save" data-i18n="link.btn">Collega</button>
+      <button id="linkmodal-save" data-i18n="link.btn">Connect</button>
     </div>
   </div>
 </div>
@@ -536,7 +536,7 @@
   <div id="edgemodal-box">
     <div id="edgemodal-head">
       <div>
-        <div id="edgemodal-title" data-i18n="edge.title">🔗 Modifica collegamento</div>
+        <div id="edgemodal-title" data-i18n="edge.title">🔗 Edit connection</div>
         <div id="edgemodal-sub"></div>
       </div>
       <button id="edgemodal-close">✕</button>
@@ -544,12 +544,12 @@
     <div id="edgemodal-body">
       <div class="af-link-endpoints">
         <div class="af-endpoint">
-          <span class="af-lb" data-i18n="link.from">Da</span>
+          <span class="af-lb" data-i18n="link.from">From</span>
           <div id="edg-from-label" class="af-node-tag"></div>
         </div>
         <button id="edg-swap-btn" type="button" class="mini" data-i18n-title="link.swap">⇄</button>
         <div class="af-endpoint">
-          <span class="af-lb" data-i18n="link.to">A</span>
+          <span class="af-lb" data-i18n="link.to">To</span>
           <div id="edg-to-label" class="af-node-tag"></div>
         </div>
       </div>
@@ -558,10 +558,10 @@
       <div id="edg-others" class="edg-others"></div>
     </div>
     <div id="edgemodal-foot">
-      <button id="edgemodal-del" class="danger" data-i18n="edge.delete">🗑 Elimina collegamento</button>
-      <button id="edgemodal-reset" data-i18n="edge.reset">↺ Stile predefinito</button>
-      <button id="edgemodal-new" data-i18n="edge.addAnother">➕ Altro collegamento tra questi nodi</button>
-      <button id="edgemodal-save" data-i18n="edge.save">💾 Salva</button>
+      <button id="edgemodal-del" class="danger" data-i18n="edge.delete">Delete connection</button>
+      <button id="edgemodal-reset" data-i18n="edge.reset">Default style</button>
+      <button id="edgemodal-new" data-i18n="edge.addAnother">Another connection between these nodes</button>
+      <button id="edgemodal-save" data-i18n="edge.save">Save</button>
     </div>
   </div>
 </div>
@@ -570,15 +570,15 @@
   <div id="editmodal-box">
     <div id="editmodal-head">
       <div>
-        <div id="editmodal-title" data-i18n="edit.title">🛠 Modifica valori del nodo</div>
+        <div id="editmodal-title" data-i18n="edit.title">🛠 Edit node values</div>
         <div id="editmodal-sub"></div>
       </div>
       <button id="editmodal-close">✕</button>
     </div>
     <div id="editmodal-body"></div>
     <div id="editmodal-foot">
-      <button id="editmodal-reset" class="danger" data-i18n="edit.reset">↺ Annulla tutte le modifiche</button>
-      <button id="editmodal-save" data-i18n="edit.save">💾 Salva</button>
+      <button id="editmodal-reset" class="danger" data-i18n="edit.reset">Undo all changes</button>
+      <button id="editmodal-save" data-i18n="edit.save">Save</button>
     </div>
   </div>
 </div>
@@ -587,30 +587,30 @@
   <div id="aimodal-box">
     <div id="aimodal-head">
       <div>
-        <div id="aimodal-title" data-i18n="aicfg.title">🤖 Configurazione AI</div>
-        <div id="aimodal-sub" data-i18n="aicfg.sub">Chatbot usato per creare i nodi dal testo (salvato in chatbot.conf)</div>
+        <div id="aimodal-title" data-i18n="aicfg.title">🤖 AI configuration</div>
+        <div id="aimodal-sub" data-i18n="aicfg.sub">Chatbot used to create nodes from text (saved in chatbot.conf)</div>
       </div>
       <button id="aimodal-close">✕</button>
     </div>
     <div id="aimodal-body">
       <label class="sw sw-big"><input type="checkbox" id="aic-enabled"><span class="sw-t"></span>
-        <span data-i18n="ai.active">AI attiva</span></label>
+        <span data-i18n="ai.active">AI on</span></label>
       <label class="af-lb" for="aic-endpoint" data-i18n="aicfg.endpoint">Endpoint</label>
       <input id="aic-endpoint" autocomplete="off" placeholder="http://127.0.0.1:11434">
-      <label class="af-lb" for="aic-key" data-i18n="aicfg.key">Chiave API</label>
+      <label class="af-lb" for="aic-key" data-i18n="aicfg.key">API key</label>
       <div class="aic-key">
         <input id="aic-key" type="password" autocomplete="new-password">
         <button type="button" id="aic-key-eye" class="mini" data-i18n-title="aicfg.show">👁</button>
       </div>
       <div class="ep-row2">
         <div>
-          <label class="af-lb" for="aic-model" data-i18n="aicfg.model">Modello</label>
+          <label class="af-lb" for="aic-model" data-i18n="aicfg.model">Model</label>
           <input id="aic-model" autocomplete="off" placeholder="gemma3:12b">
         </div>
         <div>
-          <label class="af-lb" for="aic-api" data-i18n="aicfg.api">Formato API</label>
+          <label class="af-lb" for="aic-api" data-i18n="aicfg.api">API format</label>
           <select id="aic-api">
-            <option value="auto" data-i18n="aicfg.apiAuto">Automatico</option>
+            <option value="auto" data-i18n="aicfg.apiAuto">Automatic</option>
             <option value="ollama">Ollama (/api/generate)</option>
             <option value="openai">OpenAI (/v1/chat/completions)</option>
           </select>
@@ -622,21 +622,21 @@
       </div>
       <div class="ep-row2">
         <div>
-          <label class="af-lb" for="aic-header" data-i18n="aicfg.header">Intestazione della chiave</label>
+          <label class="af-lb" for="aic-header" data-i18n="aicfg.header">Key header</label>
           <input id="aic-header" autocomplete="off" placeholder="Authorization">
         </div>
         <div>
-          <label class="af-lb" for="aic-prefix" data-i18n="aicfg.prefix">Prefisso</label>
+          <label class="af-lb" for="aic-prefix" data-i18n="aicfg.prefix">Prefix</label>
           <input id="aic-prefix" autocomplete="off" placeholder="Bearer">
         </div>
       </div>
       <label class="af-cb-label aic-auto"><input type="checkbox" id="aic-auto">
-        <span data-i18n="aicfg.auto">Traslitterazione automatica dei nomi non latini</span></label>
+        <span data-i18n="aicfg.auto">Automatic transliteration of non-Latin names</span></label>
       <div id="aic-test-res" class="aic-test"></div>
     </div>
     <div id="aimodal-foot">
-      <button id="aimodal-test" data-i18n="aicfg.test">🔌 Prova connessione</button>
-      <button id="aimodal-save" data-i18n="aicfg.save">💾 Salva</button>
+      <button id="aimodal-test" data-i18n="aicfg.test">Test connection</button>
+      <button id="aimodal-save" data-i18n="aicfg.save">Save</button>
     </div>
   </div>
 </div>
@@ -645,18 +645,18 @@
   <div id="osamodal-box">
     <div id="osamodal-head">
       <div>
-        <div id="osamodal-title" data-i18n="osacfg.title">🌐 Configurazione OpenSanctions</div>
-        <div id="osamodal-sub" data-i18n="osacfg.sub">Ricerca online di persone e società (salvata in services.conf)</div>
+        <div id="osamodal-title" data-i18n="osacfg.title">🌐 OpenSanctions settings</div>
+        <div id="osamodal-sub" data-i18n="osacfg.sub">Online lookup of people and companies (saved in services.conf)</div>
       </div>
       <button id="osamodal-close">✕</button>
     </div>
     <div id="osamodal-body">
-      <div class="imp-help" data-i18n="osacfg.privacy">Unica funzione, con l'AI, che manda dati fuori dal computer: i nomi che cerchi vengono inviati all'endpoint indicato. Spenta, non viene fatta nessuna chiamata.</div>
+      <div class="imp-help" data-i18n="osacfg.privacy">The only feature, with the AI, that sends data off this computer: the names you search go to the endpoint below. Off, no call is ever made.</div>
       <label class="sw sw-big"><input type="checkbox" id="osac-enabled"><span class="sw-t"></span>
-        <span data-i18n="osa.active">Ricerca online attiva</span></label>
+        <span data-i18n="osa.active">Online lookup on</span></label>
       <label class="af-lb" for="osac-endpoint" data-i18n="aicfg.endpoint">Endpoint</label>
       <input id="osac-endpoint" autocomplete="off" placeholder="https://api.opensanctions.org">
-      <label class="af-lb" for="osac-key" data-i18n="aicfg.key">Chiave API</label>
+      <label class="af-lb" for="osac-key" data-i18n="aicfg.key">API key</label>
       <div class="aic-key">
         <input id="osac-key" type="password" autocomplete="new-password">
         <button type="button" id="osac-key-eye" class="mini" data-i18n-title="aicfg.show">👁</button>
@@ -671,12 +671,12 @@
           <input id="osac-timeout" type="number" min="3" max="120">
         </div>
       </div>
-      <div class="af-hint" data-i18n="osacfg.hint">api.opensanctions.org richiede una chiave (www.opensanctions.org/api); in alternativa un'istanza yente propria, es. http://127.0.0.1:8000.</div>
+      <div class="af-hint" data-i18n="osacfg.hint">api.opensanctions.org needs an API key (www.opensanctions.org/api); otherwise your own yente instance, e.g. http://127.0.0.1:8000.</div>
       <div id="osac-test-res" class="aic-test"></div>
     </div>
     <div id="osamodal-foot">
-      <button id="osamodal-test" data-i18n="aicfg.test">🔌 Prova connessione</button>
-      <button id="osamodal-save" data-i18n="aicfg.save">💾 Salva</button>
+      <button id="osamodal-test" data-i18n="aicfg.test">Test connection</button>
+      <button id="osamodal-save" data-i18n="aicfg.save">Save</button>
     </div>
   </div>
 </div>
@@ -685,18 +685,18 @@
   <div id="epmodal-box">
     <div id="epmodal-head">
       <div>
-        <div id="epmodal-title" data-i18n="epcfg.title">🔍 Configurazione Epieos</div>
-        <div id="epmodal-sub" data-i18n="epcfg.sub">Ricerca inversa di email e telefoni (salvata in services.conf)</div>
+        <div id="epmodal-title" data-i18n="epcfg.title">🔍 Epieos settings</div>
+        <div id="epmodal-sub" data-i18n="epcfg.sub">Reverse lookup of emails and phones (saved in services.conf)</div>
       </div>
       <button id="epmodal-close">✕</button>
     </div>
     <div id="epmodal-body">
-      <div class="imp-help" data-i18n="epcfg.privacy">Servizio a pagamento: ogni ricerca consuma crediti e viene sempre confermata prima. Acceso, l'unico dato che esce dal computer è l'email o il numero cercato. Spento, non viene fatta nessuna chiamata.</div>
+      <div class="imp-help" data-i18n="epcfg.privacy">Paid service: every search spends credits and is always confirmed first. When on, the only data leaving this computer is the email or number searched. When off, no call is made.</div>
       <label class="sw sw-big"><input type="checkbox" id="epc-enabled"><span class="sw-t"></span>
-        <span data-i18n="ep.active">Ricerca a pagamento attiva</span></label>
+        <span data-i18n="ep.active">Paid lookup on</span></label>
       <label class="af-lb" for="epc-endpoint" data-i18n="aicfg.endpoint">Endpoint</label>
       <input id="epc-endpoint" autocomplete="off" placeholder="https://api.epieos.com">
-      <label class="af-lb" for="epc-key" data-i18n="aicfg.key">Chiave API</label>
+      <label class="af-lb" for="epc-key" data-i18n="aicfg.key">API key</label>
       <div class="aic-key">
         <input id="epc-key" type="password" autocomplete="new-password">
         <button type="button" id="epc-key-eye" class="mini" data-i18n-title="aicfg.show">👁</button>
@@ -712,13 +712,13 @@
           <input id="epc-timeout" type="number" min="10" max="300">
         </div>
       </div>
-      <div class="af-hint" data-i18n="epcfg.hint">La chiave si ottiene su epieos.com (sezione API). «Leggi lo schema» chiede al servizio quali pack e moduli sono disponibili per la tua chiave: non consuma crediti.</div>
+      <div class="af-hint" data-i18n="epcfg.hint">Get the key on epieos.com (API section). “Read schema” asks the service which packs and modules your key can use: it spends no credit.</div>
       <div id="epc-packs" class="ep-packs"></div>
       <div id="epc-test-res" class="aic-test"></div>
     </div>
     <div id="epmodal-foot">
-      <button id="epmodal-schema" data-i18n="epcfg.schema">📋 Leggi lo schema</button>
-      <button id="epmodal-save" data-i18n="aicfg.save">💾 Salva</button>
+      <button id="epmodal-schema" data-i18n="epcfg.schema">📋 Read schema</button>
+      <button id="epmodal-save" data-i18n="aicfg.save">Save</button>
     </div>
   </div>
 </div>
@@ -727,8 +727,8 @@
   <div id="epconfirm-box">
     <div id="epconfirm-head">
       <div>
-        <div id="epconfirm-title" data-i18n="ep.confirmTitle">🔍 Ricerca Epieos</div>
-        <div id="epconfirm-sub" data-i18n="ep.confirmSub">Conferma: la ricerca consuma crediti</div>
+        <div id="epconfirm-title" data-i18n="ep.confirmTitle">🔍 Epieos search</div>
+        <div id="epconfirm-sub" data-i18n="ep.confirmSub">Confirm: the search spends credits</div>
       </div>
       <button id="epconfirm-close">✕</button>
     </div>
@@ -736,16 +736,16 @@
       <div class="ep-q"><b id="epconfirm-query"></b> <small id="epconfirm-kind"></small></div>
       <div id="epconfirm-cost" class="imp-help"></div>
       <div class="ep-mods-head">
-        <span data-i18n="ep.modules">Moduli da interrogare</span>
-        <button type="button" id="epconfirm-all" class="mini" data-i18n="ep.all">tutti</button>
-        <button type="button" id="epconfirm-none" class="mini" data-i18n="ep.none">nessuno</button>
+        <span data-i18n="ep.modules">Modules to query</span>
+        <button type="button" id="epconfirm-all" class="mini" data-i18n="ep.all">all</button>
+        <button type="button" id="epconfirm-none" class="mini" data-i18n="ep.none">none</button>
       </div>
       <div id="epconfirm-mods" class="ep-mods"></div>
       <div id="epconfirm-res" class="aic-test"></div>
     </div>
     <div id="epconfirm-foot">
-      <button id="epconfirm-cancel" data-i18n="ep.cancel">Annulla</button>
-      <button id="epconfirm-run" data-i18n="ep.run">🔍 Cerca (1 credito)</button>
+      <button id="epconfirm-cancel" data-i18n="ep.cancel">Cancel</button>
+      <button id="epconfirm-run" data-i18n="ep.run">🔍 Search (1 credit)</button>
     </div>
   </div>
 </div>
@@ -754,43 +754,43 @@
   <div id="impmodal-box">
     <div id="impmodal-head">
       <div>
-        <div id="impmodal-title" data-i18n="imp.title">📥 Importa nodi da CSV / Excel</div>
-        <div id="impmodal-sub" data-i18n="imp.sub">Crea molti nodi e collegamenti in una volta</div>
+        <div id="impmodal-title" data-i18n="imp.title">📥 Import nodes from CSV / Excel</div>
+        <div id="impmodal-sub" data-i18n="imp.sub">Create many nodes and connections at once</div>
       </div>
       <button id="impmodal-close">✕</button>
     </div>
     <div id="impmodal-body">
       <div class="imp-steps">
         <span class="imp-step on" data-step="1"><b>1</b> <span data-i18n="imp.step1">File</span></span>
-        <span class="imp-step" data-step="2"><b>2</b> <span data-i18n="imp.step2">Colonne</span></span>
-        <span class="imp-step" data-step="3"><b>3</b> <span data-i18n="imp.step3">Anteprima</span></span>
+        <span class="imp-step" data-step="2"><b>2</b> <span data-i18n="imp.step2">Columns</span></span>
+        <span class="imp-step" data-step="3"><b>3</b> <span data-i18n="imp.step3">Preview</span></span>
       </div>
 
       <!-- step 1: the file -->
       <div id="imp-step1">
         <div class="imp-help">
-          <div data-i18n="imp.help1">Una riga per collegamento: nome nodo 1, tipo nodo 1, collegamento, nome nodo 2, tipo nodo 2. Senza nodo 2 si crea un nodo isolato.</div>
-          <div data-i18n="imp.help2">Colonne facoltative (per il nodo 1 o 2, es. url1, url2): url, piattaforma, etichetta, testo, indirizzo, lat, lon, nota. Per il collegamento: frecce (-> &lt;- &lt;-&gt;), forma, colore, linea, spessore.</div>
-          <div data-i18n="imp.help3">Tipi: persona, telefono, email, username, social (o direttamente instagram, facebook, tiktok…), link, luogo, veicolo, testo, target. Se il tipo manca viene dedotto dal valore.</div>
-          <button type="button" id="imp-template" class="mini" data-i18n="imp.template">Scarica un file di esempio</button>
+          <div data-i18n="imp.help1">One row per connection: node 1 name, node 1 type, connection, node 2 name, node 2 type. Without node 2 a standalone node is created.</div>
+          <div data-i18n="imp.help2">Optional columns (for node 1 or 2, e.g. url1, url2): url, platform, label, text, address, lat, lon, note. For the connection: arrows (-&gt; &lt;- &lt;-&gt;), shape, color, line, width.</div>
+          <div data-i18n="imp.help3">Types: person, phone, email, username, social (or directly instagram, facebook, tiktok…), link, place, vehicle, text, target. If the type is missing it is guessed from the value.</div>
+          <button type="button" id="imp-template" class="mini" data-i18n="imp.template">Download a sample file</button>
         </div>
         <div id="imp-drop" tabindex="0">
-          <span id="imp-drop-txt" data-i18n="imp.drop">Trascina qui il file .csv / .xlsx o clicca per sceglierlo</span>
+          <span id="imp-drop-txt" data-i18n="imp.drop">Drop the .csv / .xlsx file here or click to choose it</span>
         </div>
         <input id="imp-file" type="file" accept=".csv,.tsv,.txt,.xlsx,.xlsm,.json,.jsonl,.ftm,.zip" hidden>
       </div>
 
       <!-- step 2: what each column maps to -->
       <div id="imp-step2" hidden>
-        <div class="af-hint" data-i18n="imp.mapHint"></div>
+        <div class="af-hint" data-i18n="imp.mapHint">Each column of the file can become a value of node 1, node 2 or the connection. “Extra field” columns go into the node's record under the column name, so no value of the file is lost.</div>
         <div id="imp-detected" class="imp-sum"></div>
         <div class="imp-opts">
           <label class="af-check"><input type="checkbox" id="imp-header" checked>
-            <span data-i18n="imp.firstRowHeader">La prima riga contiene le intestazioni</span></label>
+            <span data-i18n="imp.firstRowHeader">The first row contains the headers</span></label>
           <div class="imp-defaults">
-            <div><label class="af-lb" for="imp-def-type1" data-i18n="imp.defType1"></label><select id="imp-def-type1"></select></div>
-            <div><label class="af-lb" for="imp-def-type2" data-i18n="imp.defType2"></label><select id="imp-def-type2"></select></div>
-            <div><label class="af-lb" for="imp-def-rel" data-i18n="imp.defRel"></label><input id="imp-def-rel" autocomplete="off" maxlength="120"></div>
+            <div><label class="af-lb" for="imp-def-type1" data-i18n="imp.defType1">Default type for node 1</label><select id="imp-def-type1"></select></div>
+            <div><label class="af-lb" for="imp-def-type2" data-i18n="imp.defType2">Default type for node 2</label><select id="imp-def-type2"></select></div>
+            <div><label class="af-lb" for="imp-def-rel" data-i18n="imp.defRel">Default connection name</label><input id="imp-def-rel" autocomplete="off" maxlength="120"></div>
           </div>
         </div>
         <div id="imp-map" class="imp-res"></div>
@@ -804,9 +804,9 @@
       </div>
     </div>
     <div id="impmodal-foot">
-      <button id="impmodal-back" data-i18n="imp.back" hidden>Indietro</button>
-      <button id="impmodal-next" data-i18n="imp.next" hidden>Anteprima</button>
-      <button id="impmodal-go" data-i18n="imp.go" hidden>Importa</button>
+      <button id="impmodal-back" data-i18n="imp.back" hidden>Back</button>
+      <button id="impmodal-next" data-i18n="imp.next" hidden>Preview</button>
+      <button id="impmodal-go" data-i18n="imp.go" hidden>Import</button>
     </div>
   </div>
 </div>
@@ -815,40 +815,40 @@
   <div id="ftmmodal-box">
     <div id="ftmmodal-head">
       <div>
-        <div id="ftmmodal-title" data-i18n="ftm.title">💰 Importa Follow the Money</div>
-        <div id="ftmmodal-sub" data-i18n="ftm.sub">Entità e relazioni di Aleph, OpenSanctions, ftm</div>
+        <div id="ftmmodal-title" data-i18n="ftm.title">💰 Import Follow the Money</div>
+        <div id="ftmmodal-sub" data-i18n="ftm.sub">Entities and relations from Aleph, OpenSanctions, ftm</div>
       </div>
       <button id="ftmmodal-close">✕</button>
     </div>
     <div id="ftmmodal-body">
       <div class="imp-steps">
         <span class="imp-step on" data-step="1"><b>1</b> <span data-i18n="imp.step1">File</span></span>
-        <span class="imp-step" data-step="2"><b>2</b> <span data-i18n="ftm.step2">Filtri</span></span>
-        <span class="imp-step" data-step="3"><b>3</b> <span data-i18n="ftm.step3">Importazione</span></span>
+        <span class="imp-step" data-step="2"><b>2</b> <span data-i18n="ftm.step2">Filters</span></span>
+        <span class="imp-step" data-step="3"><b>3</b> <span data-i18n="ftm.step3">Import</span></span>
       </div>
       <div id="ftm-step1">
         <div class="imp-help">
-          <div data-i18n="ftm.help1">Un file di entità Follow the Money: righe JSON (una entità per riga), un array JSON, o l'export di Aleph. Gli schemi-relazione diventano collegamenti, le proprietà riempiono i campi del tipo corrispondente.</div>
-          <div data-i18n="ftm.help2">Gli id FtM vengono conservati: importare di nuovo lo stesso dataset aggiorna i nodi invece di duplicarli.</div>
+          <div data-i18n="ftm.help1">A Follow the Money entity file: JSON lines (one entity per line), a JSON array, or an Aleph export. Relation schemata become links, properties fill the fields of the matching type.</div>
+          <div data-i18n="ftm.help2">FtM ids are kept: importing the same dataset again updates the nodes instead of duplicating them.</div>
         </div>
-        <div id="ftm-drop" tabindex="0"><span id="ftm-drop-txt" data-i18n="ftm.drop">Trascina qui il file .json / .jsonl / .ftm o clicca per sceglierlo</span></div>
+        <div id="ftm-drop" tabindex="0"><span id="ftm-drop-txt" data-i18n="ftm.drop">Drop the .json / .jsonl / .ftm file here or click to choose it</span></div>
         <input id="ftm-file" type="file" accept=".json,.jsonl,.ftm,.ndjson,.zip" hidden>
-        <div class="imp-help"><div data-i18n="ftm.help3">Un pacchetto di Cognitor (.cognitor.zip) porta con sé le foto dei volti e i trascritti: le foto diventano nodi collegati alle persone, i trascritti entrano nelle fonti.</div></div>
+        <div class="imp-help"><div data-i18n="ftm.help3">A Cognitor bundle (.cognitor.zip) carries the face photos and the transcripts: the photos become nodes linked to the persons, the transcripts join the sources.</div></div>
         <div class="ftm-path">
-          <input id="ftm-path" autocomplete="off" data-i18n-ph="ftm.pathPh" placeholder="Percorso del file su questo computer (per i file oltre 20 MB)">
-          <button type="button" id="ftm-path-go" data-i18n="ftm.pathGo">Apri</button>
+          <input id="ftm-path" autocomplete="off" data-i18n-ph="ftm.pathPh" placeholder="Path of the file on this computer (for files above 20 MB)">
+          <button type="button" id="ftm-path-go" data-i18n="ftm.pathGo">Open</button>
         </div>
       </div>
       <div id="ftm-step2" hidden>
         <div id="ftm-sum" class="imp-sum"></div>
-        <div class="af-hint" data-i18n="ftm.schemaHint">Schemi da importare (le relazioni fra le entità scelte vengono sempre importate):</div>
+        <div class="af-hint" data-i18n="ftm.schemaHint">Schemata to import (relations between the chosen entities are always imported):</div>
         <div id="ftm-schemas" class="ftm-schemas"></div>
         <div class="ftm-filters">
-          <div><label class="af-lb" for="ftm-text" data-i18n="ftm.text">Solo le entità che contengono</label><input id="ftm-text" autocomplete="off" maxlength="200" data-i18n-ph="ftm.textPh" placeholder="nome, paese, numero…"></div>
-          <div><label class="af-lb" for="ftm-max" data-i18n="ftm.max">Al massimo (0 = tutte)</label><input id="ftm-max" type="text" inputmode="numeric" value="0"></div>
-          <div><label class="af-lb" for="ftm-dataset" data-i18n="ftm.dataset">Nome del dataset</label><input id="ftm-dataset" autocomplete="off" maxlength="120"></div>
+          <div><label class="af-lb" for="ftm-text" data-i18n="ftm.text">Only entities containing</label><input id="ftm-text" autocomplete="off" maxlength="200" data-i18n-ph="ftm.textPh" placeholder="name, country, number…"></div>
+          <div><label class="af-lb" for="ftm-max" data-i18n="ftm.max">At most (0 = all)</label><input id="ftm-max" type="text" inputmode="numeric" value="0"></div>
+          <div><label class="af-lb" for="ftm-dataset" data-i18n="ftm.dataset">Dataset name</label><input id="ftm-dataset" autocomplete="off" maxlength="120"></div>
         </div>
-        <label class="af-check"><input type="checkbox" id="ftm-connected"><span data-i18n="ftm.connected">Includi anche le entità collegate a quelle trovate (un salto)</span></label>
+        <label class="af-check"><input type="checkbox" id="ftm-connected"><span data-i18n="ftm.connected">Also include entities linked to the matches (one hop)</span></label>
         <div id="ftm-warn" class="jm-msg"></div>
       </div>
       <div id="ftm-step3" hidden>
@@ -858,9 +858,9 @@
       </div>
     </div>
     <div id="ftmmodal-foot">
-      <button id="ftmmodal-back" data-i18n="imp.back" hidden>Indietro</button>
-      <button id="ftmmodal-go" data-i18n="ftm.go" hidden>Importa</button>
-      <button id="ftmmodal-done" data-i18n="ftm.done" hidden>Chiudi</button>
+      <button id="ftmmodal-back" data-i18n="imp.back" hidden>Back</button>
+      <button id="ftmmodal-go" data-i18n="ftm.go" hidden>Import</button>
+      <button id="ftmmodal-done" data-i18n="ftm.done" hidden>Close</button>
     </div>
   </div>
 </div>
@@ -869,33 +869,33 @@
   <div id="trmodal-box">
     <div id="trmodal-head">
       <div>
-        <div id="trmodal-title" data-i18n="tr.title">🎙 Trascrivi un video</div>
-        <div id="trmodal-sub" data-i18n="tr.sub">Sbobinatura, parlanti e traduzione, tutto su questo computer</div>
+        <div id="trmodal-title" data-i18n="tr.title">🎙 Transcribe a video</div>
+        <div id="trmodal-sub" data-i18n="tr.sub">Transcript, speakers and translation, all on this computer</div>
       </div>
       <button id="trmodal-close">✕</button>
     </div>
     <div id="trmodal-body">
-      <div class="imp-help"><div data-i18n="tr.help">Il video diventa un nodo con il trascritto, ogni voce un nodo persona «Speaker k» collegato al video con «speaks in»; il testo entra nelle fonti. Ritrascrivere lo stesso file aggiorna gli stessi nodi. I modelli si scaricano una volta sola, al primo uso.</div></div>
+      <div class="imp-help"><div data-i18n="tr.help">The video becomes a node with the transcript, every voice a person node “Speaker k” linked to the video by “speaks in”; the text joins the sources. Transcribing the same file again updates the same nodes. The models download once, on first use.</div></div>
       <div id="tr-status" class="jm-msg"></div>
-      <label class="af-lb" for="tr-path" data-i18n="tr.path">File video o audio su questo computer</label>
-      <input id="tr-path" autocomplete="off" data-i18n-ph="tr.pathPh" placeholder="C:\percorso\video.mp4">
+      <label class="af-lb" for="tr-path" data-i18n="tr.path">Video or audio file on this computer</label>
+      <input id="tr-path" autocomplete="off" data-i18n-ph="tr.pathPh" placeholder="C:\path\video.mp4">
       <div class="ftm-filters">
-        <div><label class="af-lb" for="tr-model" data-i18n="tr.model">Modello Whisper</label>
+        <div><label class="af-lb" for="tr-model" data-i18n="tr.model">Whisper model</label>
           <select id="tr-model"><option>tiny</option><option>base</option><option selected>small</option><option>medium</option><option>large-v3</option></select></div>
-        <div><label class="af-lb" for="tr-speakers" data-i18n="tr.speakers">Parlanti (0 = automatico)</label><input id="tr-speakers" type="text" inputmode="numeric" value="0"></div>
+        <div><label class="af-lb" for="tr-speakers" data-i18n="tr.speakers">Speakers (0 = automatic)</label><input id="tr-speakers" type="text" inputmode="numeric" value="0"></div>
       </div>
-      <label class="af-check"><input type="checkbox" id="tr-diarize" checked><span data-i18n="tr.diarize">Riconosci chi parla (diarizzazione)</span></label>
-      <label class="af-check"><input type="checkbox" id="tr-en"><span data-i18n="tr.toEn">Traduci in inglese</span></label>
-      <label class="af-check"><input type="checkbox" id="tr-it"><span data-i18n="tr.toIt">Traduci in italiano</span></label>
+      <label class="af-check"><input type="checkbox" id="tr-diarize" checked><span data-i18n="tr.diarize">Tell who speaks (diarization)</span></label>
+      <label class="af-check"><input type="checkbox" id="tr-en"><span data-i18n="tr.toEn">Translate to English</span></label>
+      <label class="af-check"><input type="checkbox" id="tr-it"><span data-i18n="tr.toIt">Translate to Italian</span></label>
       <div id="tr-prog-txt" class="imp-sum"></div>
       <div class="ftm-bar"><div id="tr-bar-fill"></div></div>
       <pre id="tr-log"></pre>
       <div id="tr-result" class="imp-sum"></div>
     </div>
     <div id="trmodal-foot">
-      <button id="tr-stop" data-i18n="tr.stop" disabled>Ferma</button>
-      <button id="tr-go" data-i18n="tr.go">Trascrivi</button>
-      <button id="tr-done" data-i18n="ftm.done">Chiudi</button>
+      <button id="tr-stop" data-i18n="tr.stop" disabled>Stop</button>
+      <button id="tr-go" data-i18n="tr.go">Transcribe</button>
+      <button id="tr-done" data-i18n="ftm.done">Close</button>
     </div>
   </div>
 </div>
@@ -911,19 +911,19 @@
     </div>
     <div id="casemodal-body">
       <div id="cm-merge" hidden>
-        <label class="af-lb" data-i18n="case.mergeWhich">Casi da unire</label>
+        <label class="af-lb" data-i18n="case.mergeWhich">Cases to merge</label>
         <div id="cm-list" class="cm-list"></div>
         <label class="af-check"><input type="checkbox" id="cm-delsrc">
-          <span data-i18n="case.mergeDelete">Elimina i casi originali dopo l'unione</span></label>
+          <span data-i18n="case.mergeDelete">Delete the original cases after merging</span></label>
       </div>
-      <label class="af-lb" for="cm-name" data-i18n="case.name">Nome del caso</label>
+      <label class="af-lb" for="cm-name" data-i18n="case.name">Case name</label>
       <input id="cm-name" autocomplete="off" maxlength="120" data-i18n-ph="case.namePh">
-      <label class="af-lb" for="cm-desc" data-i18n="case.desc">Descrizione (facoltativa)</label>
+      <label class="af-lb" for="cm-desc" data-i18n="case.desc">Description (optional)</label>
       <textarea id="cm-desc" rows="3" data-i18n-ph="case.descPh"></textarea>
       <div id="cm-msg" class="jm-msg"></div>
     </div>
     <div id="casemodal-foot">
-      <button id="casemodal-save" data-i18n="case.save">💾 Salva</button>
+      <button id="casemodal-save" data-i18n="case.save">Save</button>
     </div>
   </div>
 </div>
@@ -932,14 +932,14 @@
   <div id="delmodal-box">
     <div id="delmodal-head">
       <div>
-        <div id="delmodal-title" data-i18n="del.title">🗑 Nodi cancellati</div>
+        <div id="delmodal-title" data-i18n="del.title">🗑 Deleted nodes</div>
         <div id="delmodal-sub"></div>
       </div>
       <button id="delmodal-close">✕</button>
     </div>
     <div id="delmodal-body"></div>
     <div id="delmodal-foot">
-      <button id="delmodal-all" data-i18n="del.restoreAll">♻ Ripristina tutti</button>
+      <button id="delmodal-all" data-i18n="del.restoreAll">Restore all</button>
     </div>
   </div>
 </div>
@@ -947,14 +947,14 @@
 <div id="srcmodal" hidden>
   <div id="srcmodal-box">
     <div id="srcmodal-head">
-      <span id="srcmodal-title" data-i18n="src.inSources">Ricerca nelle fonti</span>
+      <span id="srcmodal-title" data-i18n="src.inSources">Search in sources</span>
       <label class="src-mode"><input type="checkbox" id="srcQueryExact">
-        <span data-i18n="src.exact">parola intera</span></label>
+        <span data-i18n="src.exact">whole word</span></label>
       <button id="srcmodal-close">✕</button>
     </div>
     <div class="src-row src-modal-search">
       <input id="srcQuery2" autocomplete="off" data-i18n-ph="src.queryPh">
-      <button id="srcSearch2" class="mini" data-i18n="src.searchBtn">🔎 Cerca</button>
+      <button id="srcSearch2" class="mini" data-i18n="src.searchBtn">Search</button>
     </div>
     <div id="srcmodal-res" class="src-res"></div>
   </div>
@@ -965,8 +965,8 @@
   <div id="licmodal-box">
     <div id="licmodal-head">
       <div>
-        <div id="licmodal-title" data-i18n="lic.title">Licenze</div>
-        <div id="licmodal-sub" data-i18n="lic.sub"></div>
+        <div id="licmodal-title" data-i18n="lic.title">Licences</div>
+        <div id="licmodal-sub" data-i18n="lic.sub">Quaesitor is a fork of OSInt Graph by Andrea Cumini, free software (GNU GPL v3 with an attribution requirement). Here are its license and those of every component it uses.</div>
       </div>
       <button id="licmodal-close">✕</button>
     </div>
@@ -982,16 +982,16 @@
 
 <div id="credmodal" hidden>
   <div id="credmodal-box">
-    <button id="credmodal-close" data-i18n-title="credits.close" title="Chiudi">✕</button>
-    <div id="credmodal-title" data-i18n="credits.title">Crediti</div>
-    <div id="credmodal-role" data-i18n="credits.role">Sviluppatore</div>
+    <button id="credmodal-close" data-i18n-title="credits.close" title="Close">✕</button>
+    <div id="credmodal-title" data-i18n="credits.title">Credits</div>
+    <div id="credmodal-role" data-i18n="credits.role">Developer</div>
     <div id="credmodal-name">Sitticus</div>
     <ul id="credmodal-list">
       <li><span class="cr-ic">🌐</span><a href="https://osintops.com" target="_blank" rel="noopener">osintops.com</a></li>
     </ul>
     <!-- author of the original program: attribution required by the NOTICE (point 1(b)) -->
     <div id="credmodal-orig">
-      <div class="credmodal-orig-role" data-i18n="credits.origRole">Progetto originale: OSInt Graph</div>
+      <div class="credmodal-orig-role" data-i18n="credits.origRole">Original project: OSInt Graph</div>
       <div class="credmodal-orig-name">Andrea Cumini</div>
       <ul class="credmodal-orig-list">
         <li><span class="cr-ic">✉</span><a href="mailto:andrea@osintinfo.net">andrea@osintinfo.net</a></li>
@@ -1014,25 +1014,25 @@
     <div id="modal-body"></div>
     <div id="modal-src" hidden>
       <div class="src-head">
-        <span class="src-h-t" data-i18n="src.inSources">Ricerca nelle fonti</span>
+        <span class="src-h-t" data-i18n="src.inSources">Search in sources</span>
         <label class="src-mode"><input type="checkbox" id="srcExact">
-          <span data-i18n="src.exact">parola intera</span></label>
+          <span data-i18n="src.exact">whole word</span></label>
       </div>
       <div id="modal-src-res" class="src-res"></div>
     </div>
     <div id="modal-foot">
       <button id="modal-exp"></button>
-      <button id="modal-focus" data-i18n="modal.focus">Centra nel grafo</button>
-      <button id="modal-src-btn" data-i18n="modal.searchSrc">🔎 Cerca nelle fonti</button>
+      <button id="modal-focus" data-i18n="modal.focus">Center in graph</button>
+      <button id="modal-src-btn" data-i18n="modal.searchSrc">Search sources</button>
       <button id="modal-osa" data-i18n="modal.osa" hidden>🌐 OpenSanctions</button>
       <button id="modal-ep" data-i18n="modal.ep" hidden>🔍 Epieos</button>
-      <button id="modal-add" data-i18n="modal.add">➕ Aggiungi</button>
-      <button id="modal-ai" data-i18n="modal.importAi">✨ Importa con AI</button>
-      <button id="modal-rename" data-i18n="modal.rename">✏️ Rinomina</button>
-      <button id="modal-edit" data-i18n="modal.edit">🛠 Modifica valori</button>
-      <button id="modal-note" data-i18n="modal.note">📝 Nota</button>
-      <button id="modal-pdf" data-i18n="modal.pdf">📄 PDF</button>
-      <button id="modal-del" class="danger" data-i18n="modal.delete">🗑 Elimina nodo</button>
+      <button id="modal-add" data-i18n="modal.add">Add</button>
+      <button id="modal-ai" data-i18n="modal.importAi">Import with AI</button>
+      <button id="modal-rename" data-i18n="modal.rename">Rename</button>
+      <button id="modal-edit" data-i18n="modal.edit">Edit values</button>
+      <button id="modal-note" data-i18n="modal.note">Note</button>
+      <button id="modal-pdf" data-i18n="modal.pdf">PDF</button>
+      <button id="modal-del" class="danger" data-i18n="modal.delete">Delete node</button>
     </div>
   </div>
 </div>

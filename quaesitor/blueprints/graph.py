@@ -42,7 +42,7 @@ def api_graph():
         g["translit_mode"] = translit_mode()
         return jsonify(g)
     except Exception as e:
-        logging.error("Errore in /api/graph", exc_info=True)
+        logging.error("Error in /api/graph", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
 
@@ -55,10 +55,10 @@ def api_reload():
         _cache["key"] = None
         g = dict(current_graph())
         g["translit_mode"] = translit_mode()
-        logging.info(f"Dati ricaricati: {len(g['nodes'])} nodi, {len(g['edges'])} archi")
+        logging.info(f"Data reloaded: {len(g['nodes'])} nodes, {len(g['edges'])} links")
         return jsonify(g)
     except Exception as e:
-        logging.error("Errore in /api/reload", exc_info=True)
+        logging.error("Error in /api/reload", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
 
@@ -69,14 +69,14 @@ def api_note():
     nid = str(data.get("id") or "").strip()
     text = str(data.get("note") or "").strip()
     if not nid:
-        return jsonify({"error": "id mancante"}), 400
+        return jsonify({"error": "id missing"}), 400
     ann = load_annotations()
     if text:
         ann["notes"][nid] = text[:4000]
     else:
         ann["notes"].pop(nid, None)
     if not save_annotations(ann):
-        return jsonify({"error": "salvataggio fallito"}), 500
+        return jsonify({"error": "saving failed"}), 500
     return jsonify({"ok": True, "id": nid, "note": text})
 
 
@@ -92,7 +92,7 @@ def api_node_label():
     nid = str(data.get("id") or "").strip()
     label = re.sub(r"\s+", " ", str(data.get("label") or "")).strip()[:300]
     if not nid:
-        return jsonify({"error": "id mancante"}), 400
+        return jsonify({"error": "id missing"}), 400
 
     ann = load_annotations()
     labels = ann.setdefault("labels", {})
@@ -105,7 +105,7 @@ def api_node_label():
         if prima is not None and nid not in labels:
             nid = prima["id"]
     if prima is None:
-        return jsonify({"error": "nodo non trovato"}), 404
+        return jsonify({"error": "node not found"}), 404
 
     if label and label != _flat(prima.get("label")):
         labels[nid] = {"label": label,
@@ -119,7 +119,7 @@ def api_node_label():
         for k in [nid] + list(prima.get("alias_ids") or []):
             labels.pop(k, None)
     if not save_annotations(ann):
-        return jsonify({"error": "salvataggio fallito"}), 500
+        return jsonify({"error": "saving failed"}), 500
     if label:
         _translit_new_labels([label])
 
@@ -128,10 +128,10 @@ def api_node_label():
     if node is None:                               # the card was merged into another one
         node = next((n for n in dopo["nodes"] if nid in (n.get("alias_ids") or [])), None)
     if node is None:
-        return jsonify({"error": "nodo non trovato dopo la modifica"}), 404
+        return jsonify({"error": "node not found after the change"}), 404
     fusa = node["id"] != nid
-    logging.info(f"Etichetta modificata: {nid} -> '{label}'"
-                 + (f" (fusa in {node['id']})" if fusa else ""))
+    logging.info(f"Label edited: {nid} -> '{label}'"
+                 + (f" (merged into {node['id']})" if fusa else ""))
     return jsonify({"ok": True, "id": node["id"], "asked": nid,
                     "label": node.get("label"), "merged": fusa,
                     "reset": not label})
@@ -144,7 +144,7 @@ def api_node_delete():
     data = request.get_json(silent=True) or {}
     nid = str(data.get("id") or "").strip()
     if not nid:
-        return jsonify({"error": "id mancante"}), 400
+        return jsonify({"error": "id missing"}), 400
     ann = load_annotations()
     # All the ids merged into the node (cards of a place, merged aliases): they
     # are taken from the graph, not from the client. Without this, deleting a place
@@ -173,11 +173,11 @@ def api_node_delete():
         # (a data node would take precedence): then it is gone
         if node is None or node.get("manual") or not data_ids:
             if not save_annotations(ann):
-                return jsonify({"error": "salvataggio fallito"}), 500
+                return jsonify({"error": "saving failed"}), 500
             # the imported JSON attached to the node (the target) go with it
             n_imp = store.delete_imports_of(group)
-            logging.info(f"Nodo manuale eliminato: {nid} ({len(manual)} voci, "
-                         f"{n_imp} JSON importati)")
+            logging.info(f"Manual node deleted: {nid} ({len(manual)} entries, "
+                         f"{n_imp} imported JSON)")
             return jsonify({"ok": True, "id": nid, "manual": True, "removed": len(manual),
                             "imports": n_imp})
         # data node with cards added by hand: the cards are deleted, the data
@@ -202,8 +202,8 @@ def api_node_delete():
             ann["deleted"].append(dict(entry, id=a, label=f"{entry['label']} (alias)"))
     ann["notes"].pop(nid, None)
     if not save_annotations(ann):
-        return jsonify({"error": "salvataggio fallito"}), 500
-    logging.info(f"Nodo cancellato dall'utente: {nid}")
+        return jsonify({"error": "saving failed"}), 500
+    logging.info(f"Node deleted by the user: {nid}")
     return jsonify({"ok": True, "id": nid, "deleted": len(ann["deleted"])})
 
 
@@ -246,11 +246,11 @@ def api_node_add():
             if parent:
                 entry["edge_id"] = edge_id
                 _store_props(entry, props, "edge_")
-                edge = manual_edge(parent, same, "manuale", edge_id=edge_id, props=props)
+                edge = manual_edge(parent, same, "manual", edge_id=edge_id, props=props)
             ann["added"].append(entry)
             if not save_annotations(ann):
-                return jsonify({"error": "salvataggio fallito"}), 500
-            logging.info(f"Nuova scheda nel nodo {same} (voce {rid})")
+                return jsonify({"error": "saving failed"}), 500
+            logging.info(f"New card in node {same} (entry {rid})")
             node = next((n for n in current_graph()["nodes"] if n["id"] == same), None)
             return jsonify({"ok": True, "id": same, "label": (node or {}).get("label"),
                             "platform": platform, "script": "", "node": node,
@@ -273,20 +273,20 @@ def api_node_add():
         _store_props(link_entry, props)
         ann["links"].append(link_entry)
         entry = existing_entry or {"id": nid, "label": label}
-        edge = manual_edge(parent, nid, "collegamento", edge_id=edge_id, props=props)
-        logging.info(f"Collegamento manuale aggiuntivo creato: {parent} -> {nid} (arco: {edge_id})")
+        edge = manual_edge(parent, nid, "manual_link", edge_id=edge_id, props=props)
+        logging.info(f"Further manual link created: {parent} -> {nid} (link: {edge_id})")
     else:
         ann["deleted"] = [x for x in ann["deleted"] if str(x.get("id")) != nid]
         entry = new_added_entry(nid, label, platform, ntype, value, data, parent, now)
         if parent:
             entry["edge_id"] = edge_id
             _store_props(entry, props, "edge_")
-            edge = manual_edge(parent, nid, "manuale", edge_id=edge_id, props=props)
+            edge = manual_edge(parent, nid, "manual", edge_id=edge_id, props=props)
         ann["added"].append(entry)
-        logging.info(f"Nodo aggiunto a mano: {nid}" + (f" -> {parent}" if parent else " (indipendente)"))
+        logging.info(f"Node added by hand: {nid}" + (f" -> {parent}" if parent else " (standalone)"))
 
     if not save_annotations(ann):
-        return jsonify({"error": "salvataggio fallito"}), 500
+        return jsonify({"error": "saving failed"}), 500
 
     scr = _translit_new_labels([entry["label"]])
     # the client inserts the node into the graph without reloading the page; if there
@@ -322,16 +322,16 @@ def api_upload():
     raw = str(data.get("data") or "")
     m = re.match(r"^data:image/[\w.+-]+;base64,(.+)$", raw, re.S)
     if not m:
-        return jsonify({"error": "immagine mancante o formato non riconosciuto"}), 400
+        return jsonify({"error": "image missing or format not recognised"}), 400
     try:
         blob = base64.b64decode(m.group(1), validate=True)
     except Exception:
-        return jsonify({"error": "immagine illeggibile"}), 400
+        return jsonify({"error": "unreadable image"}), 400
     if len(blob) > MAX_IMAGE_BYTES:
-        return jsonify({"error": f"immagine troppo grande (max {MAX_IMAGE_BYTES // (1024*1024)} MB)"}), 400
+        return jsonify({"error": f"image too large: max {MAX_IMAGE_BYTES // (1024*1024)} MB"}), 400
     ext = _sniff_image(blob)
     if not ext:
-        return jsonify({"error": "il file non è un'immagine valida"}), 400
+        return jsonify({"error": "the file is not a valid image"}), 400
 
     mdir = os.path.join(DATA_DIR, MEDIA_DIRNAME)
     os.makedirs(mdir, exist_ok=True)
@@ -342,11 +342,11 @@ def api_upload():
         with open(os.path.join(mdir, fname), "wb") as f:
             f.write(blob)
     except Exception as e:
-        logging.error(f"Salvataggio immagine fallito: {e}")
-        return jsonify({"error": "salvataggio dell'immagine fallito"}), 500
+        logging.error(f"Saving the image failed: {e}")
+        return jsonify({"error": "saving the image failed"}), 500
 
     rel = f"{MEDIA_DIRNAME}/{fname}"
-    logging.info(f"Immagine salvata: {rel} ({len(blob)} byte)")
+    logging.info(f"Image saved: {rel} ({len(blob)} bytes)")
     return jsonify({"ok": True, "path": rel, "url": "/media/" + quote(rel),
                     "size": len(blob)})
 
@@ -358,9 +358,9 @@ def api_link_add():
     ids = [str(x) for x in (data.get("ids") or []) if str(x).strip()]
     ids = list(dict.fromkeys(ids))                       # without duplicates, stable order
     if len(ids) < 2:
-        return jsonify({"error": "servono almeno due nodi"}), 400
+        return jsonify({"error": "at least two nodes are needed"}), 400
     if len(ids) > 60:
-        return jsonify({"error": "troppi nodi selezionati (max 60)"}), 400
+        return jsonify({"error": "too many nodes selected (max 60)"}), 400
 
     props = edge_props(data)
 
@@ -380,14 +380,14 @@ def api_link_add():
         link_entry = {"id": eid, "a": a, "b": b, "at": now}
         _store_props(link_entry, props)
         ann["links"].append(link_entry)
-        edges.append(manual_edge(a, b, "collegamento", edge_id=eid, props=props))
+        edges.append(manual_edge(a, b, "manual_link", edge_id=eid, props=props))
         created += 1
 
     if created and not save_annotations(ann):
-        return jsonify({"error": "salvataggio fallito"}), 500
-    logging.info(f"Collegamenti manuali creati: {created} su {len(ids)} nodi")
+        return jsonify({"error": "saving failed"}), 500
+    logging.info(f"Manual links created: {created} among {len(ids)} nodes")
     return jsonify({"ok": True, "created": created,
-                    "coppie": len(ids) * (len(ids) - 1) // 2, "edges": edges})
+                    "pairs": len(ids) * (len(ids) - 1) // 2, "edges": edges})
 
 
 @bp.route("/api/link/delete", methods=["POST"])
@@ -397,7 +397,7 @@ def api_link_delete():
     eid = str(data.get("id") or data.get("edge_id") or "").strip()
     a, b = str(data.get("a") or "").strip(), str(data.get("b") or "").strip()
     if not eid and (not a or not b):
-        return jsonify({"error": "identificativo o coppia di nodi mancante"}), 400
+        return jsonify({"error": "id or pair of nodes missing"}), 400
 
     ann = load_annotations()
     before = len(ann["links"])
@@ -412,9 +412,9 @@ def api_link_delete():
         deleted_edge_id = deleted_edge_id or manual_edge(a, b)["id"]
 
     if len(ann["links"]) == before:
-        return jsonify({"error": "collegamento non trovato"}), 404
+        return jsonify({"error": "link not found"}), 404
     if not save_annotations(ann):
-        return jsonify({"error": "salvataggio fallito"}), 500
+        return jsonify({"error": "saving failed"}), 500
     return jsonify({"ok": True, "edge_id": deleted_edge_id})
 
 
@@ -429,7 +429,7 @@ def api_link_update():
     data = request.get_json(silent=True) or {}
     eid = str(data.get("id") or "").strip()
     if not eid:
-        return jsonify({"error": "id del collegamento mancante"}), 400
+        return jsonify({"error": "link id missing"}), 400
     ann = load_annotations()
     props = edge_props(data)
     reset = bool(data.get("reset"))
@@ -450,7 +450,7 @@ def api_link_update():
     else:
         g = current_graph()
         if not any(e["id"] == eid for e in g["edges"]):
-            return jsonify({"error": "collegamento non trovato"}), 404
+            return jsonify({"error": "link not found"}), 404
         styles = ann.setdefault("edge_styles", {})
         if reset:
             styles.pop(eid, None)
@@ -458,8 +458,8 @@ def api_link_update():
             styles[eid] = {k: v for k, v in props.items()
                            if v or (k == "bend" and props["curve"] in BEND_CURVES)}
     if not save_annotations(ann):
-        return jsonify({"error": "salvataggio fallito"}), 500
-    logging.info(f"Collegamento modificato ({kind}): {eid}")
+        return jsonify({"error": "saving failed"}), 500
+    logging.info(f"Link edited ({kind}): {eid}")
     return jsonify({"ok": True, "id": eid, "kind": kind, "props": props})
 
 
@@ -472,7 +472,7 @@ def api_node_edit():
     data = request.get_json(silent=True) or {}
     nid = str(data.get("id") or "").strip()
     if not nid:
-        return jsonify({"error": "id mancante"}), 400
+        return jsonify({"error": "id missing"}), 400
     ann = load_annotations()
     edits = ann.setdefault("edits", {})
     if data.get("reset"):
@@ -492,7 +492,7 @@ def api_node_edit():
         if "url" in data:
             url = str(data.get("url") or "").strip()[:1000]
             if url and not re.match(r"^https?://", url, re.I):
-                return jsonify({"error": "URL non valido (serve http:// o https://)"}), 400
+                return jsonify({"error": "invalid URL (http:// or https:// needed)"}), 400
             ed["url"] = url
         if not fields:
             ed.pop("fields", None)
@@ -501,8 +501,8 @@ def api_node_edit():
         if not ed:
             edits.pop(nid, None)
     if not save_annotations(ann):
-        return jsonify({"error": "salvataggio fallito"}), 500
-    logging.info(f"Valori del nodo modificati: {nid}")
+        return jsonify({"error": "saving failed"}), 500
+    logging.info(f"Node values edited: {nid}")
     return jsonify({"ok": True, "id": nid})
 
 
@@ -514,7 +514,7 @@ def api_node_target():
     data = request.get_json(silent=True) or {}
     nid = str(data.get("id") or "").strip()
     if not nid:
-        return jsonify({"error": "id mancante"}), 400
+        return jsonify({"error": "id missing"}), 400
     want = bool(data.get("target"))
     ann = load_annotations()
     targets = ann.setdefault("targets", {})
@@ -525,8 +525,8 @@ def api_node_target():
     else:
         targets[nid] = want
     if not save_annotations(ann):
-        return jsonify({"error": "salvataggio fallito"}), 500
-    logging.info(f"Nodo {nid}: target = {want}")
+        return jsonify({"error": "saving failed"}), 500
+    logging.info(f"Node {nid}: target = {want}")
     return jsonify({"ok": True, "id": nid, "target": want})
 
 
@@ -538,7 +538,7 @@ def api_node_sex():
     data = request.get_json(silent=True) or {}
     nid = str(data.get("id") or "").strip()
     if not nid:
-        return jsonify({"error": "id mancante"}), 400
+        return jsonify({"error": "id missing"}), 400
     sex = parse_sex(data.get("sex"))
     ann = load_annotations()
     sexes = ann.setdefault("sex", {})
@@ -552,7 +552,7 @@ def api_node_sex():
     else:
         sexes[nid] = sex
     if not save_annotations(ann):
-        return jsonify({"error": "salvataggio fallito"}), 500
+        return jsonify({"error": "saving failed"}), 500
     return jsonify({"ok": True, "id": nid, "sex": sex})
 
 
@@ -582,19 +582,19 @@ def api_node_remove_manual():
     data = request.get_json(silent=True) or {}
     nid = str(data.get("id") or "").strip()
     if not nid:
-        return jsonify({"error": "id mancante"}), 400
+        return jsonify({"error": "id missing"}), 400
     ann = load_annotations()
     before = len(ann["added"])
     ann["added"] = [x for x in ann["added"] if str(x.get("id")) != nid]
     if len(ann["added"]) == before:
-        return jsonify({"error": "nodo manuale non trovato"}), 404
+        return jsonify({"error": "manual node not found"}), 404
     ann["links"] = [x for x in ann["links"]
                     if nid not in (str(x.get("a")), str(x.get("b")))]
     ann["notes"].pop(nid, None)
     ann.get("labels", {}).pop(nid, None)
     if not save_annotations(ann):
-        return jsonify({"error": "salvataggio fallito"}), 500
-    logging.info(f"Nodo manuale rimosso: {nid}")
+        return jsonify({"error": "saving failed"}), 500
+    logging.info(f"Manual node removed: {nid}")
     return jsonify({"ok": True, "id": nid})
 
 
@@ -619,12 +619,12 @@ def api_node_restore():
     else:
         nid = str(data.get("id") or "").strip()
         if not nid:
-            return jsonify({"error": "id mancante"}), 400
+            return jsonify({"error": "id missing"}), 400
         ann["deleted"] = [x for x in ann["deleted"] if str(x.get("id")) != nid]
     after = deleted_ids(ann)
     back = before - after                       # ids actually restored
     if not save_annotations(ann):
-        return jsonify({"error": "salvataggio fallito"}), 500
+        return jsonify({"error": "saving failed"}), 500
 
     nodes, edges = [], []
     if back:
@@ -654,9 +654,9 @@ def api_views_save():
     name = re.sub(r"\s+", " ", str(data.get("name") or "").strip())[:80]
     view = data.get("view")
     if not name:
-        return jsonify({"error": "nome mancante"}), 400
+        return jsonify({"error": "name missing"}), 400
     if not isinstance(view, dict):
-        return jsonify({"error": "vista non valida"}), 400
+        return jsonify({"error": "invalid view"}), 400
     views = store.load_views()
     at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     count = len(view.get("nodes") or [])
@@ -666,9 +666,9 @@ def api_views_save():
     try:
         store.save_view({"id": vid, "name": name, "at": at, "count": count, "view": view})
     except Exception as e:
-        logging.error(f"Salvataggio vista fallito: {e}")
-        return jsonify({"error": "salvataggio fallito"}), 500
-    logging.info(f"Vista salvata: {name} ({count} nodi)")
+        logging.error(f"Saving the view failed: {e}")
+        return jsonify({"error": "saving failed"}), 500
+    logging.info(f"View saved: {name} ({count} nodes)")
     return jsonify({"ok": True, "id": vid, "name": name, "at": at,
                     "count": count, "overwritten": bool(existing)})
 
@@ -680,7 +680,7 @@ def api_views_load():
     vid = str(data.get("id") or "").strip()
     v = store.get_view(vid)
     if not v:
-        return jsonify({"error": "vista non trovata"}), 404
+        return jsonify({"error": "view not found"}), 404
     return jsonify({"ok": True, "id": v["id"], "name": v.get("name") or v["id"],
                     "view": v.get("view") or {}})
 
@@ -691,6 +691,6 @@ def api_views_delete():
     data = request.get_json(silent=True) or {}
     vid = str(data.get("id") or "").strip()
     if not store.delete_view(vid):
-        return jsonify({"error": "vista non trovata"}), 404
-    logging.info(f"Vista eliminata: {vid}")
+        return jsonify({"error": "view not found"}), 404
+    logging.info(f"View deleted: {vid}")
     return jsonify({"ok": True, "id": vid})

@@ -34,17 +34,17 @@ def read_table(filename, blob):
         try:
             return ftm.entities_to_rows(blob, native_types=onto.TYPES)
         except ValueError as e:
-            raise NodeError(f"file Follow the Money: {e}")
+            raise NodeError(f"Follow the Money file: {e}")
     if name.endswith((".xlsx", ".xlsm")) or blob[:2] == b"PK":
         try:
             import openpyxl
         except ImportError:
-            raise NodeError("per leggere i file Excel serve il modulo openpyxl")
+            raise NodeError("reading Excel files needs the openpyxl module")
         import io
         try:
             wb = openpyxl.load_workbook(io.BytesIO(blob), read_only=True, data_only=True)
         except Exception as e:
-            raise NodeError(f"file Excel illeggibile: {e}")
+            raise NodeError(f"unreadable Excel file: {e}")
         for ws in wb.worksheets:               # the first sheet with data
             rows = []
             for r in ws.iter_rows(values_only=True):
@@ -59,7 +59,7 @@ def read_table(filename, blob):
                 return rows
         return []
     if name.endswith(".xls"):
-        raise NodeError("il vecchio formato .xls non e' supportato: salva il file come .xlsx o .csv")
+        raise NodeError("the old .xls format is not supported: save the file as .xlsx or .csv")
     import csv
     import io
     for enc in ("utf-8-sig", "cp1252", "latin-1"):
@@ -82,7 +82,7 @@ def import_columns(table):
     """For the wizard: headers, samples and automatic mapping.
     'header' says whether the first row looks like a header."""
     if not table:
-        raise NodeError("il file e' vuoto")
+        raise NodeError("the file is empty")
     auto = map_header(table[0]) or {}
     width = max(len(r) for r in table[:50])
     first = table[0] + [""] * (width - len(table[0]))
@@ -122,20 +122,20 @@ def api_imports_add():
     filename = os.path.basename(str(data.get("filename") or "export.json"))[:200]
     content = str(data.get("content") or "")
     if not anchor:
-        return jsonify({"error": "scegli il nodo (target) a cui agganciare il file"}), 400
+        return jsonify({"error": "choose the node (target) to attach the file to"}), 400
     if len(content.encode("utf-8")) > IMPORT_MAX_MB * 1024 * 1024:
-        return jsonify({"error": f"file troppo grande (max {IMPORT_MAX_MB} MB)"}), 400
+        return jsonify({"error": f"file too large: max {IMPORT_MAX_MB} MB"}), 400
     node = next((n for n in current_graph()["nodes"]
                  if n["id"] == anchor or anchor in (n.get("alias_ids") or [])), None)
     if node is None:
-        return jsonify({"error": "nodo non trovato"}), 404
+        return jsonify({"error": "node not found"}), 404
     recs = [r for r in parse_records(content) if isinstance(r, dict)]
     if not recs:
-        return jsonify({"error": f"{filename}: nessun record JSON leggibile"}), 400
+        return jsonify({"error": f"no readable JSON record: {filename}"}), 400
     iid = store.add_import(node["id"], _flat(node.get("label")) or node["id"], filename,
                            content, len(recs), _truthy(data.get("dossier")),
                            node.get("ntype") or "generic", node.get("platform") or "generic")
-    logging.info(f"Importato {filename} ({len(recs)} record) su {node['id']}")
+    logging.info(f"Imported {filename} ({len(recs)} records) into {node['id']}")
     return jsonify({"ok": True, "id": iid, "records": len(recs), "anchor": node["id"]})
 
 
@@ -145,9 +145,9 @@ def api_imports_delete():
     try:
         iid = int(data.get("id"))
     except (TypeError, ValueError):
-        return jsonify({"error": "id mancante"}), 400
+        return jsonify({"error": "id missing"}), 400
     if not store.delete_import(iid):
-        return jsonify({"error": "import non trovato"}), 404
+        return jsonify({"error": "import not found"}), 404
     return jsonify({"ok": True, "id": iid})
 
 
@@ -189,6 +189,6 @@ def api_import_commit():
         res = commit_plan(plan, skip)
     except NodeError as e:
         return jsonify({"error": str(e)}), 400
-    logging.info(f"Importazione: {res['nodes']} nodi, {res['links']} collegamenti, "
-                 f"{len(res['errors'])} righe con errori")
+    logging.info(f"Import: {res['nodes']} nodes, {res['links']} links, "
+                 f"{len(res['errors'])} rows with errors")
     return jsonify(res)

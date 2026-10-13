@@ -210,7 +210,7 @@ def _image(path):
         # non-Latin alphabets are read; without language packs it stays eng.
         return pytesseract.image_to_string(Image.open(path), lang=OCR_LANG or None)
     except Exception as e:
-        logging.warning(f"OCR fallito su {path}: {e}")
+        logging.warning(f"OCR failed on {path}: {e}")
         return ""
 
 
@@ -231,7 +231,7 @@ def extract_text(path, ext):
         if ext in IMG_EXT:
             return _image(path)
     except Exception as e:
-        logging.warning(f"Estrazione fallita su {path}: {e}")
+        logging.warning(f"Extraction failed on {path}: {e}")
     return ""
 
 

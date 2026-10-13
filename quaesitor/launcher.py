@@ -113,11 +113,11 @@ class Launcher(tk.Tk):
         self.dot_id = self.dot.create_oval(1, 1, 9, 9, fill=DOT["stopped"], outline="")
         self.dot.pack(side="left", padx=(0, 6))
 
-        self.b_start = self._btn(bar, "▶", self.start, "Avvia il server")
-        self.b_stop = self._btn(bar, "■", self.stop, "Ferma il server")
-        self.b_open = self._btn(bar, "🌐", self.open_browser, f"Apri {URL}")
+        self.b_start = self._btn(bar, "▶", self.start, "Start the server")
+        self.b_stop = self._btn(bar, "■", self.stop, "Stop the server")
+        self.b_open = self._btn(bar, "🌐", self.open_browser, f"Open {URL}")
         tk.Frame(bar, width=1, bg=HOVER).pack(side="left", fill="y", padx=4, pady=2)
-        self._btn(bar, "✕", self.quit_app, "Chiudi il launcher")
+        self._btn(bar, "✕", self.quit_app, "Close the launcher")
 
         # dragging from the handle and the dot
         for w in (grip, self.dot, bar):
@@ -214,7 +214,7 @@ class Launcher(tk.Tk):
             return
         cmd = server_command()
         if not cmd:
-            self._show_tip(self.b_start, "app.py / Quaesitor non trovati")
+            self._show_tip(self.b_start, "app.py / Quaesitor not found")
             self.after(2500, self._hide_tip)
             return
         env = dict(os.environ, PORT=str(PORT), PYTHONUNBUFFERED="1",

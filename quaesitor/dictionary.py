@@ -47,7 +47,7 @@ def _resolve_onto(ntype, data, value):
     exhibit (new node)."""
     fields = onto_fields(ntype, data)
     if not fields:
-        raise NodeError("compila almeno un campo")
+        raise NodeError("fill in at least one field")
     ident = onto.ident_of(ntype, fields)
     nid = f"{ntype}:{ident}" if ident else f"{ntype}:#{uuid.uuid4().hex[:10]}"
     label = str(data.get("label") or "").strip() or onto.label_of(ntype, fields)
@@ -66,22 +66,22 @@ def resolve_node(data, parent=""):
     platform = str(data.get("platform") or "").strip().lower()
     if ntype in ("name", "target", "person"):
         # person: surname and first name (or the full name in 'value') + birth
-        cognome = re.sub(r"\s+", " ", str(data.get("cognome") or "")).strip()
-        nome = re.sub(r"\s+", " ", str(data.get("nome") or "")).strip()
-        value = f"{cognome} {nome}".strip() or value
+        surname = re.sub(r"\s+", " ", str(data.get("surname") or "")).strip()
+        given = re.sub(r"\s+", " ", str(data.get("given_name") or "")).strip()
+        value = f"{surname} {given}".strip() or value
         ntype = "name"
     if ntype in onto.TYPES:
         return _resolve_onto(ntype, data, value)
     if not value and ntype != "text":
-        raise NodeError("valore mancante")
+        raise NodeError("value missing")
     if ntype == "phone":
         digits = re.sub(r"\D", "", value)
         if len(digits) < 6:
-            raise NodeError("numero di telefono non valido")
+            raise NodeError("invalid phone number")
         nid, label, platform = "phone:" + digits, value, "phone"
     elif ntype == "email":
         if "@" not in value or "." not in value.split("@")[-1]:
-            raise NodeError("indirizzo email non valido")
+            raise NodeError("invalid email address")
         nid, label, platform = "email:" + value.lower(), value, "email"
     elif ntype == "username":
         value = value.lstrip("@")
@@ -89,41 +89,41 @@ def resolve_node(data, parent=""):
         platform = platform or "username"
     elif ntype == "name":
         if len(value) < 2 or not person_key(value):
-            raise NodeError("nome troppo corto")
-        nascita = parse_birth(data.get("nascita"))
-        nid, label, platform = person_id(value, nascita), person_label(value, nascita), "name"
+            raise NodeError("name too short")
+        birth = parse_birth(data.get("birth"))
+        nid, label, platform = person_id(value, birth), person_label(value, birth), "name"
     elif ntype == "place":
         # place: city (required) + optional street, house number and coordinates
-        citta = value
-        street, civico = _via_civico(data)
-        via = f"{street} {civico}".strip()
+        city = value
+        street, number = _via_civico(data)
+        via = f"{street} {number}".strip()
         lat = str(data.get("lat") or "").strip().replace(",", ".")
         lon = str(data.get("lon") or "").strip().replace(",", ".")
-        for c, nome in ((lat, "latitudine"), (lon, "longitudine")):
+        for c, what in ((lat, "latitude"), (lon, "longitude")):
             if c and not re.fullmatch(r"-?\d{1,3}(\.\d+)?", c):
-                raise NodeError(f"{nome} non valida")
+                raise NodeError(f"invalid {what}")
         if (lat and not lon) or (lon and not lat):
-            raise NodeError("servono sia latitudine sia longitudine")
+            raise NodeError("both latitude and longitude are needed")
         if lat and not (-90 <= float(lat) <= 90):
-            raise NodeError("latitudine fuori intervallo (-90..90)")
+            raise NodeError("latitude out of range (-90..90)")
         if lon and not (-180 <= float(lon) <= 180):
-            raise NodeError("longitudine fuori intervallo (-180..180)")
-        chiave = re.sub(r"\s+", " ", f"{citta} {via}".strip().casefold()).strip()
+            raise NodeError("longitude out of range (-180..180)")
+        chiave = re.sub(r"\s+", " ", f"{city} {via}".strip().casefold()).strip()
         # as in the graph: a generic city stays tied to the card it started
         # from; only a location (address or coordinates) can be shared
         # between different cards
-        if not parent or place_is_address(f"{citta} {via}".strip(), lat, lon,
+        if not parent or place_is_address(f"{city} {via}".strip(), lat, lon,
                                           "address" if via else ""):
             nid = "place:" + chiave
         else:
             nid = f"place:{parent}|{chiave}"
         label = str(data.get("label") or "").strip() or \
-            (f"{citta} — {via}" if via else citta)
+            (f"{city} — {via}" if via else city)
         platform = "place"
     elif ntype == "vehicle":
         targa = re.sub(r"\s+", "", value).upper()
         if len(targa) < 3:
-            raise NodeError("targa non valida")
+            raise NodeError("invalid licence plate")
         nid = "vehicle:" + targa
         value = targa                       # 'ab 123 cd' -> 'AB123CD'
         label = str(data.get("label") or "").strip() or value
@@ -132,33 +132,33 @@ def resolve_node(data, parent=""):
         # free note: the label is the title, the body goes in the card
         titolo = str(data.get("label") or value).strip()
         if not titolo:
-            raise NodeError("titolo mancante")
+            raise NodeError("title missing")
         nid = "text:" + re.sub(r"[^a-z0-9]+", "-", titolo.lower()).strip("-")[:60]
         label, platform, value = titolo, "text", value or titolo
     elif ntype == "photo":
         # 'value' is the relative path returned by /api/upload
         rel = value.replace("\\", "/").lstrip("/")
         if not rel.lower().startswith("media/") or not rel.lower().endswith(PHOTO_EXT):
-            raise NodeError("immagine non valida")
+            raise NodeError("invalid image")
         if not os.path.isfile(os.path.join(DATA_DIR, *rel.split("/"))):
-            raise NodeError("immagine non trovata sul server")
+            raise NodeError("image not found on the server")
         nid = "photo:" + rel.lower()
         label = str(data.get("label") or "").strip() or photo_label(os.path.basename(rel))
         platform = "photo"
     elif ntype == "link":
         # generic link: any URL with a label of choice
         if not re.match(r"^https?://\S+$", value, re.I):
-            raise NodeError("indirizzo non valido (serve http:// o https://)")
+            raise NodeError("invalid address (http:// or https:// needed)")
         nid = "link:" + value.rstrip("/").lower()
         label = str(data.get("label") or "").strip() or value
         platform = "link"
     elif ntype == "account":
         if not platform:
-            raise NodeError("piattaforma non riconosciuta")
+            raise NodeError("platform not recognised")
         value = value.lstrip("@")
         nid, label = f"acct:{platform}:{value.lower()}", value
     else:
-        raise NodeError(f"tipo non supportato: {ntype}")
+        raise NodeError(f"unsupported type: {ntype}")
     return nid, label, platform, ntype, value
 
 
@@ -188,13 +188,13 @@ def _via_civico(data):
     """(street, house number) of a request: the number from its own field or,
     if missing, split off the end of the address ('Via Roma 12' -> 'Via Roma', '12')."""
     addr = re.sub(r"\s+", " ", str(data.get("address") or "")).strip(" ,")
-    civ = re.sub(r"\s+", "", str(data.get("civico") or ""))
+    civ = re.sub(r"\s+", "", str(data.get("house_number") or ""))
     civ = re.sub(r"^(?:n|nr|no|num|numero|civico)\.?", "", civ, flags=re.I)
     street, c2 = split_civico(addr)
     if civ and c2 and norm_civico(civ) != norm_civico(c2):
         street = addr                       # the number in the address is not the house number
     # street type chosen from the drop-down: prepended if the name has none already
-    tipo = re.sub(r"\s+", " ", str(data.get("toponimo") or "")).strip()
+    tipo = re.sub(r"\s+", " ", str(data.get("street_type") or "")).strip()
     if tipo and street and not _TYPE_HEAD.match(_fold(street)) \
             and _fold(tipo) in STREET_TYPES:
         street = f"{tipo} {street}"
@@ -206,7 +206,7 @@ def new_added_entry(nid, label, platform, ntype, value, data, parent, now):
     entry = {
         "id": nid, "label": str(data.get("label") or label)[:300], "ntype": ntype,
         "platform": platform, "parent": parent, "value": value,
-        "url": str(data.get("url") or "")[:500], "rel": "manuale", "at": now,
+        "url": str(data.get("url") or "")[:500], "rel": "manual", "at": now,
     }
     if data.get("text"):
         entry["text"] = str(data["text"])[:20000]
@@ -220,29 +220,29 @@ def new_added_entry(nid, label, platform, ntype, value, data, parent, now):
     if ntype in onto.TYPES:
         entry["fields"] = onto_fields(ntype, data)
     if ntype == "vehicle":
-        colore = re.sub(r"\s+", " ", str(data.get("colore") or "")).strip()[:40]
-        if colore:
-            entry["colore"] = colore[:1].upper() + colore[1:]    # in the card only
+        color = re.sub(r"\s+", " ", str(data.get("color") or "")).strip()[:40]
+        if color:
+            entry["color"] = color[:1].upper() + color[1:]      # in the card only
     if ntype == "name":
-        for k in ("cognome", "nome"):
+        for k in ("surname", "given_name"):
             v = re.sub(r"\s+", " ", str(data.get(k) or "")).strip()[:120]
             if v:
                 entry[k] = v
-        nascita = parse_birth(data.get("nascita"))
-        if nascita:
-            entry["nascita"] = nascita
+        birth = parse_birth(data.get("birth"))
+        if birth:
+            entry["birth"] = birth
         sex = parse_sex(data.get("sex"))
         if sex:
             entry["sex"] = sex
         if _truthy(data.get("target")):
             entry["target"] = True           # highlighted as target
     if ntype == "place":
-        entry["citta"] = value
-        street, civico = _via_civico(data)
+        entry["city"] = value
+        street, number = _via_civico(data)
         if street:
-            entry["indirizzo"] = street[:300]
-        if civico:
-            entry["civico"] = civico[:20]
+            entry["address"] = street[:300]
+        if number:
+            entry["house_number"] = number[:20]
         if data.get("lat") and data.get("lon"):
             entry["lat"] = str(data["lat"]).replace(",", ".")
             entry["lon"] = str(data["lon"]).replace(",", ".")
@@ -250,7 +250,7 @@ def new_added_entry(nid, label, platform, ntype, value, data, parent, now):
             entry["url"] = ("https://www.google.com/maps/search/?api=1&query="
                             f"{entry['lat']},{entry['lon']}")
         elif not entry.get("url"):
-            entry["url"] = maps_url(value, street, civico)
+            entry["url"] = maps_url(value, street, number)
     return entry
 
 

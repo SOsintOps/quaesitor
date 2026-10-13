@@ -50,7 +50,7 @@ def _load_chatbot_conf():
     except FileNotFoundError:
         pass
     except Exception as e:
-        logging.error(f"chatbot.conf illeggibile: {e}")
+        logging.error(f"chatbot.conf unreadable: {e}")
     for k in list(conf):
         env = os.environ.get("CHATBOT_" + k.upper())
         if env is not None:
@@ -139,8 +139,8 @@ def chatbot_probe():
 def _bot_down(motivo):
     _bot["down_until"] = time.time() + BOT_RETRY_AFTER
     _bot["reason"] = motivo
-    logging.warning(f"Chatbot non raggiungibile ({motivo}): "
-                    f"si prosegue senza, riprovo fra {BOT_RETRY_AFTER}s")
+    logging.warning(f"Chatbot not reachable ({motivo}): "
+                    f"going on without it, next try in {BOT_RETRY_AFTER}s")
 
 
 def chatbot_ask(prompt, force=False, json_mode=False, ignore_switch=False):
@@ -194,6 +194,6 @@ def chatbot_ask(prompt, force=False, json_mode=False, ignore_switch=False):
             _bot["reason"] = ""
             _bot["ok_at"] = time.time()
             return testo
-        ultimo = "risposta vuota"
-    _bot_down(ultimo or "nessuna risposta")
+        ultimo = "empty answer"
+    _bot_down(ultimo or "no answer")
     return None

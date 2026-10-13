@@ -154,13 +154,13 @@ def main():
         st, c = api(base, "/api/cases/add", {"name": "linux smoke"})
         step("create case", st == 200 and c.get("ok"), str(c.get("case", {}).get("id")))
 
-        st, n1 = api(base, "/api/node/add", {"ntype": "name", "cognome": "Rossi", "nome": "Mario"})
+        st, n1 = api(base, "/api/node/add", {"ntype": "name", "surname": "Rossi", "given_name": "Mario"})
         step("add person node", st == 200 and n1.get("ok"), n1.get("id", n1.get("error")))
         st, n2 = api(base, "/api/node/add", {"ntype": "email", "value": "mario.rossi@example.com", "parent": n1.get("id", "")})
         step("add e-mail node linked", st == 200 and n2.get("ok"), n2.get("id", n2.get("error")))
         st, n3 = api(base, "/api/node/add", {"ntype": "company", "value": "Delta Srl", "name": "Delta Srl", "parent": n1.get("id", "")})
         step("add FtM company node", st == 200 and n3.get("ok"), n3.get("id", n3.get("error")))
-        st, n4 = api(base, "/api/node/add", {"ntype": "name", "cognome": "Петров", "nome": "Иван", "parent": n1.get("id", "")})
+        st, n4 = api(base, "/api/node/add", {"ntype": "name", "surname": "Петров", "given_name": "Иван", "parent": n1.get("id", "")})
         step("add Cyrillic name (transliteration)", st == 200 and n4.get("ok"), str(n4.get("label") or n4.get("error")))
 
         csv = os.path.join(app_dir, "examples", "sample_import_en.csv")

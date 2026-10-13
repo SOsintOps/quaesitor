@@ -137,7 +137,7 @@ def merge_by_label(nodes, edges, renamed):
         ne = dict(e)
         ne["source"], ne["target"] = s, t
         new_edges.append(ne)
-    logging.info(f"Etichette modificate: {len(alias)} schede fuse in {len(fusioni)}")
+    logging.info(f"Edited labels: {len(alias)} cards merged into {len(fusioni)}")
     return {"nodes": out, "edges": new_edges}
 
 

@@ -27,6 +27,10 @@ bp = Blueprint("cases", __name__)
 # Each case has its own database (store.py): nodes, cards, links, notes, views
 # and imported JSON. The transliteration dictionary and the document index are
 # shared by all cases.
+OLD_CASE = {"error": "this case was written by Quaesitor 1.x and cannot be opened: "
+                     "rebuild it from its source files", "code": "case.old"}
+
+
 def _case_name(data, key="name"):
     return re.sub(r"\s+", " ", str(data.get(key) or "")).strip()[:120]
 
@@ -41,11 +45,11 @@ def api_cases_add():
     data = request.get_json(silent=True) or {}
     name = _case_name(data)
     if not name:
-        return jsonify({"error": "nome del caso mancante"}), 400
+        return jsonify({"error": "case name missing"}), 400
     c = store.create_case(name, str(data.get("description") or "")[:2000])
     store.open_case(c["id"])
     _cache["key"] = None
-    logging.info(f"Nuovo caso: {name} ({c['id']})")
+    logging.info(f"New case: {name} ({c['id']})")
     return jsonify({"ok": True, "case": c})
 
 
@@ -54,10 +58,10 @@ def api_cases_update():
     data = request.get_json(silent=True) or {}
     cid = str(data.get("id") or "")
     if not store.get_case(cid):
-        return jsonify({"error": "caso non trovato"}), 404
+        return jsonify({"error": "case not found"}), 404
     name = _case_name(data)
     if not name:
-        return jsonify({"error": "nome del caso mancante"}), 400
+        return jsonify({"error": "case name missing"}), 400
     c = store.update_case(cid, name, str(data.get("description") or "")[:2000])
     return jsonify({"ok": True, "case": c})
 
@@ -67,10 +71,13 @@ def api_cases_switch():
     data = request.get_json(silent=True) or {}
     cid = str(data.get("id") or "")
     if not store.case_exists(cid):
-        return jsonify({"error": "caso non trovato"}), 404
-    store.open_case(cid)
+        return jsonify({"error": "case not found"}), 404
+    try:
+        store.open_case(cid)
+    except store.OldCaseError:
+        return jsonify(OLD_CASE), 409
     _cache["key"] = None
-    logging.info(f"Caso aperto: {cid}")
+    logging.info(f"Case opened: {cid}")
     return jsonify({"ok": True, "case": store.get_case(cid)})
 
 
@@ -80,17 +87,18 @@ def api_cases_delete():
     data = request.get_json(silent=True) or {}
     cid = str(data.get("id") or "")
     if not store.get_case(cid):
-        return jsonify({"error": "caso non trovato"}), 404
+        return jsonify({"error": "case not found"}), 404
     was_current = cid == store.current_case()
     store.delete_case(cid)
     if was_current:
         # switch to another case; if it was the last one, none stays open
         # (the interface asks to create one)
-        altri = store.list_cases()
-        if altri:
-            store.open_case(altri[0]["id"])
+        for other in store.list_cases():
+            if not other["old"]:
+                store.open_case(other["id"])
+                break
         _cache["key"] = None
-    logging.info(f"Caso eliminato: {cid}")
+    logging.info(f"Case deleted: {cid}")
     return jsonify({"ok": True, "current": store.current_case()})
 
 
@@ -102,13 +110,16 @@ def api_cases_merge():
     ids = [str(x) for x in (data.get("ids") or []) if store.get_case(str(x))]
     ids = list(dict.fromkeys(ids))
     if len(ids) < 2:
-        return jsonify({"error": "scegli almeno due casi da unire"}), 400
+        return jsonify({"error": "choose at least two cases to merge"}), 400
     name = _case_name(data) or " + ".join(store.get_case(i)["name"] for i in ids)[:120]
-    c = store.merge_cases(ids, name, str(data.get("description") or "")[:2000])
+    try:
+        c = store.merge_cases(ids, name, str(data.get("description") or "")[:2000])
+    except store.OldCaseError:
+        return jsonify(OLD_CASE), 409
     store.open_case(c["id"])
     _cache["key"] = None
     if _truthy(data.get("delete_sources")):
         for i in ids:
             store.delete_case(i)
-    logging.info(f"Casi uniti in {name}: {ids}")
+    logging.info(f"Cases merged into {name}: {ids}")
     return jsonify({"ok": True, "case": c})

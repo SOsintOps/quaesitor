@@ -158,7 +158,7 @@ def parse_birth(value):
         if not (1850 <= d.year <= datetime.now().year):
             break
         return d.strftime("%Y-%m-%d")
-    raise NodeError("data di nascita non valida (es. 12/03/1980)")
+    raise NodeError("invalid date of birth (e.g. 12/03/1980)")
 
 
 SEX_WORDS = {
@@ -208,8 +208,8 @@ def link_persons(g):
         for a in nomi:
             for b in datate.get(k, []):
                 extra.append({"id": "pname-" + "-".join(sorted([_hash(a), _hash(b)])),
-                              "source": a, "target": b, "rel": "stesso_nome",
-                              "label": "stesso nome", "lstyle": "dashed", "auto": True})
+                              "source": a, "target": b, "rel": "same_name",
+                              "label": "same name", "lstyle": "dashed", "auto": True})
     if extra:
         g = {"nodes": g["nodes"], "edges": g["edges"] + extra}
     return g
@@ -346,16 +346,22 @@ def norm_city(city):
     return _fold(c)
 
 
+# card of a node added by hand (archive.manual_node): its collection and the
+# keys that place_parts and merge_places read; the interface translates them
+MANUAL_COLLECTION = "added by hand"
+CARD_CITY, CARD_ADDRESS, CARD_NUMBER, CARD_ADDED = "City", "Address", "House number", "Added on"
+
+
 def place_parts(node):
     """(city, street, house number) of a place node, None if it has no street.
-    Nodes added by hand: fields citta/indirizzo/civico. Nodes from the data:
-    free label 'Via Roma 12, Brescia' (or 'Brescia — Via Roma 12')."""
+    Nodes added by hand: City, Address and House number of their card. Nodes
+    from the data: free label 'Via Roma 12, Brescia' (or 'Brescia — Via Roma 12')."""
     raw = {}
     for r in node.get("records") or []:
-        if isinstance(r.get("raw"), dict) and r.get("collection") == "aggiunto a mano":
+        if isinstance(r.get("raw"), dict) and r.get("collection") == MANUAL_COLLECTION:
             raw = r["raw"]
             break
-    city, addr, civ = raw.get("citta"), raw.get("indirizzo"), raw.get("civico")
+    city, addr, civ = raw.get(CARD_CITY), raw.get(CARD_ADDRESS), raw.get(CARD_NUMBER)
     if not city:
         parts = [p.strip() for p in re.split(r"\s+[—–]\s+|,", str(node.get("label") or ""))
                  if p.strip()]
@@ -404,7 +410,7 @@ def merge_places(g):
         # (not an added card, id with '~'), then the oldest
         def _at(i):
             recs = by_id[i].get("records") or [{}]
-            return str((recs[0].get("raw") or {}).get("aggiunto_il") or "")
+            return str((recs[0].get("raw") or {}).get(CARD_ADDED) or "")
         ids.sort(key=lambda i: (bool(by_id[i].get("manual")), "~" in i,
                                 -len(by_id[i].get("records") or []), _at(i),
                                 -len(_flat(by_id[i].get("label"))), i))
@@ -463,8 +469,8 @@ def merge_places(g):
                  if len(ids) <= 6 else list(zip(ids, ids[1:])))
         for a, b in pairs:
             edges.append({"id": "street-" + "-".join(sorted([_hash(a), _hash(b)])),
-                          "source": a, "target": b, "rel": "stessa_via",
-                          "label": "stessa via", "lstyle": "dashed", "auto": True})
+                          "source": a, "target": b, "rel": "same_street",
+                          "label": "same street", "lstyle": "dashed", "auto": True})
     return {"nodes": nodes, "edges": edges}
 
 

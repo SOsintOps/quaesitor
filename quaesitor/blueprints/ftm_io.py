@@ -47,18 +47,18 @@ def _ftm_source(data):
     if path:
         path = os.path.abspath(os.path.expanduser(path))
         if not os.path.isfile(path):
-            raise NodeError(f"file non trovato: {path}")
+            raise NodeError(f"file not found: {path}")
         if ftm_bundle.is_bundle(path):
             return "bundle", path
         if os.path.getsize(path) > FTM_MAX_MB * 1024 * 1024:
-            raise NodeError(f"file troppo grande (max {FTM_MAX_MB} MB)")
+            raise NodeError(f"file too large: max {FTM_MAX_MB} MB")
         with open(path, "rb") as f:
             return "blob", f.read()
     blob = _decode_upload(data)
     if blob[:2] == b"PK" and ftm_bundle.is_bundle(blob):
         return "bundle", blob
     if len(blob) > FTM_MAX_MB * 1024 * 1024:
-        raise NodeError(f"file troppo grande (max {FTM_MAX_MB} MB)")
+        raise NodeError(f"file too large: max {FTM_MAX_MB} MB")
     return "blob", blob
 
 
@@ -76,7 +76,7 @@ def _run_bundle_import(src, opts):
             blob = b.entities_blob()
             opts = dict(opts, media=media, dataset=opts.get("dataset") or str(b.manifest.get("dataset") or ""))
     except Exception as e:
-        logging.error(f"Bundle FtM illeggibile: {e}")
+        logging.error(f"Unreadable FtM bundle: {e}")
         _ftm_job["error"] = str(e)
         _ftm_job["running"] = False
         _ftm_job["finished"] = True
@@ -100,7 +100,7 @@ def _run_ftm_import(blob, opts):
                                    max_entities=opts.get("max_entities", 0),
                                    connected_only=opts.get("connected_only", False))
         if not ents:
-            raise NodeError("nessuna entita' corrisponde ai filtri")
+            raise NodeError("no entity matches the filters")
         media = dict(opts.get("media") or {})
         for e in ents.values():
             # an Image exported by this program names a file already under DATA_DIR/media
@@ -125,10 +125,10 @@ def _run_ftm_import(blob, opts):
             _ftm_job["errors"] += len(res.get("errors") or [])
             _ftm_job["done"] = min(len(body), i + FTM_BATCH)
         _cache["key"] = None
-        logging.info(f"Importazione FtM: {_ftm_job['nodes']} nodi, {_ftm_job['links']} collegamenti, "
-                     f"{_ftm_job['updated']} aggiornati")
+        logging.info(f"FtM import: {_ftm_job['nodes']} nodes, {_ftm_job['links']} links, "
+                     f"{_ftm_job['updated']} updated")
     except Exception as e:
-        logging.error(f"Importazione FtM fallita: {e}", exc_info=not isinstance(e, NodeError))
+        logging.error(f"FtM import failed: {e}", exc_info=not isinstance(e, NodeError))
         _ftm_job["error"] = str(e)
     finally:
         _ftm_job["running"] = False
@@ -169,7 +169,7 @@ def api_ftm_import():
     except (NodeError, ValueError) as e:
         return jsonify({"error": str(e)}), 400
     if not store.current_case():
-        return jsonify({"error": "nessun caso aperto"}), 400
+        return jsonify({"error": "no case open"}), 400
     try:
         max_entities = max(0, int(data.get("max_entities") or 0))
     except (TypeError, ValueError):
@@ -180,7 +180,7 @@ def api_ftm_import():
             "dataset": str(data.get("dataset") or "")[:120]}
     with _ftm_lock:
         if _ftm_job["running"]:
-            return jsonify({"error": "importazione gia' in corso", "running": True}), 409
+            return jsonify({"error": "import already running", "running": True}), 409
         _ftm_job.update({"running": True, "finished": False, "error": "", "done": 0, "total": 0,
                          "nodes": 0, "links": 0, "updated": 0, "same_links": 0, "errors": 0,
                          "stage": "parse", "images": 0, "images_refused": 0, "transcripts": 0,
@@ -205,7 +205,7 @@ def api_ftm_export():
     only = {str(x) for x in (data.get("ids") or [])} or None
     g = current_graph()
     if g.get("no_case"):
-        return jsonify({"error": "nessun caso aperto"}), 400
+        return jsonify({"error": "no case open"}), 400
     ann = load_annotations()
     entries = {str(x.get("id")): x for x in ann["added"]}
     ents, summary = ftm.export_entities(g, entries, store.ftm_by_node(), only)
@@ -215,8 +215,8 @@ def api_ftm_export():
     if new_ids:                                     # re-importing the export lands on the same nodes
         store.ftm_set((f, n, sc, "export") for f, n, sc in new_ids)
     body = "".join(json.dumps(e, ensure_ascii=False) + "\n" for e in ents)
-    name = re.sub(r"[^A-Za-z0-9_-]+", "_", (store.get_case(store.current_case()) or {}).get("name") or "caso")
-    logging.info(f"Esportazione FtM: {summary['nodes']} nodi, {summary['links']} collegamenti")
+    name = re.sub(r"[^A-Za-z0-9_-]+", "_", (store.get_case(store.current_case()) or {}).get("name") or "case")
+    logging.info(f"FtM export: {summary['nodes']} nodes, {summary['links']} links")
     return Response(body, mimetype="application/json; charset=utf-8",
                     headers={"Content-Disposition": f"attachment; filename={name}.ftm.json",
                              "X-Ftm-Summary": json.dumps(summary)})

@@ -28,9 +28,9 @@ def test_every_sub_type_icon_is_installed():
     keys = set(json.loads((DEST / "index.json").read_text(encoding="utf-8")))
     for table in (onto.DRUG_ICONS, onto.DOC_ICONS, onto.FINDOC_ICONS, onto.LEGALDOC_ICONS, onto.DEVICE_ICONS):
         assert set(table.values()) <= keys, set(table.values()) - keys
-    assert onto.icon_of("drug", {"sostanza": "MDMA / Ecstasy"}) == "prescription-bottle-medical"
-    assert onto.icon_of("device", {"tipo": "Router / modem"}) == "router"
-    assert onto.icon_of("device", {"tipo": "Altro"}) == onto.TYPES["device"]["icon"]
+    assert onto.icon_of("drug", {"substance": "MDMA / Ecstasy"}) == "prescription-bottle-medical"
+    assert onto.icon_of("device", {"type": "Router / modem"}) == "router"
+    assert onto.icon_of("device", {"type": "Other"}) == onto.TYPES["device"]["icon"]
 
 
 def test_icons_are_square_with_transparent_corners():

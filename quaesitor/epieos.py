@@ -288,7 +288,7 @@ def to_records(obj):
                     orgs.append({"name": _s(c["name"]), "role": _s(c.get("title")), "period": _s(c.get("period"))})
             for sch in (data.get("schools") or []):
                 if isinstance(sch, dict) and _s(sch.get("name")):
-                    orgs.append({"name": _s(sch["name"]), "role": _s(sch.get("field")) or "studente",
+                    orgs.append({"name": _s(sch["name"]), "role": _s(sch.get("field")) or "student",
                                  "period": _s(sch.get("period")), "kind": "school"})
             if orgs:
                 rec["organizations"] = orgs

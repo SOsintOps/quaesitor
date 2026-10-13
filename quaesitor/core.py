@@ -81,9 +81,9 @@ def _decode_upload(data):
     try:
         blob = base64.b64decode(m.group(2)) if m else base64.b64decode(raw)
     except Exception:
-        raise NodeError("file illeggibile")
+        raise NodeError("unreadable file")
     if len(blob) > 20 * 1024 * 1024:
-        raise NodeError("file troppo grande (max 20 MB)")
+        raise NodeError("file too large: max 20 MB")
     return blob
 
 
@@ -106,7 +106,7 @@ FTM_BATCH = 2000
 def _ftm_blob(data):
     blob = _decode_upload(data)
     if len(blob) > FTM_MAX_MB * 1024 * 1024:
-        raise NodeError(f"file troppo grande (max {FTM_MAX_MB} MB)")
+        raise NodeError(f"file too large: max {FTM_MAX_MB} MB")
     return blob
 
 
@@ -146,7 +146,7 @@ def _load_kv_conf(path, defaults, env_prefix):
     except FileNotFoundError:
         pass
     except Exception as e:
-        logging.error(f"{os.path.basename(path)} illeggibile: {e}")
+        logging.error(f"{os.path.basename(path)} unreadable: {e}")
     for k in list(conf):
         env = os.environ.get(env_prefix + k.upper())
         if env is not None:
@@ -228,8 +228,8 @@ def _http_json_full(url, payload=None, headers=None, timeout=20, explain=None):
         except Exception:
             pass
         hdrs = dict(e.headers or {})
-        text = (explain or {}).get(e.code) or ({401: "chiave API mancante o non valida",
-                                                403: "chiave API mancante o non valida"}.get(e.code, ""))
+        text = (explain or {}).get(e.code) or ({401: "API key missing or invalid",
+                                                403: "API key missing or invalid"}.get(e.code, ""))
         if text:
             detail = text + (f" - {detail}" if detail else "")
         return None, f"HTTP {e.code} {e.reason}" + (f" - {detail}" if detail else ""), hdrs, e.code
@@ -238,11 +238,11 @@ def _http_json_full(url, payload=None, headers=None, timeout=20, explain=None):
     except Exception as e:
         return None, f"{type(e).__name__}: {e}", {}, 0
 
-_AI_TYPES = {"person": "persona", "organization": "organization", "organisation": "organization",
-             "company": "organization", "phone": "telefono", "email": "email",
+_AI_TYPES = {"person": "person", "organization": "organization", "organisation": "organization",
+             "company": "organization", "phone": "phone", "email": "email",
              "username": "username", "social": "social", "link": "link", "url": "link",
-             "website": "link", "place": "luogo", "address": "luogo", "location": "luogo",
-             "vehicle": "veicolo", "car": "veicolo", "text": "testo", "note": "testo"}
+             "website": "link", "place": "place", "address": "place", "location": "place",
+             "vehicle": "vehicle", "car": "vehicle", "text": "text", "note": "text"}
 _AI_TYPES.update({t: t for t in onto.TYPES})     # weapon, narcotic, cheque...
 
 

@@ -24,7 +24,8 @@ from . import ftm, store
 from .paths import BASE_DIR
 from .core import _hash, _scan, DATA_DIR
 from .transliteration import add_translit
-from .normalize import birth_it, link_persons, merge_places
+from .normalize import (birth_it, link_persons, merge_places, MANUAL_COLLECTION, CARD_CITY,
+                        CARD_ADDRESS, CARD_NUMBER, CARD_ADDED)
 from .identifiers import build_graph
 from .labels import _cache, data_signature, relabel
 
@@ -36,7 +37,7 @@ from .labels import _cache, data_signature, relabel
 # from third-party apps and the document index. Only the uploaded images
 # (data/media) and the AI configuration (chatbot.conf) remain on disk.
 store.init(DATA_DIR)
-logging.info(f"Archivio: {store.path() or 'nessun caso aperto'} (caso {store.current_case()})")
+logging.info(f"Archive: {store.path() or 'no case open'} (case {store.current_case()})")
 
 # Sources index (indexed documents): in the database, key 'sources_index'.
 SOURCES_BLOB = "sources_index"
@@ -48,10 +49,11 @@ SOURCES_DEFAULT = _src.sources_folder(BASE_DIR)
 try:
     os.makedirs(SOURCES_DEFAULT, exist_ok=True)
 except OSError as _e:
-    logging.warning(f"Impossibile creare la cartella fonti {SOURCES_DEFAULT}: {_e}")
+    logging.warning(f"Cannot create the sources folder {SOURCES_DEFAULT}: {_e}")
 _ocr_ok = _src.configure_ocr(BASE_DIR)   # look for a local Tesseract (tools/tesseract)
-logging.info(f"OCR {'attivo' if _ocr_ok else 'non disponibile'} "
-             f"(cerco Tesseract in {os.path.join(BASE_DIR, 'tools', 'tesseract')}; lingue: {_src.OCR_LANG or 'predefinita'})")
+logging.info(f"OCR {'on' if _ocr_ok else 'not available'} "
+             f"(Tesseract looked for in {os.path.join(BASE_DIR, 'tools', 'tesseract')}; "
+             f"languages: {_src.OCR_LANG or 'default'})")
 _sources_cache = {"idx": None}
 
 
@@ -95,7 +97,7 @@ def load_annotations():
     try:
         ann = store.load_annotations()
     except Exception as e:
-        logging.error(f"Annotazioni illeggibili: {e}")
+        logging.error(f"Unreadable annotations: {e}")
         ann = {"added": [], "links": [], "deleted": [], "notes": {}, "labels": {},
                "edits": {}, "edge_styles": {}}
     ann["labels"] = _clean_labels(ann.get("labels"))
@@ -110,7 +112,7 @@ def save_annotations(ann):
     try:
         return store.save_annotations(ann)
     except Exception as e:
-        logging.error(f"Impossibile salvare le annotazioni: {e}")
+        logging.error(f"Cannot save the annotations: {e}")
         return False
 
 
@@ -118,18 +120,18 @@ def manual_node(a, note=None):
     """Graph node corresponding to a manually added entry."""
     nid = str(a.get("id"))
     ntype = a.get("ntype") or "generic"
-    raw = {k: v for k, v in (("valore", a.get("value") if ntype not in onto.TYPES else None),
-                             ("cognome", a.get("cognome")), ("nome", a.get("nome")),
-                             ("data_nascita", birth_it(a.get("nascita") or "")),
-                             ("sesso", a.get("sex")),
-                             ("descrizione", a.get("label") if a.get("ntype") == "vehicle"
+    raw = {k: v for k, v in (("Value", a.get("value") if ntype not in onto.TYPES else None),
+                             ("Surname", a.get("surname")), ("Given name", a.get("given_name")),
+                             ("Date of birth", birth_it(a.get("birth") or "")),
+                             ("Sex", a.get("sex")),
+                             ("Description", a.get("label") if a.get("ntype") == "vehicle"
                               and a.get("label") != a.get("value") else None),
-                             ("colore", a.get("colore")), ("nota", a.get("note")),
-                             ("citta", a.get("citta")),
-                             ("indirizzo", a.get("indirizzo")), ("civico", a.get("civico")),
-                             ("latitudine", a.get("lat")), ("longitudine", a.get("lon")),
-                             ("url", a.get("url")), ("testo", a.get("text")),
-                             ("aggiunto_il", a.get("at"))) if v}
+                             ("Colour", a.get("color")), ("Note", a.get("note")),
+                             (CARD_CITY, a.get("city")),
+                             (CARD_ADDRESS, a.get("address")), (CARD_NUMBER, a.get("house_number")),
+                             ("Latitude", a.get("lat")), ("Longitude", a.get("lon")),
+                             ("url", a.get("url")), ("Text", a.get("text")),
+                             (CARD_ADDED, a.get("at"))) if v}
     # free columns of an imported file: in the card under the column name
     extra = a.get("extra") if isinstance(a.get("extra"), dict) else {}
     for k, v in extra.items():
@@ -148,8 +150,8 @@ def manual_node(a, note=None):
         "id": nid, "label": a.get("label") or nid,
         "ntype": ntype,
         "platform": a.get("platform") or "generic",
-        "image": img, "sources": ["manuale"],
-        "records": [{"collection": "aggiunto a mano",
+        "image": img, "sources": ["manual"],
+        "records": [{"collection": MANUAL_COLLECTION,
                      "images": [img] if img else [], "links": [], "raw": raw}],
         "aliases": [], "alias_ids": [], "merged": 1, "cards": 1, "manual": True,
     }
@@ -253,7 +255,7 @@ def manual_edge(parent, nid, rel=None, label="", arrow="none", curve="bezier",
     else:
         key = "-".join(sorted([_hash(parent), _hash(nid)]))
     p = props or edge_props({"label": label, "arrow": arrow, "curve": curve})
-    e = {"id": key, "source": parent, "target": nid, "rel": rel or "manuale",
+    e = {"id": key, "source": parent, "target": nid, "rel": rel or "manual",
          "manual": True}
     return _edge_with_props(e, p)
 
@@ -285,7 +287,7 @@ def _edge_with_props(e, p):
 
 
 _PATH_TOK = re.compile(r"([^.\[\]]+)|\[(\d+)\]")
-EXTRA_COLLECTION = "campi aggiunti"
+EXTRA_COLLECTION = "added fields"
 
 
 def _set_path(raw, path, value):
@@ -429,7 +431,7 @@ def apply_annotations(graph):
             node = dict(by_id[base])
             node["records"] = list(node.get("records") or []) + mine["records"]
             node["cards"] = len(node["records"])
-            node["sources"] = list(dict.fromkeys(list(node.get("sources") or []) + ["manuale"]))
+            node["sources"] = list(dict.fromkeys(list(node.get("sources") or []) + ["manual"]))
             if nid != base:
                 node["alias_ids"] = list(node.get("alias_ids") or []) + [nid]
                 node["merged"] = (node.get("merged") or 1) + 1
@@ -463,7 +465,7 @@ def apply_annotations(graph):
         a, b = scheda_di.get(a, a), scheda_di.get(b, b)
         if a in by_id and b in by_id and a != b:
             manual_edges.append(manual_edge(
-                a, b, "collegamento", edge_id=l.get("id") or l.get("edge_id"),
+                a, b, "manual_link", edge_id=l.get("id") or l.get("edge_id"),
                 props=edge_props(l)))
 
     alive = {n["id"] for n in nodes}
@@ -574,7 +576,7 @@ def _run_scan(folder):
                 ev["indexed"] = True
                 _scan["summary"] = {k: v for k, v in ev.items() if k != "phase"}
     except Exception as e:
-        logging.error(f"Scansione fonti fallita: {e}")
+        logging.error(f"Sources scan failed: {e}")
         _scan["error"] = str(e)
     finally:
         _scan["running"] = False

@@ -22,6 +22,11 @@ Each type describes in a single place:
     icon     the icon (Font Awesome Free, static/vendor/fa)
 
 Field types: text, number, date, select (options), check.
+
+Keys, labels and options are English: that is what is saved and compared. The
+interface shows them in its language through ontology_i18n; the input (forms,
+imports, AI) may still use the Italian keys and the options of any interface
+language: clean_fields brings them back to the English ones.
 """
 # "Quot homines, tot sententiae." (Terence, Phormio)
 # As many opinions as there are men.
@@ -30,379 +35,379 @@ import unicodedata
 
 # -------------------------------------------------------------- lists ---
 WEAPON_CATEGORIES = [
-    "Pistola semiautomatica", "Revolver", "Pistola mitragliatrice", "Fucile da caccia",
-    "Fucile a pompa", "Carabina", "Fucile di precisione", "Fucile d'assalto",
-    "Mitragliatrice", "Arma a salve / modificata", "Arma ad aria compressa",
-    "Arma artigianale", "Arma bianca (coltello, machete…)", "Balestra / arco",
-    "Storditore elettrico / spray", "Altro",
+    "Semi-automatic pistol", "Revolver", "Submachine gun", "Hunting rifle",
+    "Pump-action shotgun", "Carbine", "Sniper rifle", "Assault rifle",
+    "Machine gun", "Blank-firing / converted gun", "Air gun",
+    "Improvised / home-made gun", "Bladed weapon (knife, machete…)", "Crossbow / bow",
+    "Stun gun / spray", "Other",
 ]
 CALIBERS = [
-    "9x19 Parabellum", "9x21 IMI", "7,65 Browning (.32 ACP)", "6,35 Browning (.25 ACP)",
+    "9x19 Parabellum", "9x21 IMI", "7.65 Browning (.32 ACP)", "6.35 Browning (.25 ACP)",
     ".22 LR", ".38 Special", ".357 Magnum", ".44 Magnum", ".45 ACP", ".40 S&W",
-    "7,62x39", "5,56x45 NATO", "7,62x51 NATO (.308 Win)", ".30-06", "12 gauge",
-    "16 gauge", "20 gauge", "4,5 mm (aria compressa)",
+    "7.62x39", "5.56x45 NATO", "7.62x51 NATO (.308 Win)", ".30-06", "12 gauge",
+    "16 gauge", "20 gauge", "4.5 mm (air gun)",
 ]
 EXPLOSIVES = [
-    "Dinamite", "TNT (tritolo)", "Esplosivo plastico (C4 / Semtex)", "Pentrite (PETN)",
-    "Polvere nera", "Polvere da sparo infume", "ANFO", "TATP", "Nitroglicerina",
-    "Gelatina esplosiva", "Ordigno esplosivo improvvisato (IED)", "Bomba a mano",
-    "Detonatori / inneschi", "Miccia detonante", "Artifici pirotecnici illegali",
-    "Altro",
+    "Dynamite", "TNT", "Plastic explosive (C4 / Semtex)", "PETN",
+    "Black powder", "Smokeless powder", "ANFO", "TATP", "Nitroglycerin",
+    "Blasting gelatin", "Improvised explosive device (IED)", "Hand grenade",
+    "Detonators / primers", "Detonating cord", "Illegal fireworks",
+    "Other",
 ]
 DRUGS = [
-    "Cocaina", "Crack", "Eroina", "Hashish", "Marijuana", "Olio di cannabis",
-    "Piante di cannabis", "MDMA / Ecstasy", "Anfetamina", "Metanfetamina",
-    "Ketamina", "LSD", "Funghi allucinogeni (psilocibina)", "Mescalina",
-    "Fentanyl e derivati", "Oppio", "Morfina", "Metadone", "Buprenorfina",
-    "Ossicodone / oppioidi farmaceutici", "Benzodiazepine", "GHB / GBL",
-    "Cannabinoidi sintetici", "Catinoni sintetici (mefedrone…)", "Khat", "Kratom",
-    "Precursori chimici", "Sostanza da taglio", "Sostanza non identificata", "Altro",
+    "Cocaine", "Crack", "Heroin", "Hashish", "Marijuana", "Cannabis oil",
+    "Cannabis plants", "MDMA / Ecstasy", "Amphetamine", "Methamphetamine",
+    "Ketamine", "LSD", "Magic mushrooms (psilocybin)", "Mescaline",
+    "Fentanyl and analogues", "Opium", "Morphine", "Methadone", "Buprenorphine",
+    "Oxycodone / pharmaceutical opioids", "Benzodiazepines", "GHB / GBL",
+    "Synthetic cannabinoids", "Synthetic cathinones (mephedrone…)", "Khat", "Kratom",
+    "Chemical precursors", "Cutting agent", "Unidentified substance", "Other",
 ]
-DRUG_UNITS = ["g", "kg", "mg", "dosi", "pasticche", "piante", "ml", "francobolli", "confezioni"]
+DRUG_UNITS = ["g", "kg", "mg", "doses", "pills", "plants", "ml", "blotters", "packs"]
 CURRENCIES = ["EUR", "USD", "GBP", "CHF", "LYD", "TND", "MAD", "EGP", "DZD", "TRY",
-              "ALL", "RON", "RUB", "UAH", "CNY", "AED", "SAR", "Altro"]
+              "ALL", "RON", "RUB", "UAH", "CNY", "AED", "SAR", "Other"]
 CRYPTO_CHAINS = ["Bitcoin", "Ethereum", "Tether (USDT) - TRON", "Tether (USDT) - Ethereum",
-                 "Monero", "Litecoin", "Solana", "BNB Chain", "Altro"]
-ID_DOCS = ["Carta d'identità", "Passaporto", "Patente di guida", "Permesso di soggiorno",
-           "Codice fiscale / tessera sanitaria", "Visto", "Documento di viaggio",
-           "Tessera di riconoscimento", "Altro"]
-DEVICES = ["Smartphone", "Cellulare", "Tablet", "PC portatile", "PC fisso", "Hard disk / SSD",
-           "Chiavetta USB / memory card", "Router / modem", "Dispositivo GPS", "Criptofonino",
-           "Altro"]
-ORG_TYPES = ["Società di capitali", "Società di persone", "Ditta individuale",
-             "Associazione", "Ente pubblico", "Gruppo criminale", "Clan / cosca",
-             "Organizzazione terroristica", "Altro"]
+                 "Monero", "Litecoin", "Solana", "BNB Chain", "Other"]
+ID_DOCS = ["Identity card", "Passport", "Driving licence", "Residence permit",
+           "Tax code / health card", "Visa", "Travel document",
+           "ID badge", "Other"]
+DEVICES = ["Smartphone", "Mobile phone", "Tablet", "Laptop", "Desktop PC", "Hard disk / SSD",
+           "USB stick / memory card", "Router / modem", "GPS device", "Encrypted phone",
+           "Other"]
+ORG_TYPES = ["Limited company", "Partnership", "Sole proprietorship",
+             "Association", "Public body", "Criminal group", "Clan / mafia family",
+             "Terrorist organization", "Other"]
 CRIMES = [
-    "Spaccio di stupefacenti", "Traffico di stupefacenti", "Detenzione di stupefacenti",
-    "Detenzione / porto illegale di armi", "Traffico di armi", "Rapina", "Furto",
-    "Ricettazione", "Estorsione", "Usura", "Riciclaggio", "Autoriciclaggio",
-    "Truffa", "Frode informatica", "Accesso abusivo a sistema informatico",
-    "Falso documentale", "Omicidio", "Tentato omicidio", "Lesioni", "Minacce",
-    "Sequestro di persona", "Violenza sessuale", "Maltrattamenti",
-    "Sfruttamento della prostituzione", "Tratta di esseri umani",
-    "Favoreggiamento dell'immigrazione clandestina", "Associazione per delinquere",
-    "Associazione di tipo mafioso", "Terrorismo", "Contrabbando", "Corruzione",
-    "Incendio / danneggiamento", "Arresto / fermo", "Perquisizione / sequestro",
-    "Altro",
+    "Drug dealing", "Drug trafficking", "Drug possession",
+    "Illegal possession / carrying of weapons", "Arms trafficking", "Robbery", "Theft",
+    "Handling stolen goods", "Extortion", "Usury / loan sharking", "Money laundering", "Self-laundering",
+    "Fraud", "Computer fraud", "Unauthorised computer access",
+    "Document forgery", "Homicide", "Attempted homicide", "Assault / bodily harm", "Threats",
+    "Kidnapping", "Sexual assault", "Domestic abuse",
+    "Exploitation of prostitution", "Human trafficking",
+    "Migrant smuggling", "Criminal conspiracy",
+    "Mafia-type association", "Terrorism", "Smuggling", "Corruption",
+    "Arson / criminal damage", "Arrest", "Search / seizure",
+    "Other",
 ]
 FIN_DOCS = [
-    "Fattura", "Ricevuta / scontrino", "Estratto conto", "Bonifico / disposizione di pagamento",
-    "Contratto", "Contratto di locazione", "Atto di compravendita", "Polizza assicurativa",
-    "Bilancio / nota integrativa", "Busta paga", "Dichiarazione dei redditi",
-    "Documento di trasporto (DDT)", "Libro contabile / registro",
-    "Contabilità occulta / pizzino", "Visura camerale", "Altro",
+    "Invoice", "Receipt", "Bank statement", "Bank transfer / payment order",
+    "Contract", "Lease", "Deed of sale", "Insurance policy",
+    "Financial statement", "Payslip", "Tax return",
+    "Delivery note", "Ledger / register",
+    "Hidden accounts / crime note", "Company register extract", "Other",
 ]
 LEGAL_DOCS = [
-    "Verbale di perquisizione", "Verbale di sequestro", "Verbale di arresto / fermo",
-    "Verbale di sommarie informazioni", "Verbale di interrogatorio", "Denuncia / querela",
-    "Esposto", "Informativa di reato", "Annotazione di polizia giudiziaria",
-    "Decreto di perquisizione", "Decreto di sequestro", "Decreto di intercettazione",
-    "Ordinanza di custodia cautelare", "Avviso di garanzia",
-    "Avviso di conclusione indagini (415-bis)", "Richiesta di rinvio a giudizio",
-    "Decreto che dispone il giudizio", "Sentenza", "Mandato di arresto europeo",
-    "Rogatoria internazionale", "Relazione di servizio", "Altro",
+    "Search report", "Seizure report", "Arrest report",
+    "Witness statement", "Interrogation report", "Complaint / report",
+    "Petition / complaint", "Crime report to prosecutor", "Police report note",
+    "Search warrant", "Seizure order", "Interception order",
+    "Pre-trial detention order", "Notice of investigation",
+    "Notice of end of investigation", "Request for indictment",
+    "Committal for trial", "Judgment", "European arrest warrant",
+    "Letter rogatory", "Service report", "Other",
 ]
-PROPERTY_TYPES = ["Appartamento", "Villa / casa indipendente", "Box / garage", "Cantina",
-                  "Magazzino / capannone", "Negozio / locale", "Ufficio", "Terreno", "Altro"]
-VALUABLE_TYPES = ["Oro / gioielli", "Orologi di pregio", "Metalli preziosi (lingotti)",
-                  "Pietre preziose", "Opere d'arte", "Titoli / obbligazioni",
-                  "Buoni fruttiferi", "Beni di lusso", "Altro"]
+PROPERTY_TYPES = ["Flat", "Detached house", "Garage", "Cellar",
+                  "Warehouse", "Shop / premises", "Office", "Land", "Other"]
+VALUABLE_TYPES = ["Gold / jewellery", "Luxury watches", "Precious metals (bullion)",
+                  "Precious stones", "Works of art", "Securities / bonds",
+                  "Savings bonds", "Luxury goods", "Other"]
 CARD_CIRCUITS = ["Visa", "Mastercard", "Maestro", "American Express", "Postepay",
-                 "Carta prepagata", "Altro"]
+                 "Prepaid card", "Other"]
 
 
-def F(key, label, kind="text", options=None, en=None, ph=""):
-    return {"key": key, "label": label, "en": en or label, "type": kind,
-            "options": options or [], "ph": ph}
+def F(key, label, kind="text", options=None, ph=""):
+    return {"key": key, "label": label, "type": kind, "options": options or [], "ph": ph}
 
 
 # -------------------------------------------------------------- types ---
 TYPES = {
     "weapon": {
-        "label": "Arma", "en": "Weapon", "group": "Armi",
+        "label": "Weapon", "group": "Weapons",
         "icon": "gun", "color": "#475569",
         "fields": [
-            F("categoria", "Categoria", "select", WEAPON_CATEGORIES, "Category"),
-            F("marca", "Marca", en="Make", ph="es. Beretta"),
-            F("modello", "Modello", en="Model", ph="es. 92FS"),
-            F("calibro", "Calibro", "select", CALIBERS + ["Altro"], "Calibre"),
-            F("matricola", "Matricola", en="Serial number", ph="numero di matricola"),
-            F("matricola_abrasa", "Matricola abrasa / illeggibile", "check", en="Serial number removed"),
-            F("stato", "Stato", "select", ["Sequestrata", "Detenuta legalmente", "Denunciata rubata",
-                                           "Rinvenuta", "Consegnata", "Altro"], "Status"),
+            F("category", "Category", "select", WEAPON_CATEGORIES),
+            F("make", "Make", ph="e.g. Beretta"),
+            F("model", "Model", ph="e.g. 92FS"),
+            F("calibre", "Calibre", "select", CALIBERS + ["Other"]),
+            F("serial_number", "Serial number", ph="serial number"),
+            F("serial_removed", "Serial number removed / illegible", "check"),
+            F("status", "Status", "select", ["Seized", "Legally held", "Reported stolen",
+                                             "Found", "Handed over", "Other"]),
         ],
         # with the serial number the weapon is unique: two seizures of the same weapon
         # are the same node (the make is often not written down: it does not count).
         # Without a serial number (or with it removed) each entry is an exhibit of its own.
-        "ident": ["matricola"],
-        "label_fmt": ["categoria", "marca", "modello", "calibro:cal. {}", "matricola:matr. {}"],
-        "value": "modello",
-        "ai": 'weapon: firearms, bladed weapons and similar. fields: categoria (one of the list), '
-              'marca, modello, calibro, matricola (serial number, "" if unknown), '
-              'matricola_abrasa (true if the serial number is removed), stato.',
+        "ident": ["serial_number"],
+        "label_fmt": ["category", "make", "model", "calibre:cal. {}", "serial_number:s/n {}"],
+        "value": "model",
+        "ai": 'weapon: firearms, bladed weapons and similar. fields: category (one of the list), '
+              'make, model, calibre, serial_number ("" if unknown), '
+              'serial_removed (true if the serial number is removed), status.',
     },
     "explosive": {
-        "label": "Esplosivo / ordigno", "en": "Explosive", "group": "Armi",
+        "label": "Explosive / device", "group": "Weapons",
         "icon": "explosion", "color": "#9a3412",
         "fields": [
-            F("tipo", "Tipo", "select", EXPLOSIVES, "Type"),
-            F("quantita", "Quantità", "number", en="Quantity"),
-            F("unita", "Unità", "select", ["g", "kg", "pezzi", "metri"], "Unit"),
-            F("descrizione", "Descrizione", en="Description", ph="es. innesco elettrico, timer"),
+            F("type", "Type", "select", EXPLOSIVES),
+            F("quantity", "Quantity", "number"),
+            F("unit", "Unit", "select", ["g", "kg", "pieces", "metres"]),
+            F("description", "Description", ph="e.g. electric detonator, timer"),
         ],
-        "ident": [], "label_fmt": ["tipo", "quantita+unita"], "value": "tipo",
-        "ai": 'explosive: explosives and devices. fields: tipo (one of the list), quantita (number), '
-              'unita (g, kg, pezzi, metri), descrizione.',
+        "ident": [], "label_fmt": ["type", "quantity+unit"], "value": "type",
+        "ai": 'explosive: explosives and devices. fields: type (one of the list), quantity (number), '
+              'unit (g, kg, pieces, metres), description.',
     },
     "ammo": {
-        "label": "Munizioni", "en": "Ammunition", "group": "Armi",
+        "label": "Ammunition", "group": "Weapons",
         "icon": "burst", "color": "#78716c",
         "fields": [
-            F("calibro", "Calibro", "select", CALIBERS + ["Altro"], "Calibre"),
-            F("quantita", "Quantità (colpi)", "number", en="Rounds"),
-            F("marca", "Marca", en="Make"),
-            F("descrizione", "Descrizione", en="Description"),
+            F("calibre", "Calibre", "select", CALIBERS + ["Other"]),
+            F("quantity", "Quantity (rounds)", "number"),
+            F("make", "Make"),
+            F("description", "Description"),
         ],
-        "ident": [], "label_fmt": ["Munizioni", "calibro:cal. {}", "quantita:{} colpi"], "value": "calibro",
-        "ai": 'ammo: ammunition. fields: calibro, quantita (number of rounds), marca, descrizione.',
+        "ident": [], "label_fmt": ["Ammunition", "calibre:cal. {}", "quantity:{} rounds"], "value": "calibre",
+        "ai": 'ammo: ammunition. fields: calibre, quantity (number of rounds), make, description.',
     },
     "drug": {
-        "label": "Sostanza stupefacente", "en": "Narcotic drug", "group": "Stupefacenti",
+        "label": "Narcotic drug", "group": "Drugs",
         "icon": "pills", "color": "#16a34a",
         "fields": [
-            F("sostanza", "Sostanza", "select", DRUGS, "Substance"),
-            F("quantita", "Quantità", "number", en="Quantity"),
-            F("unita", "Unità", "select", DRUG_UNITS, "Unit"),
-            F("purezza", "Principio attivo / purezza (%)", "number", en="Purity (%)"),
-            F("confezionamento", "Confezionamento", en="Packaging", ph="es. 10 involucri in cellophane"),
-            F("descrizione", "Descrizione", en="Description"),
+            F("substance", "Substance", "select", DRUGS),
+            F("quantity", "Quantity", "number"),
+            F("unit", "Unit", "select", DRUG_UNITS),
+            F("purity", "Active ingredient / purity (%)", "number"),
+            F("packaging", "Packaging", ph="e.g. 10 cellophane wraps"),
+            F("description", "Description"),
         ],
         # every seizure of a substance is an exhibit of its own
-        "ident": [], "label_fmt": ["sostanza", "quantita+unita"], "value": "sostanza",
-        "ai": 'drug: narcotic drugs / seizures. fields: sostanza (one of the list), quantita (number), '
-              'unita (g, kg, mg, dosi, pasticche, piante, ml, francobolli, confezioni), '
-              'purezza (percentage, number), confezionamento, descrizione. '
+        "ident": [], "label_fmt": ["substance", "quantity+unit"], "value": "substance",
+        "ai": 'drug: narcotic drugs / seizures. fields: substance (one of the list), quantity (number), '
+              'unit (g, kg, mg, doses, pills, plants, ml, blotters, packs), '
+              'purity (percentage, number), packaging, description. '
               'One node per substance and quantity.',
     },
     "cash": {
-        "label": "Denaro contante", "en": "Cash", "group": "Valori",
+        "label": "Cash", "group": "Money and valuables",
         "icon": "money-bill-wave", "color": "#15803d",
         "fields": [
-            F("importo", "Importo", "number", en="Amount"),
-            F("valuta", "Valuta", "select", CURRENCIES, "Currency"),
-            F("tagli", "Tagli", en="Denominations", ph="es. 30 da 50 €, 20 da 20 €"),
-            F("seriali", "Numeri di serie", en="Serial numbers"),
-            F("false", "Banconote false", "check", en="Counterfeit"),
-            F("descrizione", "Descrizione", en="Description"),
+            F("amount", "Amount", "number"),
+            F("currency", "Currency", "select", CURRENCIES),
+            F("denominations", "Denominations", ph="e.g. 30 × €50, 20 × €20"),
+            F("serial_numbers", "Serial numbers"),
+            F("counterfeit", "Counterfeit banknotes", "check"),
+            F("description", "Description"),
         ],
-        "ident": [], "label_fmt": ["importo+valuta", "false:(false)"], "value": "importo",
-        "ai": 'cash: cash money. fields: importo (number), valuta (EUR, USD...), tagli, seriali, '
-              'false (true if counterfeit), descrizione.',
+        "ident": [], "label_fmt": ["amount+currency", "counterfeit:(counterfeit)"], "value": "amount",
+        "ai": 'cash: cash money. fields: amount (number), currency (EUR, USD...), denominations, '
+              'serial_numbers, counterfeit (true if counterfeit), description.',
     },
     "cheque": {
-        "label": "Assegno / titolo di credito", "en": "Cheque", "group": "Valori",
+        "label": "Cheque / negotiable instrument", "group": "Money and valuables",
         "icon": "money-check", "color": "#0f766e",
         "fields": [
-            F("tipo", "Tipo", "select", ["Assegno bancario", "Assegno circolare", "Assegno postale",
-                                         "Cambiale", "Vaglia", "Altro"], "Type"),
-            F("banca", "Banca / emittente", en="Bank"),
-            F("numero", "Numero", en="Number"),
-            F("importo", "Importo", "number", en="Amount"),
-            F("valuta", "Valuta", "select", CURRENCIES, "Currency"),
-            F("data", "Data", "date", en="Date"),
-            F("traente", "Traente / emittente", en="Drawer"),
-            F("beneficiario", "Beneficiario", en="Payee"),
+            F("type", "Type", "select", ["Bank cheque", "Cashier's cheque", "Postal cheque",
+                                         "Bill of exchange", "Money order", "Other"]),
+            F("bank", "Bank / issuer"),
+            F("number", "Number"),
+            F("amount", "Amount", "number"),
+            F("currency", "Currency", "select", CURRENCIES),
+            F("date", "Date", "date"),
+            F("drawer", "Drawer / issuer"),
+            F("payee", "Payee"),
         ],
-        "ident": ["numero"],
-        "label_fmt": ["tipo", "numero:n. {}", "importo+valuta"], "value": "numero",
-        "ai": 'cheque: cheques, bills of exchange. fields: tipo, banca, numero, importo (number), valuta, '
-              'data (YYYY-MM-DD), traente, beneficiario.',
+        "ident": ["number"],
+        "label_fmt": ["type", "number:no. {}", "amount+currency"], "value": "number",
+        "ai": 'cheque: cheques, bills of exchange. fields: type, bank, number, amount (number), currency, '
+              'date (YYYY-MM-DD), drawer, payee.',
     },
     "valuable": {
-        "label": "Beni di valore", "en": "Valuables", "group": "Valori",
+        "label": "Valuables", "group": "Money and valuables",
         "icon": "gem", "color": "#a16207",
         "fields": [
-            F("tipo", "Tipo", "select", VALUABLE_TYPES, "Type"),
-            F("descrizione", "Descrizione", en="Description", ph="es. Rolex Submariner"),
-            F("valore", "Valore stimato", "number", en="Estimated value"),
-            F("valuta", "Valuta", "select", CURRENCIES, "Currency"),
-            F("seriale", "Numero di serie", en="Serial number"),
+            F("type", "Type", "select", VALUABLE_TYPES),
+            F("description", "Description", ph="e.g. Rolex Submariner"),
+            F("estimated_value", "Estimated value", "number"),
+            F("currency", "Currency", "select", CURRENCIES),
+            F("serial_number", "Serial number"),
         ],
-        "ident": ["seriale"], "label_fmt": ["tipo", "descrizione", "valore+valuta"], "value": "descrizione",
-        "ai": 'valuable: gold, jewels, watches, works of art, securities. fields: tipo, descrizione, '
-              'valore (number), valuta, seriale.',
+        "ident": ["serial_number"], "label_fmt": ["type", "description", "estimated_value+currency"], "value": "description",
+        "ai": 'valuable: gold, jewels, watches, works of art, securities. fields: type, description, '
+              'estimated_value (number), currency, serial_number.',
     },
     "bankaccount": {
-        "label": "Conto bancario (IBAN)", "en": "Bank account", "group": "Finanza",
+        "label": "Bank account (IBAN)", "group": "Finance",
         "icon": "building-columns", "color": "#1d4ed8",
         "fields": [
-            F("iban", "IBAN / numero di conto", en="IBAN / account number"),
-            F("banca", "Banca", en="Bank"),
+            F("iban", "IBAN / account number"),
+            F("bank", "Bank"),
             F("bic", "BIC / SWIFT"),
-            F("intestatario", "Intestatario", en="Holder"),
+            F("holder", "Holder"),
         ],
-        "ident": ["iban"], "label_fmt": ["iban", "banca"], "value": "iban", "norm": {"iban": "compact"},
-        "ai": 'bankaccount: bank accounts. fields: iban (IBAN or account number), banca, bic, intestatario.',
+        "ident": ["iban"], "label_fmt": ["iban", "bank"], "value": "iban", "norm": {"iban": "compact"},
+        "ai": 'bankaccount: bank accounts. fields: iban (IBAN or account number), bank, bic, holder.',
     },
     "card": {
-        "label": "Carta di pagamento", "en": "Payment card", "group": "Finanza",
+        "label": "Payment card", "group": "Finance",
         "icon": "credit-card", "color": "#1e40af",
         "fields": [
-            F("numero", "Numero carta", en="Card number"),
-            F("circuito", "Circuito", "select", CARD_CIRCUITS, "Network"),
-            F("banca", "Banca emittente", en="Issuer"),
-            F("intestatario", "Intestatario", en="Holder"),
-            F("scadenza", "Scadenza", en="Expiry", ph="MM/AA"),
+            F("number", "Card number"),
+            F("network", "Network", "select", CARD_CIRCUITS),
+            F("bank", "Issuing bank"),
+            F("holder", "Holder"),
+            F("expiry", "Expiry", ph="MM/YY"),
         ],
-        "ident": ["numero"], "label_fmt": ["circuito", "numero"], "value": "numero", "norm": {"numero": "digits"},
-        "ai": 'card: payment cards. fields: numero, circuito, banca, intestatario, scadenza.',
+        "ident": ["number"], "label_fmt": ["network", "number"], "value": "number", "norm": {"number": "digits"},
+        "ai": 'card: payment cards. fields: number, network, bank, holder, expiry.',
     },
     "crypto": {
-        "label": "Wallet criptovalute", "en": "Crypto wallet", "group": "Finanza",
+        "label": "Crypto wallet", "group": "Finance",
         "icon": "bitcoin", "color": "#c2410c",
         "fields": [
-            F("indirizzo", "Indirizzo del wallet", en="Wallet address"),
+            F("address", "Wallet address"),
             F("blockchain", "Blockchain", "select", CRYPTO_CHAINS),
-            F("exchange", "Exchange / servizio", en="Exchange"),
+            F("exchange", "Exchange / service"),
         ],
-        "ident": ["indirizzo"], "label_fmt": ["blockchain", "indirizzo"], "value": "indirizzo",
-        "norm": {"indirizzo": "compact_case"},
-        "ai": 'crypto: cryptocurrency wallets. fields: indirizzo (address), blockchain, exchange.',
+        "ident": ["address"], "label_fmt": ["blockchain", "address"], "value": "address",
+        "norm": {"address": "compact_case"},
+        "ai": 'crypto: cryptocurrency wallets. fields: address, blockchain, exchange.',
     },
     "document": {
-        "label": "Documento d'identità", "en": "ID document", "group": "Documenti",
+        "label": "ID document", "group": "Documents",
         "icon": "id-card", "color": "#0e7490",
         "fields": [
-            F("tipo", "Tipo", "select", ID_DOCS, "Type"),
-            F("numero", "Numero", en="Number"),
-            F("paese", "Paese / autorità di rilascio", en="Issuing country"),
-            F("rilascio", "Data di rilascio", "date", en="Issue date"),
-            F("scadenza", "Scadenza", "date", en="Expiry date"),
-            F("falso", "Documento falso / contraffatto", "check", en="Forged"),
+            F("type", "Type", "select", ID_DOCS),
+            F("number", "Number"),
+            F("country", "Issuing country / authority"),
+            F("issue_date", "Issue date", "date"),
+            F("expiry", "Expiry", "date"),
+            F("forged", "Forged / counterfeit document", "check"),
         ],
-        "ident": ["numero"],
-        "label_fmt": ["tipo", "numero", "falso:(falso)"], "value": "numero", "norm": {"numero": "compact"},
-        "ai": 'document: identity documents (carta d\'identità, passaporto, patente, permesso di '
-              'soggiorno, codice fiscale...). fields: tipo (one of the list), numero, paese, '
-              'rilascio (YYYY-MM-DD), scadenza (YYYY-MM-DD), falso (true if forged).',
+        "ident": ["number"],
+        "label_fmt": ["type", "number", "forged:(forged)"], "value": "number", "norm": {"number": "compact"},
+        "ai": 'document: identity documents (identity card, passport, driving licence, residence '
+              'permit, tax code...). fields: type (one of the list), number, country, '
+              'issue_date (YYYY-MM-DD), expiry (YYYY-MM-DD), forged (true if forged).',
     },
     "findoc": {
-        "label": "Documento finanziario / commerciale", "en": "Financial document", "group": "Documenti",
+        "label": "Financial / commercial document", "group": "Documents",
         "icon": "file-invoice-dollar", "color": "#0f766e",
         "fields": [
-            F("tipo", "Tipo", "select", FIN_DOCS, "Type"),
-            F("numero", "Numero", en="Number"),
-            F("data", "Data", "date", en="Date"),
-            F("emittente", "Emittente", en="Issuer", ph="es. ditta, banca"),
-            F("destinatario", "Destinatario / controparte", en="Recipient"),
-            F("importo", "Importo", "number", en="Amount"),
-            F("valuta", "Valuta", "select", CURRENCIES, "Currency"),
-            F("descrizione", "Descrizione / causale", en="Description"),
+            F("type", "Type", "select", FIN_DOCS),
+            F("number", "Number"),
+            F("date", "Date", "date"),
+            F("issuer", "Issuer", ph="e.g. company, bank"),
+            F("recipient", "Recipient / counterparty"),
+            F("amount", "Amount", "number"),
+            F("currency", "Currency", "select", CURRENCIES),
+            F("description", "Description / purpose"),
         ],
         # an invoice is unique by issuer + number
-        "ident": ["emittente", "numero"],
-        "label_fmt": ["tipo", "numero:n. {}", "data:del {date}", "importo+valuta"], "value": "numero",
+        "ident": ["issuer", "number"],
+        "label_fmt": ["type", "number:no. {}", "date:of {date}", "amount+currency"], "value": "number",
         "ai": 'findoc: financial and commercial documents (invoices, receipts, bank statements, '
               'transfers, contracts, leases, deeds, insurance, payslips, tax returns, ledgers, '
-              '"pizzini" with accounts). fields: tipo (one of the list), numero, data (YYYY-MM-DD), '
-              'emittente, destinatario, importo (number), valuta, descrizione.',
+              'notes with hidden accounts). fields: type (one of the list), number, date (YYYY-MM-DD), '
+              'issuer, recipient, amount (number), currency, description.',
     },
     "legaldoc": {
-        "label": "Atto / documento legale", "en": "Legal document", "group": "Documenti",
+        "label": "Legal document", "group": "Documents",
         "icon": "file-contract", "color": "#57534e",
         "fields": [
-            F("tipo", "Tipo di atto", "select", LEGAL_DOCS, "Type"),
-            F("numero", "Numero / protocollo", en="Number / reference"),
-            F("data", "Data", "date", en="Date"),
-            F("autorita", "Autorità / ufficio", en="Authority", ph="es. Procura della Repubblica di Napoli"),
-            F("procedimento", "N. procedimento (RGNR)", en="Case number"),
-            F("redattore", "Redatto da", en="Author", ph="es. ufficiale di PG"),
-            F("descrizione", "Oggetto / descrizione", en="Subject"),
+            F("type", "Document type", "select", LEGAL_DOCS),
+            F("number", "Number / reference"),
+            F("date", "Date", "date"),
+            F("authority", "Authority / office", ph="e.g. Public Prosecutor's Office of Naples"),
+            F("case_number", "Case number"),
+            F("author", "Drawn up by", ph="e.g. police officer"),
+            F("description", "Subject / description"),
         ],
-        "ident": ["tipo", "numero"],
-        "label_fmt": ["tipo", "numero:n. {}", "data:del {date}"], "value": "numero",
-        "ai": 'legaldoc: legal and police documents (verbali, denunce, informative, annotazioni, '
-              'decreti, ordinanze, avvisi, sentenze, MAE, rogatorie). fields: tipo (one of the list), '
-              'numero (reference number), data (YYYY-MM-DD), autorita (issuing office), '
-              'procedimento (case number), redattore, descrizione.',
+        "ident": ["type", "number"],
+        "label_fmt": ["type", "number:no. {}", "date:of {date}"], "value": "number",
+        "ai": 'legaldoc: legal and police documents (reports, complaints, warrants, orders, notices, '
+              'judgments, European arrest warrants, letters rogatory). fields: type (one of the list), '
+              'number (reference number), date (YYYY-MM-DD), authority (issuing office), '
+              'case_number, author, description.',
     },
     "device": {
-        "label": "Dispositivo elettronico", "en": "Device", "group": "Dispositivi",
+        "label": "Electronic device", "group": "Devices",
         "icon": "mobile-screen", "color": "#334155",
         "fields": [
-            F("tipo", "Tipo", "select", DEVICES, "Type"),
-            F("marca", "Marca", en="Make"),
-            F("modello", "Modello", en="Model"),
-            F("imei", "IMEI / numero di serie", en="IMEI / serial number"),
-            F("descrizione", "Descrizione", en="Description"),
+            F("type", "Type", "select", DEVICES),
+            F("make", "Make"),
+            F("model", "Model"),
+            F("imei", "IMEI / serial number"),
+            F("description", "Description"),
         ],
-        "ident": ["imei"], "label_fmt": ["tipo", "marca", "modello", "imei:IMEI {}"], "value": "imei",
+        "ident": ["imei"], "label_fmt": ["type", "make", "model", "imei:IMEI {}"], "value": "imei",
         "norm": {"imei": "compact"},
-        "ai": 'device: phones, computers, storage. fields: tipo, marca, modello, imei (IMEI or serial), '
-              'descrizione. A phone NUMBER is a "phone" node, not a device.',
+        "ai": 'device: phones, computers, storage. fields: type, make, model, imei (IMEI or serial), '
+              'description. A phone NUMBER is a "phone" node, not a device.',
     },
     "organization": {
-        "label": "Organizzazione / azienda", "en": "Organization", "group": "Soggetti",
+        "label": "Organization / company", "group": "Organizations",
         "icon": "building", "color": "#7c2d12",
         "fields": [
-            F("nome", "Denominazione", en="Name"),
-            F("tipo", "Tipo", "select", ORG_TYPES, "Type"),
-            F("piva", "Partita IVA / codice fiscale", en="VAT / tax number"),
-            F("sede", "Sede", en="Registered office"),
+            F("name", "Name"),
+            F("type", "Type", "select", ORG_TYPES),
+            F("tax_number", "VAT / tax number"),
+            F("registered_office", "Registered office"),
         ],
         # with the VAT number it is unique; without it, the name is
-        "ident": ["piva"], "ident_alt": ["nome"], "label_fmt": ["nome", "piva:P.IVA {}"], "value": "nome",
-        "norm": {"piva": "compact"},
-        "ai": 'organization: companies, associations, criminal groups/clans. fields: nome, tipo, '
-              'piva (VAT or tax number), sede.',
+        "ident": ["tax_number"], "ident_alt": ["name"], "label_fmt": ["name", "tax_number:VAT {}"], "value": "name",
+        "norm": {"tax_number": "compact"},
+        "ai": 'organization: companies, associations, criminal groups/clans. fields: name, type, '
+              'tax_number (VAT or tax number), registered_office.',
     },
     "event": {
-        "label": "Evento / reato", "en": "Event / offence", "group": "Fatti",
+        "label": "Event / offence", "group": "Events / offences",
         "icon": "gavel", "color": "#831843",
         "fields": [
-            F("tipo", "Tipo di reato / evento", "select", CRIMES, "Type"),
-            F("data", "Data", "date", en="Date"),
-            F("luogo", "Luogo", en="Place"),
-            F("procedimento", "N. procedimento (RGNR)", en="Case number"),
-            F("descrizione", "Descrizione", en="Description"),
+            F("type", "Offence / event type", "select", CRIMES),
+            F("date", "Date", "date"),
+            F("place", "Place"),
+            F("case_number", "Case number"),
+            F("description", "Description"),
         ],
-        "ident": ["procedimento", "tipo"],
-        "label_fmt": ["tipo", "data:{date}", "procedimento:RGNR {}"], "value": "tipo",
-        "ai": 'event: offences and investigative events (arrests, searches, seizures). fields: tipo '
-              '(one of the list), data (YYYY-MM-DD), luogo, procedimento (case number), descrizione. '
-              'Link the people involved to it (label e.g. "indagato", "vittima", "arrestato").',
+        "ident": ["case_number", "type"],
+        "label_fmt": ["type", "date:{date}", "case_number:case {}"], "value": "type",
+        "ai": 'event: offences and investigative events (arrests, searches, seizures). fields: type '
+              '(one of the list), date (YYYY-MM-DD), place, case_number, description. '
+              'Link the people involved to it (label e.g. "suspect", "victim", "arrested").',
     },
     "property": {
-        "label": "Immobile", "en": "Real estate", "group": "Beni",
+        "label": "Real estate", "group": "Properties",
         "icon": "house", "color": "#4338ca",
         "fields": [
-            F("tipo", "Tipo", "select", PROPERTY_TYPES, "Type"),
-            F("comune", "Comune", en="Town"),
-            F("indirizzo", "Indirizzo", en="Address"),
-            F("catasto", "Dati catastali (foglio / particella / sub)", en="Land registry data"),
-            F("descrizione", "Descrizione", en="Description"),
+            F("type", "Type", "select", PROPERTY_TYPES),
+            F("town", "Town"),
+            F("address", "Address"),
+            F("land_registry", "Land registry data"),
+            F("description", "Description"),
         ],
-        "ident": ["comune", "catasto"],
-        "label_fmt": ["tipo", "comune", "indirizzo"], "value": "indirizzo",
-        "ai": 'property: real estate (flats, garages, warehouses, land). fields: tipo, comune, '
-              'indirizzo, catasto (land registry data), descrizione.',
+        "ident": ["town", "land_registry"],
+        "label_fmt": ["type", "town", "address"], "value": "address",
+        "ai": 'property: real estate (flats, garages, warehouses, land). fields: type, town, '
+              'address, land_registry (land registry data), description.',
     },
     "sighting": {
-        "label": "Avvistamento aereo", "en": "Aircraft sighting", "group": "Volo",
+        "label": "Aircraft sighting", "group": "Flight",
         "icon": "image", "color": "#0e7490",
         "fields": [
-            F("callsign", "Callsign / volo", en="Callsign / flight", ph="es. AZA123"),
-            F("icao24", "ICAO24 (hex)", en="ICAO24 (hex)"),
-            F("tipo", "Tipo aeromobile", en="Aircraft type", ph="es. A320"),
-            F("quando", "Istante stimato (UTC)", en="Estimated time (UTC)"),
-            F("azimut", "Azimut (deg)", "number", en="Azimuth (deg)"),
-            F("elevazione", "Elevazione (deg)", "number", en="Elevation (deg)"),
-            F("confidenza", "Confidenza", "select", ["alta", "media", "bassa"], "Confidence"),
-            F("descrizione", "Descrizione", en="Description"),
+            F("callsign", "Callsign / flight", ph="e.g. AZA123"),
+            F("icao24", "ICAO24 (hex)"),
+            F("type", "Aircraft type", ph="e.g. A320"),
+            F("time", "Estimated time (UTC)"),
+            F("azimuth", "Azimuth (deg)", "number"),
+            F("elevation", "Elevation (deg)", "number"),
+            F("confidence", "Confidence", "select", ["high", "medium", "low"]),
+            F("description", "Description"),
         ],
-        "ident": ["callsign", "quando"],
-        "label_fmt": ["callsign", "tipo", "quando"], "value": "callsign",
-        "ai": 'sighting: an aircraft seen in a photograph. fields: callsign, icao24, tipo, quando, azimut, elevazione, confidenza, descrizione.',
+        "ident": ["callsign", "time"],
+        "label_fmt": ["callsign", "type", "time"], "value": "callsign",
+        "ai": 'sighting: an aircraft seen in a photograph. fields: callsign, icao24, type, time, '
+              'azimuth, elevation, confidence (high, medium, low), description.',
     },
 }
 
@@ -411,51 +416,51 @@ TYPES.update(FTM_TYPES)
 
 # icon per substance (more recognisable than the generic pill)
 DRUG_ICONS = {
-    "Hashish": "cannabis", "Marijuana": "cannabis", "Olio di cannabis": "cannabis",
-    "Piante di cannabis": "cannabis", "Cannabinoidi sintetici": "cannabis",
-    "Eroina": "syringe", "Fentanyl e derivati": "syringe", "Morfina": "syringe",
-    "Oppio": "syringe", "Metadone": "syringe",
-    "Cocaina": "vial", "Crack": "vial", "Precursori chimici": "vial", "Ketamina": "vial",
-    "MDMA / Ecstasy": "prescription-bottle-medical", "Anfetamina": "prescription-bottle-medical",
-    "Metanfetamina": "prescription-bottle-medical", "Buprenorfina": "prescription-bottle-medical",
-    "Ossicodone / oppioidi farmaceutici": "prescription-bottle-medical",
-    "Benzodiazepine": "prescription-bottle-medical",
-    "Catinoni sintetici (mefedrone…)": "prescription-bottle-medical",
-    "Khat": "leaf", "Kratom": "leaf", "Mescalina": "leaf",
-    "GHB / GBL": "droplet", "Sostanza non identificata": "microscope",
+    "Hashish": "cannabis", "Marijuana": "cannabis", "Cannabis oil": "cannabis",
+    "Cannabis plants": "cannabis", "Synthetic cannabinoids": "cannabis",
+    "Heroin": "syringe", "Fentanyl and analogues": "syringe", "Morphine": "syringe",
+    "Opium": "syringe", "Methadone": "syringe",
+    "Cocaine": "vial", "Crack": "vial", "Chemical precursors": "vial", "Ketamine": "vial",
+    "MDMA / Ecstasy": "prescription-bottle-medical", "Amphetamine": "prescription-bottle-medical",
+    "Methamphetamine": "prescription-bottle-medical", "Buprenorphine": "prescription-bottle-medical",
+    "Oxycodone / pharmaceutical opioids": "prescription-bottle-medical",
+    "Benzodiazepines": "prescription-bottle-medical",
+    "Synthetic cathinones (mephedrone…)": "prescription-bottle-medical",
+    "Khat": "leaf", "Kratom": "leaf", "Mescaline": "leaf",
+    "GHB / GBL": "droplet", "Unidentified substance": "microscope",
 }
-DOC_ICONS = {"Passaporto": "passport", "Carta d'identità": "address-card",
-             "Patente di guida": "id-card-clip", "Permesso di soggiorno": "stamp",
-             "Codice fiscale / tessera sanitaria": "notes-medical", "Visto": "plane-departure",
-             "Documento di viaggio": "plane-departure", "Tessera di riconoscimento": "id-badge"}
-FINDOC_ICONS = {"Ricevuta / scontrino": "receipt", "Estratto conto": "receipt",
-                "Bonifico / disposizione di pagamento": "receipt", "Contratto": "file-contract",
-                "Contratto di locazione": "file-contract", "Atto di compravendita": "file-contract",
-                "Fattura": "file-invoice", "Polizza assicurativa": "file-shield",
-                "Bilancio / nota integrativa": "chart-column", "Libro contabile / registro": "book",
-                "Contabilità occulta / pizzino": "note-sticky",
-                "Documento di trasporto (DDT)": "truck-ramp-box",
-                "Visura camerale": "certificate", "Dichiarazione dei redditi": "certificate"}
+DOC_ICONS = {"Passport": "passport", "Identity card": "address-card",
+             "Driving licence": "id-card-clip", "Residence permit": "stamp",
+             "Tax code / health card": "notes-medical", "Visa": "plane-departure",
+             "Travel document": "plane-departure", "ID badge": "id-badge"}
+FINDOC_ICONS = {"Receipt": "receipt", "Bank statement": "receipt",
+                "Bank transfer / payment order": "receipt", "Contract": "file-contract",
+                "Lease": "file-contract", "Deed of sale": "file-contract",
+                "Invoice": "file-invoice", "Insurance policy": "file-shield",
+                "Financial statement": "chart-column", "Ledger / register": "book",
+                "Hidden accounts / crime note": "note-sticky",
+                "Delivery note": "truck-ramp-box",
+                "Company register extract": "certificate", "Tax return": "certificate"}
 LEGALDOC_ICONS = {
-    "Sentenza": "scale-balanced", "Decreto che dispone il giudizio": "scale-balanced",
-    "Verbale di arresto / fermo": "handcuffs", "Ordinanza di custodia cautelare": "handcuffs",
-    "Mandato di arresto europeo": "handcuffs",
-    "Verbale di perquisizione": "magnifying-glass", "Decreto di perquisizione": "magnifying-glass",
-    "Verbale di sequestro": "magnifying-glass", "Decreto di sequestro": "magnifying-glass",
-    "Verbale di sommarie informazioni": "microphone", "Verbale di interrogatorio": "microphone",
-    "Decreto di intercettazione": "satellite-dish",
-    "Denuncia / querela": "file-pen", "Esposto": "file-pen",
-    "Informativa di reato": "shield", "Annotazione di polizia giudiziaria": "shield",
-    "Relazione di servizio": "shield",
-    "Avviso di garanzia": "clipboard-list", "Avviso di conclusione indagini (415-bis)": "clipboard-list",
-    "Richiesta di rinvio a giudizio": "clipboard-list",
-    "Rogatoria internazionale": "earth-europe",
+    "Judgment": "scale-balanced", "Committal for trial": "scale-balanced",
+    "Arrest report": "handcuffs", "Pre-trial detention order": "handcuffs",
+    "European arrest warrant": "handcuffs",
+    "Search report": "magnifying-glass", "Search warrant": "magnifying-glass",
+    "Seizure report": "magnifying-glass", "Seizure order": "magnifying-glass",
+    "Witness statement": "microphone", "Interrogation report": "microphone",
+    "Interception order": "satellite-dish",
+    "Complaint / report": "file-pen", "Petition / complaint": "file-pen",
+    "Crime report to prosecutor": "shield", "Police report note": "shield",
+    "Service report": "shield",
+    "Notice of investigation": "clipboard-list", "Notice of end of investigation": "clipboard-list",
+    "Request for indictment": "clipboard-list",
+    "Letter rogatory": "earth-europe",
 }
-DEVICE_ICONS = {"PC portatile": "laptop", "PC fisso": "desktop",
-                "Smartphone": "mobile-screen-button", "Cellulare": "mobile-screen-button",
+DEVICE_ICONS = {"Laptop": "laptop", "Desktop PC": "desktop",
+                "Smartphone": "mobile-screen-button", "Mobile phone": "mobile-screen-button",
                 "Tablet": "mobile-screen-button", "Hard disk / SSD": "hard-drive",
-                "Chiavetta USB / memory card": "usb", "Router / modem": "router",
-                "Dispositivo GPS": "location-crosshairs", "Criptofonino": "user-lock"}
+                "USB stick / memory card": "usb", "Router / modem": "router",
+                "GPS device": "location-crosshairs", "Encrypted phone": "user-lock"}
 
 # icons of the pre-existing types (Font Awesome Free)
 BASE_ICONS = {
@@ -463,6 +468,23 @@ BASE_ICONS = {
     "username": "at", "generic": "circle-question", "vehicle": "car", "link": "link",
     "text": "file-lines", "place": "location-dot", "latin": "language", "photo": "image",
     "domain": "globe", "breach": "shield-halved",
+}
+
+# field keys of the versions before 2.0 (Italian): accepted on input
+FIELD_ALIASES = {
+    "categoria": "category", "marca": "make", "modello": "model", "calibro": "calibre",
+    "matricola": "serial_number", "matricola_abrasa": "serial_removed", "stato": "status",
+    "tipo": "type", "quantita": "quantity", "unita": "unit", "descrizione": "description",
+    "sostanza": "substance", "purezza": "purity", "confezionamento": "packaging",
+    "importo": "amount", "valuta": "currency", "tagli": "denominations", "seriali": "serial_numbers",
+    "false": "counterfeit", "banca": "bank", "numero": "number", "data": "date", "traente": "drawer",
+    "beneficiario": "payee", "valore": "estimated_value", "seriale": "serial_number",
+    "intestatario": "holder", "circuito": "network", "scadenza": "expiry", "indirizzo": "address",
+    "paese": "country", "rilascio": "issue_date", "falso": "forged", "emittente": "issuer",
+    "destinatario": "recipient", "autorita": "authority", "procedimento": "case_number",
+    "redattore": "author", "nome": "name", "piva": "tax_number", "sede": "registered_office",
+    "luogo": "place", "comune": "town", "catasto": "land_registry", "quando": "time",
+    "azimut": "azimuth", "elevazione": "elevation", "confidenza": "confidence",
 }
 
 # names the user or the AI use for the types (CSV import, AI)
@@ -525,7 +547,32 @@ _SERIAL_GONE = re.compile(r"^\W*(abras|limat|cancellat|illeggibil|assent|rimoss|
 
 
 def key_is_serial(ntype, key):
-    return ntype == "weapon" and key == "matricola"
+    return ntype == "weapon" and key == "serial_number"
+
+
+def _option_names():
+    """{folded name in any interface language: English option}."""
+    from . import ontology_i18n
+    out = {}
+    for en, tr in ontology_i18n.ROWS.items():
+        for name in tr:
+            out.setdefault(_fold(name), en.split(":", 1)[-1])
+    return out
+
+
+_OPTIONS = None
+
+
+def _option(options, v):
+    """The English option written as v (in English or in an interface language)."""
+    global _OPTIONS
+    hit = next((o for o in options if _fold(o) == _fold(v)), None)
+    if hit:
+        return hit
+    if _OPTIONS is None:
+        _OPTIONS = _option_names()
+    en = _OPTIONS.get(_fold(v))
+    return en if en in options else None
 
 
 def clean_fields(ntype, raw):
@@ -534,6 +581,8 @@ def clean_fields(ntype, raw):
     spec = TYPES[ntype]
     out = {}
     raw = raw if isinstance(raw, dict) else {}
+    keys = {f["key"] for f in spec["fields"]}
+    raw = {(k if k in keys else FIELD_ALIASES.get(k, k)): v for k, v in raw.items()}
     for f in spec["fields"]:
         v = raw.get(f["key"])
         if f["type"] == "check":
@@ -555,11 +604,10 @@ def clean_fields(ntype, raw):
             except ValueError:
                 pass                                          # keep the text
         if key_is_serial(ntype, f["key"]) and _SERIAL_GONE.search(v):
-            out["matricola_abrasa"] = True                    # "abrasa", "limata"...
+            out["serial_removed"] = True                      # "abrasa", "removed"...
             continue
         if f["type"] == "select" and f["options"]:
-            hit = next((o for o in f["options"] if _fold(o) == _fold(v)), None)
-            v = hit or v
+            v = _option(f["options"], v) or v
         out[f["key"]] = v
     return out
 
@@ -570,9 +618,8 @@ def _fmt_num(v):
     except (TypeError, ValueError):
         return str(v)
     if x == int(x):
-        return f"{int(x):,}".replace(",", ".")
-    s = f"{x:,.2f}".rstrip("0")                      # 1.50 -> 1.5
-    return s.replace(",", "X").replace(".", ",").replace("X", ".")
+        return f"{int(x):,}"
+    return f"{x:,.2f}".rstrip("0")                   # 1.50 -> 1.5
 
 
 def label_of(ntype, fields):
@@ -617,7 +664,7 @@ def label_of(ntype, fields):
 
 # identifying fields that are words (compared ignoring accents and case);
 # the others are codes (serial number, number, IBAN...): no spaces or punctuation
-_WORD_KEYS = {"marca", "banca", "tipo", "comune", "nome", "blockchain"}
+_WORD_KEYS = {"make", "bank", "type", "town", "name", "blockchain"}
 
 
 def ident_of(ntype, fields):
@@ -627,7 +674,7 @@ def ident_of(ntype, fields):
     need = spec.get("ident_min") or spec.get("ident") or []
     if not need:
         return ""
-    if fields.get("matricola_abrasa") and ntype == "weapon":
+    if fields.get("serial_removed") and ntype == "weapon":
         return ""
     if all(fields.get(k) for k in need):
         keys = spec["ident"]
@@ -647,37 +694,39 @@ PERSON_ICONS = {"male": "person-male", "female": "person-female"}
 
 def icon_of(ntype, fields):
     if ntype == "drug":
-        return DRUG_ICONS.get(fields.get("sostanza"), TYPES[ntype]["icon"])
+        return DRUG_ICONS.get(fields.get("substance"), TYPES[ntype]["icon"])
     if ntype == "document":
-        return DOC_ICONS.get(fields.get("tipo"), TYPES[ntype]["icon"])
+        return DOC_ICONS.get(fields.get("type"), TYPES[ntype]["icon"])
     if ntype == "findoc":
-        return FINDOC_ICONS.get(fields.get("tipo"), TYPES[ntype]["icon"])
+        return FINDOC_ICONS.get(fields.get("type"), TYPES[ntype]["icon"])
     if ntype == "legaldoc":
-        return LEGALDOC_ICONS.get(fields.get("tipo"), TYPES[ntype]["icon"])
+        return LEGALDOC_ICONS.get(fields.get("type"), TYPES[ntype]["icon"])
     if ntype == "device":
-        return DEVICE_ICONS.get(fields.get("tipo"), TYPES[ntype]["icon"])
+        return DEVICE_ICONS.get(fields.get("type"), TYPES[ntype]["icon"])
     return TYPES[ntype]["icon"] if ntype in TYPES else BASE_ICONS.get(ntype, "circle-question")
 
 
 def raw_of(ntype, fields):
-    """Readable fields for the card: {'Categoria': 'Pistola', ...}."""
+    """Readable fields for the card: {'Category': 'Revolver', ...}; the interface
+    translates the labels and the options (ontology_i18n)."""
     out = {}
     for f in TYPES[ntype]["fields"]:
         v = fields.get(f["key"])
         if v in (None, "", False):
             continue
-        out[f["label"]] = "sì" if v is True else v
+        out[f["label"]] = "yes" if v is True else v
     return out
 
 
 def ai_rules():
     """Instructions for the AI prompt (one line per type, with the lists)."""
-    lines = ["  For select fields choose the option whose words best match the TEXT "
-             "(e.g. \"traffico di stupefacenti\" -> \"Traffico di stupefacenti\", not \"Spaccio\").",
-             "  Link labels for items: seized items linked from the person with \"sequestrato\" "
-             "(or \"detiene\", \"possiede\", \"utilizza\", \"intestatario\" when the TEXT says so); "
-             "the person linked to an offence with \"indagato\" / \"arrestato\" / \"vittima\"; "
-             "seized items linked to the offence/event with \"sequestrato nel\"."]
+    lines = ["  For select fields write the English option whose meaning best matches the TEXT, "
+             "whatever the language of the TEXT (e.g. \"traffico di stupefacenti\" -> \"Drug trafficking\", "
+             "not \"Drug dealing\").",
+             "  Link labels for items: seized items linked from the person with \"seized\" "
+             "(or \"holds\", \"owns\", \"uses\", \"holder\" when the TEXT says so); "
+             "the person linked to an offence with \"suspect\" / \"arrested\" / \"victim\"; "
+             "seized items linked to the offence/event with \"seized in\"."]
     for t, spec in TYPES.items():
         lines.append(f"- {spec['ai']}")
         for f in spec["fields"]:
@@ -688,6 +737,6 @@ def ai_rules():
 
 def public():
     """Configuration for the client (entry form, icons, colours)."""
-    return {t: {"label": s["label"], "en": s["en"], "group": s["group"], "icon": s["icon"],
+    return {t: {"label": s["label"], "group": s["group"], "icon": s["icon"],
                 "color": s["color"], "fields": s["fields"], "order": i}
             for i, (t, s) in enumerate(TYPES.items())}

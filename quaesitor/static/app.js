@@ -313,7 +313,7 @@ const IDENT_TYPES = ['phone', 'email', 'username', 'vehicle'];
 
 /* ================= CATEGORIES (show/hide filters) =================
    Each node belongs to ONE category (first match).
-   The last one ('altro') is the safety net: it catches everything else. */
+   The last one ('other') is the safety net: it catches everything else. */
 /* The label is a translation key: it is resolved at drawing time. */
 const CATEGORIES = [
   { key: 'target',   color: TYPE_COLOR.target,   match: n => n.ntype === 'target' },
@@ -321,14 +321,14 @@ const CATEGORIES = [
   { key: 'phone',    color: TYPE_COLOR.phone,    match: n => n.ntype === 'phone' },
   { key: 'email',    color: TYPE_COLOR.email,    match: n => n.ntype === 'email' },
   { key: 'username', color: TYPE_COLOR.username, match: n => n.ntype === 'username' },
-  { key: 'veicoli',  color: TYPE_COLOR.vehicle,  match: n => n.ntype === 'vehicle' },
+  { key: 'vehicles', color: TYPE_COLOR.vehicle,  match: n => n.ntype === 'vehicle' },
   { key: 'link',     color: TYPE_COLOR.link,     match: n => n.ntype === 'link' },
   { key: 'text',     color: TYPE_COLOR.text,     match: n => n.ntype === 'text' },
   { key: 'name',     color: TYPE_COLOR.name,     match: n => n.ntype === 'name' },
   { key: 'place',    color: TYPE_COLOR.place,    match: n => n.ntype === 'place' },
-  { key: 'domini',   color: TYPE_COLOR.domain,   match: n => n.ntype === 'domain' },
+  { key: 'domains',  color: TYPE_COLOR.domain,   match: n => n.ntype === 'domain' },
   { key: 'breach',   color: TYPE_COLOR.breach,   match: n => n.ntype === 'breach' },
-  { key: 'foto',     color: TYPE_COLOR.photo,    match: n => n.ntype === 'photo' },
+  { key: 'photos',   color: TYPE_COLOR.photo,    match: n => n.ntype === 'photo' },
   { key: 'translit', color: TYPE_COLOR.latin,    match: n => n.ntype === 'latin' },
   // one category per group of investigative items (weapons, drugs...)
   ...[...new Set(Object.values(window.ONTOLOGY || {}).sort((a, b) => a.order - b.order)
@@ -337,17 +337,27 @@ const CATEGORIES = [
     color: (Object.values(window.ONTOLOGY).find(o => o.group === g) || {}).color || TYPE_COLOR.generic,
     match: n => (window.ONTOLOGY[n.ntype] || {}).group === g
   })),
-  { key: 'altro',    color: TYPE_COLOR.generic,  match: () => true }
+  { key: 'other',    color: TYPE_COLOR.generic,  match: () => true }
 ];
-/* Texts of the investigative types in the chosen language (ontology_i18n.py). The
-   saved value stays the Italian one: only what is shown is translated. */
-const ot = s => (LANG === 'it' || !s) ? s : ((((window.ONTO_I18N || {})[LANG]) || {})[s] || s);
-const ONTO_GROUP_IT = { Soggetti: 'Organizzazioni', Fatti: 'Eventi / reati', Beni: 'Immobili' };
-const catLabel = key => key.startsWith('onto_')
-  ? ot(ONTO_GROUP_IT[key.slice(5)] || key.slice(5))
-  : t('cat.' + key);
+/* Texts of the investigative types and of the card keys in the chosen language
+   (ontology_i18n.py). The saved value is the English one: only what is shown is
+   translated. 'ctx' is the node type, for a word translated differently in it. */
+const ot = (s, ctx) => {
+  if (LANG === 'en' || !s) return s;
+  const tb = ((window.ONTO_I18N || {})[LANG]) || {};
+  return (ctx && tb[ctx + ':' + s]) || tb[s] || s;
+};
+const catLabel = key => key.startsWith('onto_') ? ot(key.slice(5)) : t('cat.' + key);
+
+/* A card row in the language of the interface: the key, and the value when it is
+   an option of an investigative type (a drop-down entry), a yes or a sex. */
+function cardRow(k, v, ntype) {
+  const f = ((ONTO[ntype] || {}).fields || []).find(x => x.label === k);
+  const val = (f && (f.type === 'select' || f.type === 'check')) || k === 'Sex' ? ot(String(v), ntype) : v;
+  return [ot(k, ntype), val];
+}
 const CAT_BY_KEY = Object.fromEntries(CATEGORIES.map(c => [c.key, c]));
-const categoryOf = n => (CATEGORIES.find(c => c.match(n)) || CAT_BY_KEY.altro).key;
+const categoryOf = n => (CATEGORIES.find(c => c.match(n)) || CAT_BY_KEY.other).key;
 
 /* All icons are 64x64 SVGs with an explicit viewBox:
    without intrinsic dimensions the Cytoscape canvas anchors the image
@@ -999,7 +1009,7 @@ function graphLibReady() {
   if (typeof cytoscape !== 'undefined') return true;
   const box = $('#stat');
   if (box) { box.textContent = t('stat.libMissing'); box.classList.add('fatal'); }
-  console.error('Cytoscape non caricato: static/vendor/ non trovata o illeggibile.');
+  console.error('Cytoscape not loaded: static/vendor/ missing or unreadable.');
   return false;
 }
 
@@ -1009,11 +1019,11 @@ async function load() {
   try {
     const r = await fetch('/api/graph');
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    g = await r.json();
-    if (g.error) throw new Error(g.error);
+    g = localGraph(await r.json());
+    if (g.error) throw new Error(srvMsg(g.error));
     if (g.translit_mode) TRANSLIT_MODE = g.translit_mode;
   } catch (err) {
-    console.error('Caricamento fallito:', err);
+    console.error('Loading failed:', err);
     $('#stat').textContent = t('stat.loadError', { e: err.message });
     return;
   }
@@ -1174,8 +1184,8 @@ function applyGraphData(g) {
 async function syncGraph() {
   const r = await fetch('/api/graph');
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
-  const g = await r.json();
-  if (g.error) throw new Error(g.error);
+  const g = localGraph(await r.json());
+  if (g.error) throw new Error(srvMsg(g.error));
   return applyGraphData(g);
 }
 
@@ -1207,7 +1217,7 @@ async function refreshTranslitBtn() {
     b.hidden = !s.enabled;
     b.disabled = !s.todo;
     b.textContent = s.todo ? t('btn.aiTranslitN', { n: s.todo }) : t('btn.aiTranslitOk');
-    b.title = (s.down && s.reason) ? t('ai.down', { e: s.reason })
+    b.title = (s.down && s.reason) ? t('ai.down', { e: srvMsg(s.reason) })
                                    : t('ai.hint', { model: s.model || '' });
   } catch (_) {
     b.hidden = true;
@@ -1221,9 +1231,9 @@ on('#aiTranslit', 'click', async () => {
   b.textContent = t('btn.aiWorking');
   try {
     const j = await apiPost('/api/translit/ai', {});
-    if (j.tradotte) {
+    if (j.translated) {
       await reloadData();                 // the Latin labels must be redone
-      $('#stat').textContent = t('stat.aiDone', { n: j.tradotte, rest: j.restano });
+      $('#stat').textContent = t('stat.aiDone', { n: j.translated, rest: j.remaining });
     } else {
       $('#stat').textContent = t('stat.aiNothing');
     }
@@ -2670,16 +2680,18 @@ function bodyFor(node, opts = {}) {
   recs.forEach((r, i) => {
     h += '<div class="d-card">';
     h += `<div class="d-badge">${esc(t('card.recordBadge', { i: i + 1, n: recs.length,
-      coll: r.collection || t('card.sheet') }))}</div>`;
+      coll: ot(r.collection) || t('card.sheet') }))}</div>`;
     if (r.images && r.images.length) {
       h += '<div class="d-imgs">' +
         r.images.slice(0, 12).map(u => `<img src="${esc(u)}" loading="lazy" alt="" onerror="this.remove()">`).join('') +
         '</div>';
     }
     // the value is copied with a click (handy for searching on other portals)
-    h += '<div class="d-grid">' + flatten(r.raw).map(([k, v]) =>
-      `<div>${esc(k)}</div><div class="cp" data-cp="${esc(v)}" ` +
-      `title="${esc(t('cp.hint'))}">${renderVal(v)}</div>`).join('') + '</div>';
+    h += '<div class="d-grid">' + flatten(r.raw).map(([k0, v0]) => {
+      const [k, v] = cardRow(k0, v0, d.ntype);
+      return `<div>${esc(k)}</div><div class="cp" data-cp="${esc(v)}" ` +
+        `title="${esc(t('cp.hint'))}">${renderVal(v)}</div>`;
+    }).join('') + '</div>';
     h += '</div>';
   });
 
@@ -2748,7 +2760,7 @@ async function saveLink() {
     $('#linkmodal').hidden = true;
     refresh(false);
     $('#stat').textContent = j.created
-      ? t('stat.linksCreated', { n: j.created, c: j.coppie, v: n })
+      ? t('stat.linksCreated', { n: j.created, c: j.pairs, v: n })
       : t('stat.noNewLinks');
   } catch (err) {
     alert(t('err.linkFailed', { e: err.message }));
@@ -2768,11 +2780,19 @@ on('#linkmodal-close', 'click', () => { $('#linkmodal').hidden = true; });
 on('#linkmodal', 'click', e => { if (e.target.id === 'linkmodal' && !dragEnd('linkmodal')) $('#linkmodal').hidden = true; });
 on('#link-edge-label', 'keydown', e => { if (e.key === 'Enter') saveLink(); });
 
+/* The links the program draws by itself (same name, same street) are named in
+   the language of the interface; the server names them in English. */
+const AUTO_EDGE = { same_name: 'edge.sameName', same_street: 'edge.sameStreet' };
+function localGraph(g) {
+  (g.edges || []).forEach(e => { if (e.auto && AUTO_EDGE[e.rel]) e.label = t(AUTO_EDGE[e.rel]); });
+  return g;
+}
+
 /* ================= EDITING A LINK (right-click) ================= */
 let edgeEditId = null;
 
 /* Where the link comes from: decides what can be done (delete it, restore it). */
-const edgeKind = e => e.data('rel') === 'collegamento' ? 'link'
+const edgeKind = e => e.data('rel') === 'manual_link' ? 'link'
                     : e.data('manual') ? 'added' : 'data';
 
 function openEdgeModal(edge) {
@@ -2965,7 +2985,7 @@ function renderOntoFields(kind) {
   box.dataset.kind = kind;
   box.innerHTML = o.fields.filter(f => !f.hidden).map(f => {
     const id = `onto-f-${f.key}`;
-    const lab = ot(f.label);
+    const lab = ot(f.label, kind);
     if (f.type === 'check') {
       return `<label class="af-check af-wide"><input type="checkbox" id="${id}" data-k="${f.key}">` +
              `<span>${esc(lab)}</span></label>`;
@@ -2973,12 +2993,12 @@ function renderOntoFields(kind) {
     let input;
     if (f.type === 'select') {
       input = `<select id="${id}" data-k="${f.key}"><option value="">—</option>` +
-        f.options.map(x => `<option value="${esc(x)}">${esc(ot(x))}</option>`).join('') + `</select>`;
+        f.options.map(x => `<option value="${esc(x)}">${esc(ot(x, kind))}</option>`).join('') + `</select>`;
     } else {
       const typ = f.type === 'number' ? 'text" inputmode="decimal' : f.type === 'date' ? 'date' : 'text';
       input = `<input id="${id}" data-k="${f.key}" type="${typ}" autocomplete="off" placeholder="${esc(ot(f.ph || ''))}">`;
     }
-    const wide = /descrizione|confezionamento|seriali|tagli/.test(f.key) ? ' af-wide' : '';
+    const wide = /description|packaging|serial_numbers|denominations/.test(f.key) ? ' af-wide' : '';
     return `<div class="af-of${wide}"><label class="af-lb" for="${id}">${esc(lab)}</label>${input}</div>`;
   }).join('');
 }
@@ -2995,9 +3015,9 @@ function readOntoFields() {
 /* Preview of the label (the real one is built by the server). */
 function ontoPreviewLabel(kind, f) {
   const o = ONTO[kind];
-  const skip = /descrizione|confezionamento|seriali|tagli|intestatario|traente|beneficiario|sede|stato/;
+  const skip = /description|packaging|serial_numbers|denominations|holder|drawer|payee|registered_office|status/;
   return o.fields.filter(x => f[x.key] && f[x.key] !== true && !skip.test(x.key) && x.type !== 'date')
-    .map(x => ot(f[x.key])).join(' ') || ontoLabel(o);
+    .map(x => ot(f[x.key], kind)).join(' ') || ontoLabel(o);
 }
 
 function syncAddType() {
@@ -3076,16 +3096,16 @@ function addPayloadOf(kind) {
   }
 
   if (kind === 'name') {
-    const cognome = ($('#add-cognome').value || '').trim().replace(/\s+/g, ' ');
-    const nomeP = ($('#add-nome').value || '').trim().replace(/\s+/g, ' ');
-    const nascita = ($('#add-nascita').value || '').trim();      // YYYY-MM-DD
-    const full = `${cognome} ${nomeP}`.trim();
+    const surname = ($('#add-cognome').value || '').trim().replace(/\s+/g, ' ');
+    const given = ($('#add-nome').value || '').trim().replace(/\s+/g, ' ');
+    const birth = ($('#add-nascita').value || '').trim();        // YYYY-MM-DD
+    const full = `${surname} ${given}`.trim();
     if (!full) return { err: '' };
     if (full.length < 2) return { err: t('add.errName') };
     const sex = $('#add-sex').value || '';
-    return { ntype: 'name', platform: 'name', value: full, cognome, nome: nomeP, nascita, sex,
+    return { ntype: 'name', platform: 'name', value: full, surname, given_name: given, birth, sex,
              ficon: { male: 'person-male', female: 'person-female' }[sex],
-             label: nascita ? `${full} (${birthIt(nascita)})` : full };
+             label: birth ? `${full} (${birthIt(birth)})` : full };
   }
   if (!v) return { err: '' };
   if (kind === 'place') {
@@ -3093,8 +3113,8 @@ function addPayloadOf(kind) {
     const topo = ($('#add-toponimo') && $('#add-toponimo').value) || '';
     // type from the drop-down, if the name does not already contain one ("Piazza Duomo")
     const strada = nomeVia && topo && !STREET_TYPE_RE.test(nomeVia) ? `${topo} ${nomeVia}` : nomeVia;
-    const civico = ($('#add-civico') && $('#add-civico').value.trim()) || '';
-    const via = `${strada} ${civico}`.trim();
+    const number = ($('#add-civico') && $('#add-civico').value.trim()) || '';
+    const via = `${strada} ${number}`.trim();
     const lat = ($('#add-lat') && $('#add-lat').value.trim().replace(',', '.')) || '';
     const lon = ($('#add-lon') && $('#add-lon').value.trim().replace(',', '.')) || '';
     const num = /^-?\d{1,3}(\.\d+)?$/;
@@ -3102,13 +3122,13 @@ function addPayloadOf(kind) {
     if (lat && (!num.test(lat) || Math.abs(+lat) > 90)) return { err: t('add.errLat') };
     if (lon && (!num.test(lon) || Math.abs(+lon) > 180)) return { err: t('add.errLon') };
     return { ntype: 'place', platform: 'place', value: v,
-             label: via ? `${v} — ${via}` : v, address: strada, civico, lat, lon };
+             label: via ? `${v} — ${via}` : v, address: strada, house_number: number, lat, lon };
   }
   if (kind === 'vehicle') {
     const targa = v.replace(/\s+/g, '').toUpperCase();
     if (targa.length < 3) return { err: t('add.errPlate') };
-    const colore = ($('#add-colore') && $('#add-colore').value.trim()) || '';
-    return { ntype: 'vehicle', platform: 'vehicle', value: v, colore,
+    const color = ($('#add-colore') && $('#add-colore').value.trim()) || '';
+    return { ntype: 'vehicle', platform: 'vehicle', value: v, color,
              label: nome ? `${targa} ${nome}` : targa };
   }
   if (kind === 'link') {
@@ -3181,7 +3201,7 @@ function updateAddPreview() {
   // the photo gets its id only after the upload to the server
   if (p.ntype === 'photo') {
     box.className = 'af-prev af-ok';
-    box.innerHTML = `<b>${esc(t('cat.foto'))}</b> · ${esc(addPhoto.filename)}` +
+    box.innerHTML = `<b>${esc(t('cat.photos'))}</b> · ${esc(addPhoto.filename)}` +
                     `<br><i>${esc(t('add.photoWillSave'))}</i>`;
     return;
   }
@@ -3191,8 +3211,8 @@ function updateAddPreview() {
     return;
   }
   const id = p.ntype === 'account' ? `acct:${p.platform}:${p.value.toLowerCase()}`
-           : p.ntype === 'name' ? (p.nascita ? `person:${personKey(p.value)}|${p.nascita}` : 'name:' + personKey(p.value))
-           : p.ntype === 'place' ? 'place:' + `${p.value} ${p.address || ''} ${p.civico || ''}`.replace(/\s+/g, ' ').trim().toLowerCase()
+           : p.ntype === 'name' ? (p.birth ? `person:${personKey(p.value)}|${p.birth}` : 'name:' + personKey(p.value))
+           : p.ntype === 'place' ? 'place:' + `${p.value} ${p.address || ''} ${p.house_number || ''}`.replace(/\s+/g, ' ').trim().toLowerCase()
            : p.ntype === 'link' ? 'link:' + p.value.replace(/\/+$/, '').toLowerCase()
            : p.ntype === 'vehicle' ? 'vehicle:' + p.value.replace(/\s+/g, '').toUpperCase()
            : p.ntype === 'text' ? 'text:' + p.value.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 60)
@@ -3406,10 +3426,10 @@ on('#addmodal-save', 'click', async () => {
     const j = await apiPost('/api/node/add', {
       parent: parentId, ntype: p.ntype, platform: p.platform || '',
       value, label: p.label, url: p.url || '', text: p.text || '',
-      address: p.address || '', civico: p.civico || '', lat: p.lat || '', lon: p.lon || '',
-      cognome: p.cognome || '', nome: p.nome || '', nascita: p.nascita || '', sex: p.sex || '',
+      address: p.address || '', house_number: p.house_number || '', lat: p.lat || '', lon: p.lon || '',
+      surname: p.surname || '', given_name: p.given_name || '', birth: p.birth || '', sex: p.sex || '',
       target: !!p.target,
-      colore: p.colore || '', fields: p.fields || null,
+      color: p.color || '', fields: p.fields || null,
       edge: parentId ? readEdgeProps('add') : null   // name, arrows, shape, colour, line
     });
     $('#addmodal').hidden = true;
@@ -3438,7 +3458,7 @@ on('#addmodal-save', 'click', async () => {
       try {
         await syncGraph();
         const m = cy.getElementById(j.id);
-        const via = m.length ? m.connectedEdges('[rel = "stessa_via"], [rel = "stesso_nome"]').connectedNodes() : cy.collection();
+        const via = m.length ? m.connectedEdges('[rel = "same_street"], [rel = "same_name"]').connectedNodes() : cy.collection();
         addToGraph([j.id, ...via.map(x => x.id())], false);
       } catch (_) {}
     }
@@ -3465,15 +3485,15 @@ let impFile = null;                 // { filename, data } of the chosen file
 let impRows = [];
 
 const IMPORT_TEMPLATE = [
-  ['nome1', 'tipo1', 'collegamento', 'nome2', 'tipo2', 'url1', 'url2', 'frecce', 'forma', 'colore', 'linea', 'nota1', 'nota2'],
-  ['Mario Rossi', 'persona', 'utenza', '+39 333 1234567', 'telefono', '', '', '->', 'retta', '', '', 'soggetto principale', ''],
-  ['Mario Rossi', 'persona', 'profilo', 'mario.rossi', 'instagram', '', 'https://www.instagram.com/mario.rossi/', '->', '', 'blu', '', '', ''],
-  ['Mario Rossi', 'persona', 'email', 'mario.rossi@example.com', 'email', '', '', '->', '', '', '', '', ''],
-  ['Mario Rossi', 'persona', 'socio', 'ACME srl', 'persona', '', '', '<->', 'curva', 'rosso', 'tratteggiata', '', ''],
-  ['ACME srl', 'persona', 'sito web', 'Sito ACME', 'link', '', 'https://www.acme.example', '->', 'spezzata', '', '', '', ''],
-  ['ACME srl', 'persona', 'sede', 'Milano', 'luogo', '', '', '', '', '', '', '', ''],
-  ['Mario Rossi', 'persona', 'veicolo', 'AB123CD', 'veicolo', '', '', '->', '', '', 'punteggiata', '', ''],
-  ['Luca Bianchi', 'persona', '', '', '', '', '', '', '', '', '', 'nodo senza collegamenti', '']
+  ['name1', 'type1', 'relation', 'name2', 'type2', 'url1', 'url2', 'arrow', 'shape', 'color', 'line', 'note1', 'note2'],
+  ['John Smith', 'person', 'phone in use', '+44 7700 900123', 'phone', '', '', '->', 'straight', '', '', 'main subject', ''],
+  ['John Smith', 'person', 'profile', 'john.smith', 'instagram', '', 'https://www.instagram.com/john.smith/', '->', '', 'blue', '', '', ''],
+  ['John Smith', 'person', 'email', 'john.smith@example.com', 'email', '', '', '->', '', '', '', '', ''],
+  ['John Smith', 'person', 'business partner', 'ACME Ltd', 'person', '', '', '<->', 'curve', 'red', 'dashed', '', ''],
+  ['ACME Ltd', 'person', 'website', 'ACME website', 'link', '', 'https://www.acme.example', '->', 'segments', '', '', '', ''],
+  ['ACME Ltd', 'person', 'registered office', 'London', 'place', '', '', '', '', '', '', '', ''],
+  ['John Smith', 'person', 'vehicle', 'AB12CDE', 'vehicle', '', '', '->', '', '', 'dotted', '', ''],
+  ['David Brown', 'person', '', '', '', '', '', '', '', '', '', 'node without links', '']
 ];
 
 function downloadTemplate() {
@@ -3481,7 +3501,7 @@ function downloadTemplate() {
   const csv = '\ufeff' + IMPORT_TEMPLATE.map(r => r.map(q).join(';')).join('\r\n');
   const a = document.createElement('a');
   a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv;charset=utf-8' }));
-  a.download = 'modello_importazione.csv';
+  a.download = 'import_template.csv';
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
@@ -3489,8 +3509,8 @@ function downloadTemplate() {
 /* ---- wizard: 1 file, 2 columns, 3 preview ---- */
 let impCols = null;                 // response of /api/import/columns
 let impMapping = {};                // {column index: key}
-const IMP_NODE_KEYS = ['name', 'type', 'label', 'url', 'platform', 'text', 'cognome', 'nascita',
-                       'sex', 'colore', 'flag', 'address', 'civico', 'lat', 'lon', 'note'];
+const IMP_NODE_KEYS = ['name', 'type', 'label', 'url', 'platform', 'text', 'surname', 'birth',
+                       'sex', 'color', 'flag', 'address', 'house_number', 'lat', 'lon', 'note'];
 const IMP_EDGE_KEYS = ['rel', 'arrow', 'curve', 'color', 'lstyle', 'width'];
 
 function impStep(n) {
@@ -3660,7 +3680,7 @@ function planTableHtml(rows) {
       return `<tr class="${r.error ? 'imp-err' : ''}">` +
         `<td>${r.error ? '⚠' : `<input type="checkbox" data-row="${r.row}" checked>`}</td>` +
         `<td>${r.row}</td>` +
-        (r.error ? `<td colspan="3">${esc(r.error)}</td>`
+        (r.error ? `<td colspan="3">${esc(srvMsg(r.error))}</td>`
           : `<td>${impNode(a)}</td><td class="imp-e">${e ? `<i style="color:${esc(e.color || '#64748b')}">${ARROW_SYM[e.arrow] || '—'}</i> ${esc(e.label || '')}` : ''}</td><td>${impNode(b)}</td>`) +
         '</tr>';
     }).join('') + '</tbody></table>' +
@@ -3719,7 +3739,7 @@ async function commitImport() {
                                              err: (j.errors || []).length });
     if ((j.errors || []).length) {
       alert(t('imp.errList') + '\n\n' +
-        j.errors.slice(0, 30).map(e => `${t('imp.rowN', { n: e.row })}: ${e.error}`).join('\n'));
+        j.errors.slice(0, 30).map(e => `${t('imp.rowN', { n: e.row })}: ${srvMsg(e.error)}`).join('\n'));
     }
   } catch (err) {
     alert(t('err.opFailed', { e: err.message }));
@@ -3782,7 +3802,7 @@ async function transcribeTick() {
   clearInterval(trTimer); trTimer = null;
   $('#tr-go').disabled = false; $('#tr-stop').disabled = true;
   if (!p.finished) return;
-  if (p.error) { $('#tr-result').textContent = t('tr.failed', { e: p.error }); return; }
+  if (p.error) { $('#tr-result').textContent = t('tr.failed', { e: srvMsg(p.error) }); return; }
   const r = p.result || {};
   $('#tr-bar-fill').style.width = '100%';
   $('#tr-result').textContent = t('tr.result', { segments: r.segments, speakers: r.speakers,
@@ -3810,7 +3830,7 @@ on('#exportFtm', 'click', async () => {
                                                 body: JSON.stringify(ids ? { ids } : {}) });
     if (!r.ok) {
       let msg = `HTTP ${r.status}`;
-      try { msg = (await r.json()).error || msg; } catch (_) {}
+      try { msg = serverError(await r.json()) || msg; } catch (_) {}
       throw new Error(msg);
     }
     const blob = await r.blob();
@@ -3947,7 +3967,7 @@ async function runFtmImport() {
         $('#ftm-bar-fill').style.width = Math.round(100 * p.done / p.total) + '%';
       }
       if (p.finished) {
-        if (p.error) throw new Error(p.error);
+        if (p.error) throw new Error(srvMsg(p.error));
         $('#ftm-bar-fill').style.width = '100%';
         $('#ftm-result').textContent = t('ftm.result', { nodes: p.nodes, links: p.links,
           updated: p.updated, same: p.same_links, errors: p.errors }) +
@@ -4190,7 +4210,7 @@ async function testAiConfig() {
     const j = await apiPost('/api/ai/test', {});
     r.className = 'aic-test ' + (j.ok ? 'ok' : 'err');
     r.textContent = j.ok ? t('aicfg.testOk', { ms: j.ms, model: j.model, api: j.api || '' })
-                         : t('aicfg.testErr', { e: j.error, ms: j.ms });
+                         : t('aicfg.testErr', { e: srvMsg(j.error), ms: j.ms });
   } catch (err) {
     r.className = 'aic-test err'; r.textContent = err.message;
   } finally {
@@ -4314,7 +4334,7 @@ async function osaSearch(q, schema) {
   try {
     const r = await fetch(`/api/osa/search?q=${encodeURIComponent(q)}&schema=${encodeURIComponent(schema || '')}&limit=20`);
     const j = await r.json();
-    if (j.error) throw new Error(j.error);
+    if (j.error) throw new Error(serverError(j));
     renderOsaResults(q, j.results, j.total);
   } catch (err) {
     $('#osaResults').innerHTML = `<div class="osa-err">${esc(err.message)}</div>`;
@@ -4789,7 +4809,7 @@ async function loadDict(append) {
     const r = await fetch(url);
     if (r.status === 404) throw new Error(t('err.restartServer'));
     const j = await r.json();
-    if (j.error) throw new Error(j.error);
+    if (j.error) throw new Error(serverError(j));
     dictRows = append ? dictRows.concat(j.rows || []) : (j.rows || []);
     dictMore = !!j.more;
     renderDict(j.counts || {}, j.engine || '');
@@ -4899,7 +4919,7 @@ on('#dict-import', 'change', async e => {
     const text = await f.text();
     const j = await apiPost('/api/translit/import', { text });
     $('#stat').textContent = t('dict.imported', { n: j.imported, s: j.skipped });
-    if (j.errors && j.errors.length) console.warn('dizionario, righe scartate:', j.errors);
+    if (j.errors && j.errors.length) console.warn('dictionary, discarded rows:', j.errors);
     dictOffset = 0;
     await loadDict(false);
     await reloadData();
@@ -5231,7 +5251,7 @@ function buildCatFilters() {
   const box = $('#catFilters');
   if (!box || !cy) return;
   const counts = {};
-  cy.nodes().forEach(n => { const c = n.data('cat') || 'altro'; counts[c] = (counts[c] || 0) + 1; });
+  cy.nodes().forEach(n => { const c = n.data('cat') || 'other'; counts[c] = (counts[c] || 0) + 1; });
   box.innerHTML = CATEGORIES.filter(c => counts[c.key]).map(c => {
     const off = hiddenCats.has(c.key);
     const lab = catLabel(c.key);
@@ -5247,7 +5267,7 @@ function buildCatFilters() {
 /* Keys of the categories actually present in the graph. */
 function presentCatKeys() {
   const s = new Set();
-  cy.nodes().forEach(n => s.add(n.data('cat') || 'altro'));
+  cy.nodes().forEach(n => s.add(n.data('cat') || 'other'));
   return [...s];
 }
 
@@ -5377,14 +5397,14 @@ on('#openMode', 'change', e => setOpenMode(e.target.value));
 function hideCat(cat) {
   hiddenCats.add(cat);
   cy.nodes().not('.hidden').forEach(n => {
-    if ((n.data('cat') || 'altro') === cat) catHidden.add(n.id());
+    if ((n.data('cat') || 'other') === cat) catHidden.add(n.id());
   });
 }
 function showCat(cat) {
   hiddenCats.delete(cat);
   [...catHidden].forEach(id => {
     const n = cy.getElementById(id);
-    if (!n.length || (n.data('cat') || 'altro') === cat) catHidden.delete(id);
+    if (!n.length || (n.data('cat') || 'other') === cat) catHidden.delete(id);
   });
 }
 on('#catFilters', 'click', e => {
@@ -5615,7 +5635,7 @@ async function pollOcrInstall() {
     await sleep(1000);
     try {
       const j = await fetch('/api/ocr/install/status').then(r => r.json());
-      Object.assign(ocrJob, { state: j.state, stage: j.stage, percent: j.percent || 0, error: j.error || '' });
+      Object.assign(ocrJob, { state: j.state, stage: j.stage, percent: j.percent || 0, error: srvMsg(j.error) || '' });
     } catch (_) { continue; }
     if (ocrJob.state !== 'running') break;
     renderSrcStatus();
@@ -5680,7 +5700,7 @@ on('#srcScan', 'click', async () => {
       await sleep(300);
       const r = await fetch('/api/sources/progress');
       const p = await r.json();
-      if (p.error) throw new Error(p.error);
+      if (p.error) throw new Error(srvMsg(p.error));
       if (p.running && p.total) {
         st.innerHTML = `<span class="src-busy">` +
           esc(t('src.indexing', { i: p.done, n: p.total })) +
@@ -5689,7 +5709,7 @@ on('#srcScan', 'click', async () => {
         st.innerHTML = `<span class="src-busy">${esc(t('src.scanning'))}</span>`;
       }
       if (p.finished) {
-        if (p.error) throw new Error(p.error);
+        if (p.error) throw new Error(srvMsg(p.error));
         const d = p.summary || {};
         srcState.indexed = true; srcState.folder = d.folder || folder;
         srcState.count = d.count || 0; srcState.ocr = !!d.ocr_available;
@@ -5923,8 +5943,29 @@ async function apiPost(url, payload) {
   try { j = JSON.parse(txt); } catch (_) {
     throw new Error(t('err.badResponse', { s: r.status }));
   }
-  if (!r.ok || j.error) throw new Error(j.error || `HTTP ${r.status}`);
+  if (!r.ok || j.error) throw new Error(serverError(j) || `HTTP ${r.status}`);
   return j;
+}
+
+/* An error of the server in the language of the interface: its code is an i18n
+   key (with the values in 'args'); otherwise the English text of 'error',
+   translated through SERVER_MSG (i18n.js). */
+function serverError(j) {
+  return j.code && I18N.en[j.code] !== undefined ? t(j.code, j.args) : srvMsg(j.error);
+}
+
+/* A message of the server in the language of the interface: the whole text, or
+   "head: detail" with both parts translated, or a known head followed by a
+   detail ("file too large: max 20 MB"). Unknown text stays as it is. */
+function srvMsg(s) {
+  if (!s || LANG === 'en' || typeof SERVER_MSG === 'undefined') return s;
+  const tb = SERVER_MSG[LANG] || {};
+  s = String(s);
+  if (tb[s] !== undefined) return tb[s];
+  const i = s.indexOf(': ');
+  if (i > 0) return srvMsg(s.slice(0, i)) + ': ' + srvMsg(s.slice(i + 2));
+  const head = Object.keys(tb).filter(k => s.startsWith(k + ' ')).sort((a, b) => b.length - a.length)[0];
+  return head ? tb[head] + s.slice(head.length) : s;
 }
 
 /* ---- Note on the node ---- */
@@ -5982,9 +6023,9 @@ async function renameNode(node) {
    and can be undone all together. */
 let editNode = null;
 
-function edRow(key, val, attrs) {
+function edRow(key, val, attrs, shown = key) {
   return `<div class="ed-row" ${attrs}>` +
-    `<div class="ed-k" title="${esc(key)}">${esc(key)}</div>` +
+    `<div class="ed-k" title="${esc(shown)}">${esc(shown)}</div>` +
     `<textarea rows="${Math.min(6, Math.max(1, Math.ceil(String(val).length / 60)))}">${esc(val)}</textarea>` +
     `<button type="button" class="mini ed-x" title="${esc(t('edit.delField'))}">✕</button></div>`;
 }
@@ -6020,11 +6061,11 @@ function openEditModal(node) {
     if (r.extra) { extra = Object.entries(r.raw || {}); return; }
     const rows = flatten(r.raw || {});
     h += `<div class="ed-sec"><h4>${esc(t('card.recordBadge', { i: i + 1, n: recs.length,
-      coll: r.collection || t('card.sheet') }))}</h4>` +
+      coll: ot(r.collection) || t('card.sheet') }))}</h4>` +
       (rows.length ? rows.map(([k, v]) =>
         // shortened values (beyond MAX_VAL) are not edited: the rest would be lost
         edRow(k, v, `data-ri="${i}" data-path="${esc(k)}" data-orig="${esc(v)}"` +
-          (v.length > MAX_VAL ? ' data-ro="1"' : ''))).join('')
+          (v.length > MAX_VAL ? ' data-ro="1"' : ''), ot(k, d.ntype))).join('')
         : `<div class="af-hint">${esc(t('card.empty'))}</div>`) +
       '</div>';
   });
@@ -6561,7 +6602,7 @@ async function loadCases() {
     hasCase = !!cur;
     const sel = $('#caseSel');
     sel.innerHTML = (hasCase ? '' : `<option value="">${esc(t('case.noneOpt'))}</option>`) +
-      casesList.map(c => `<option value="${esc(c.id)}">${esc(c.name)}</option>`).join('');
+      casesList.map(c => `<option value="${esc(c.id)}">${esc(c.name)}${c.old ? ' ' + esc(t('case.oldTag')) : ''}</option>`).join('');
     sel.value = hasCase ? j.current : '';
     $('#caseDesc').textContent = hasCase ? cur.description || '' : t('case.noneHint');
     $('.case-box').classList.toggle('no-case', !hasCase);

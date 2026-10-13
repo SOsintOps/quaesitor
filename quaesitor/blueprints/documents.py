@@ -47,10 +47,10 @@ def _ocr_install_worker():
         exe = _tess.setup_windows(_tess.DEFAULT_URL, dest, progress=progress, stage=stage)
         ok = _src.configure_ocr(BASE_DIR)          # enables OCR without restarting
         _OCR_JOB.update(state="done" if ok else "error", percent=100,
-                        error="" if ok else "tesseract.exe scaricato ma non utilizzabile")
-        logging.info(f"Tesseract in {exe}: OCR {'attivo' if ok else 'NON attivo'}")
+                        error="" if ok else "tesseract.exe downloaded but not usable")
+        logging.info(f"Tesseract in {exe}: OCR {'on' if ok else 'NOT on'}")
     except Exception as e:
-        logging.error("Installazione di Tesseract fallita", exc_info=True)
+        logging.error("Installing Tesseract failed", exc_info=True)
         _OCR_JOB.update(state="error", error=str(e))
 
 
@@ -58,16 +58,16 @@ def _ocr_install_worker():
 def api_ocr_install():
     """Starts the download of Tesseract into the tools/tesseract folder."""
     if os.name != "nt":
-        return jsonify({"error": "download automatico disponibile solo su Windows"}), 400
+        return jsonify({"error": "automatic download available on Windows only"}), 400
     if _src.OCR_AVAILABLE:
         return jsonify({"ok": True, "state": "done", "already": True})
     if _src.OCR_REASON == "module":
-        return jsonify({"error": "manca il modulo Python pytesseract: pip install pytesseract"}), 400
+        return jsonify({"error": "the Python module pytesseract is missing: pip install pytesseract"}), 400
     with _OCR_LOCK:
         if _OCR_JOB["state"] != "running":
             _OCR_JOB.update(state="running", stage="download", percent=0, error="")
             threading.Thread(target=_ocr_install_worker, daemon=True).start()
-            logging.info(f"Download di Tesseract da {_tess.DEFAULT_URL}")
+            logging.info(f"Downloading Tesseract from {_tess.DEFAULT_URL}")
     return jsonify({"ok": True, "state": "running", "url": _tess.DEFAULT_URL})
 
 
@@ -118,13 +118,13 @@ def api_sources_pick():
         root.attributes("-topmost", True)
         start = request.get_json(silent=True) or {}
         folder = filedialog.askdirectory(
-            title="Scegli la cartella delle fonti",
+            title="Choose the sources folder",
             initialdir=start.get("start") or os.path.expanduser("~"))
         root.destroy()
         return jsonify({"folder": folder or ""})
     except Exception as e:
-        logging.warning(f"Dialog cartella non disponibile: {e}")
-        return jsonify({"error": "dialog non disponibile", "detail": str(e)}), 501
+        logging.warning(f"Folder dialog not available: {e}")
+        return jsonify({"error": "folder dialog not available", "detail": str(e)}), 501
 
 
 @bp.route("/api/sources/scan", methods=["POST"])
@@ -136,10 +136,10 @@ def api_sources_scan():
     if not folder:
         folder = archive.SOURCES_DEFAULT          # 'sources' next to the executable
     if not os.path.isdir(folder):
-        return jsonify({"error": f"cartella non trovata: {folder}"}), 404
+        return jsonify({"error": f"folder not found: {folder}"}), 404
     with _scan_lock:
         if _scan["running"]:
-            return jsonify({"error": "scansione già in corso", "running": True}), 409
+            return jsonify({"error": "scan already running", "running": True}), 409
         _scan.update({"running": True, "done": 0, "total": 0, "name": "",
                       "finished": False, "error": "", "summary": None})
     _threading.Thread(target=_run_scan, args=(folder,), daemon=True).start()
@@ -159,10 +159,10 @@ def api_sources_search():
     q = str(data.get("q") or "").strip()
     mode = "total" if data.get("mode") == "total" else "partial"
     if len(q) < 2:
-        return jsonify({"error": "termine troppo corto"}), 400
+        return jsonify({"error": "search term too short"}), 400
     idx = sources_index()
     if not idx:
-        return jsonify({"error": "nessuna cartella fonti indicizzata"}), 400
+        return jsonify({"error": "no sources folder indexed"}), 400
     return jsonify(_src.search_index(idx, q, mode))
 
 
@@ -176,7 +176,7 @@ def api_sources_multi():
     mode = "total" if data.get("mode") == "total" else "partial"
     idx = sources_index()
     if not idx:
-        return jsonify({"error": "nessuna cartella fonti indicizzata"}), 400
+        return jsonify({"error": "no sources folder indexed"}), 400
     return jsonify(_src.search_multi(idx, terms, mode))
 
 
@@ -197,7 +197,7 @@ def api_sources_file(fid):
     path, folder = _src.locate_file(idx, f.get("rel"), BASE_DIR, archive.SOURCES_DEFAULT)
     if not path:
         logging.warning(
-            f"Fonte non trovata: {f.get('rel')!r}. Cercata in: "
+            f"Source not found: {f.get('rel')!r}. Looked for in: "
             + " | ".join(_src.folder_candidates(idx, BASE_DIR, archive.SOURCES_DEFAULT)))
         abort(404)
     return send_from_directory(os.path.dirname(path), os.path.basename(path))

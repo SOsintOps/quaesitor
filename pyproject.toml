@@ -9,7 +9,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "quaesitor"
-version = "1.8.0"
+version = "2.0.0"
 description = "Graph exploration of OSINT data for investigative cases, fork of OSInt Graph"
 readme = "README.md"
 requires-python = ">=3.10"
