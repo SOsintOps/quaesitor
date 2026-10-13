@@ -6,7 +6,7 @@ Changelog of all releases and improvements to Quaesitor, the SOsintOps fork of O
 
 ## Planned
 
-What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker packaging, a definitive logo for the interface, the English translation of the remaining Italian pages, a customising guide, the follow-ups of the Cognitor bridge.
+What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker packaging, the English translation of the remaining Italian pages, a customising guide, the follow-ups of the Cognitor bridge.
 
 ---
 
