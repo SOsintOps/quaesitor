@@ -1,6 +1,6 @@
 # Intelligence Analysis Guidelines
 
-Analytic standards, the 5W1H method, and OPSEC best practices for the investigations kept in Quaesitor. The method specific to the graph itself (source grading, association matrix, link chart) is in the [Link Analysis Guidelines](link-analysis.md); this page covers what comes before and around it.
+Analytic standards, the 5W1H method, and OPSEC best practices for the investigations kept in Quaesitor. The method specific to the graph itself (source grading, association matrix, link chart) is in the [Link Analysis Guidelines](link-analysis.md); this page covers what comes before and around it. Both apply to Quaesitor the common method of the SOsintOps tools, the [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes): personal notes, shared for convenience and with no claim to be exhaustive. A copy for offline reading is in [`docs/field-notes/`](field-notes/README.md).
 
 ## Core Analytic Standards
 Adherence to the five Core Analytic Standards is mandatory for all intelligence products. These standards ensure the rigour and integrity of the analysis.
@@ -24,6 +24,8 @@ Adherence to the five Core Analytic Standards is mandatory for all intelligence 
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | Remote | Highly Improbable | Improbable | Roughly Even Odds | Probable | Highly Probable | Nearly Certain |
 | 01-05% | 05-20% | 20-45% | 45-55% | 55-80% | 80-95% | 95-99% |
+
+Choose one row and keep to it (the SOsintOps templates use the first), and never put a confidence level and a likelihood term in the same sentence: see [Estimative Language](field-notes/estimative-language.md).
 
 3.  Properly distinguishes between underlying intelligence information and analysts' assumptions and judgments. A solid link is information; a dashed link labelled "hypothesis" is a judgment. Never draw the second as the first.
 4.  Incorporates analysis of alternatives by systematically evaluating differing hypotheses.
@@ -82,12 +84,15 @@ Effective OPSEC is not optional. It is a core discipline required to protect you
 - **Online lookups from the program:** OpenSanctions receives the names you search, Epieos the e-mail or number you search, the AI server the text you submit. Each is off by default and asks for confirmation; switch it on only when the identifier may leave the machine, and prefer a local Ollama for the AI.
 - **Secure Data Handling:** All information collected during an investigation must be stored securely. The case archives in `data/`, the sources in `fonti/` and the keys in `services.conf` are plain files: keep them on encrypted storage, back them up, and establish a clear data retention and destruction policy to securely delete information that is no longer needed.
 
+## Writing the Report
+The chart is an addition to a written report, never its replacement. The structure of the report (bottom line up front, findings with their sources and grades, judgements apart from facts, gaps) is in [Report Writing](field-notes/report-writing.md); the written product of association analysis, with the chart and the biographical summaries as annexes, is in [Reading the Chart](link-analysis.md#reading-the-chart-association-analysis).
+
 ## Further Reading
-For a more in-depth analysis of the methodologies and practices discussed, the following foundational texts are recommended:
-- **"Psychology of Intelligence Analysis"** by Richards J. Heuer Jr. - A crucial text for understanding and mitigating the cognitive biases that affect analytical judgment.
-- **"Criminal Intelligence: Manual for Analysts"** by Howard Atkin (UNODC, 2011) - A UNODC reference manual covering the full intelligence process: source evaluation, link analysis, event charting, flow analysis, and telephone analysis. The chapter on link analysis is the basis of the [Link Analysis Guidelines](link-analysis.md).
-- **"ICD 203: Analytic Standards"** (ODNI) - The US Intelligence Community Directive defining the analytic tradecraft standards summarised above.
-- **"Structured Analytic Techniques for Intelligence Analysis"** by Richards J. Heuer Jr. and Randolph H. Pherson - A reference manual that presents dozens of structured analytical techniques to improve the rigour and quality of analysis.
-- **"Extreme Privacy: What It Takes to Disappear"** by Michael Bazzell - An extensive guide on digital security and maintaining anonymity, which directly supports the OPSEC principles discussed.
-- **"Open Source Intelligence Techniques"** by Michael Bazzell - A comprehensive, practical guide to the tools and techniques for gathering information from open sources.
-- **"Deep Dive: Exploring the Real-World Value of Open Source Intelligence"** by Rae L. Baker - Real-world case studies demonstrating the practical application and value of OSINT across various sectors.
+For a more in-depth analysis of the methodologies and practices discussed, the following foundational texts are recommended. The full list, with a link for every text, is the [Reading List](field-notes/reading-list.md).
+- **"Psychology of Intelligence Analysis"** by Richards J. Heuer Jr. - A crucial text for understanding and mitigating the cognitive biases that affect analytical judgement. [CIA page](https://www.cia.gov/resources/csi/books-monographs/psychology-of-intelligence-analysis-2/) · [PDF](https://www.cia.gov/resources/csi/static/Pyschology-of-Intelligence-Analysis.pdf)
+- **"Criminal Intelligence: Manual for Analysts"** by Howard Atkin (UNODC, 2011) - A UNODC reference manual covering the full intelligence process: source evaluation, link analysis, event charting, flow analysis, and telephone analysis. The chapter on link analysis is the basis of the [Link Analysis Guidelines](link-analysis.md). [PDF](https://www.unodc.org/documents/organized-crime/Law-Enforcement/Criminal_Intelligence_for_Analysts.pdf)
+- **"ICD 203: Analytic Standards"** (ODNI) - The US Intelligence Community Directive defining the analytic tradecraft standards summarised above. [PDF](https://www.dni.gov/files/documents/ICD/ICD-203.pdf)
+- **"Structured Analytic Techniques for Intelligence Analysis"** by Randolph H. Pherson and Richards J. Heuer Jr. - A reference manual that presents dozens of structured analytical techniques to improve the rigour and quality of analysis. [SAGE](https://www.sagepub.com/en-us/cab/structured-analytic-techniques-for-intelligence-analysis/book255432)
+- **"Extreme Privacy: What It Takes to Disappear"** by Michael Bazzell - An extensive guide on digital security and maintaining anonymity, which directly supports the OPSEC principles discussed. [IntelTechniques](https://inteltechniques.com/book7.html)
+- **"OSINT Techniques"** (11th edition) by Michael Bazzell and Jason Edison - A comprehensive, practical guide to the tools and techniques for gathering information from open sources; earlier editions were titled *Open Source Intelligence Techniques*. [IntelTechniques](https://inteltechniques.com/book1.html)
+- **"Deep Dive: Exploring the Real-World Value of Open Source Intelligence"** by Rae L. Baker - Real-world case studies demonstrating the practical application and value of OSINT across various sectors. [Wiley](https://www.wiley.com/en-us/Deep+Dive%3A+Exploring+the+Real+world+Value+of+Open+Source+Intelligence-p-9781119933243)

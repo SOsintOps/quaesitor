@@ -98,7 +98,7 @@ Drawing is the prerequisite; the analysis is in the questions you then put to th
 - **Time:** Have the links changed? Are they changing in strength or centrality? What earlier bonding elements are known?
 - **Comparison:** Can this model of linkages be applied to other groups? Have similar structures been seen before, here or elsewhere? Does this structure help predict the next one?
 
-The written product of association analysis has a fixed shape (p. 47): an executive summary of the findings; an overview of the group answering the relevant questions above; the chart or charts; a biographical summary of each target and potential target; conclusions about the group; recommendations for tactical or strategic action, with the list of **unanswered questions** and where the missing information might be found (the intelligence gaps).
+The written product of association analysis has a fixed shape (p. 47): an executive summary of the findings (the bottom line, written first for the reader and last by the analyst: see [Report Writing](field-notes/report-writing.md)); an overview of the group answering the relevant questions above; the chart or charts; a biographical summary of each target and potential target; conclusions about the group; recommendations for tactical or strategic action, with the list of **unanswered questions** and where the missing information might be found (the intelligence gaps).
 
 Expanded into a process (p. 48), the twelve steps are: collect; organise and collate; extract the association material; prepare the matrix; prepare the chart; write the biographical summaries; summarise the chart; apply the questions above to the network; establish what is present and what is absent; draw interim hypotheses; list the unanswered questions and the collection and investigative steps to answer them; present the findings and the written report.
 
@@ -135,8 +135,9 @@ Two things the program does not do, by design. It does not grade information for
 
 ## Further Reading
 For the full method and the sister techniques, the following texts are recommended:
-- **"Criminal Intelligence: Manual for Analysts"** by Howard Atkin (UNODC, 2011) - The reference this page is rewritten from: the intelligence process, source evaluation, link analysis, event charting, flow analysis, telephone analysis, inference development and presentation of results.
+- **"Criminal Intelligence: Manual for Analysts"** by Howard Atkin (UNODC, 2011) - [PDF](https://www.unodc.org/documents/organized-crime/Law-Enforcement/Criminal_Intelligence_for_Analysts.pdf). The reference this page is rewritten from: the intelligence process, source evaluation, link analysis, event charting, flow analysis, telephone analysis, inference development and presentation of results.
 - **"Criminal Intelligence: Manual for Front-line Law Enforcement"** (UNODC, 2010) - The companion volume for officers who collect and report the information the analyst evaluates.
-- **"Psychology of Intelligence Analysis"** by Richards J. Heuer Jr. - The text on the cognitive biases, mirror imaging first, that a chart cannot cure.
-- **"Structured Analytic Techniques for Intelligence Analysis"** by Richards J. Heuer Jr. and Randolph H. Pherson - Structured techniques to test the hypotheses a link chart suggests.
+- **"Psychology of Intelligence Analysis"** by Richards J. Heuer Jr. - The text on the cognitive biases, mirror imaging first, that a chart cannot cure. [CIA page](https://www.cia.gov/resources/csi/books-monographs/psychology-of-intelligence-analysis-2/) · [PDF](https://www.cia.gov/resources/csi/static/Pyschology-of-Intelligence-Analysis.pdf)
+- **"Structured Analytic Techniques for Intelligence Analysis"** by Randolph H. Pherson and Richards J. Heuer Jr. - Structured techniques to test the hypotheses a link chart suggests; ACH first. [SAGE](https://www.sagepub.com/en-us/cab/structured-analytic-techniques-for-intelligence-analysis/book255432)
+- **[Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes)** - The SOsintOps notes on analytic standards, source evaluation (the same 4 x 4 system), estimative language and report writing.
 - **"Follow the Money"** data model documentation - [followthemoney.tech](https://followthemoney.tech): the schemata and typed relations that Quaesitor uses for ownership, positions and payments.

@@ -6,7 +6,15 @@ Changelog of all releases and improvements to Quaesitor, the SOsintOps fork of O
 
 ## Planned
 
-What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker packaging, the fork's own name and logo in the interface, the English translation of the remaining Italian pages, a customising guide, the follow-ups of the Cognitor bridge.
+What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker packaging, a definitive logo for the interface, the English translation of the remaining Italian pages, a customising guide, the follow-ups of the Cognitor bridge.
+
+---
+
+## 1.7.2 — 2026
+
+- **Docs:** [Guidelines](guidelines.md) and [Link Analysis Guidelines](link-analysis.md) aligned with the [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes), the notes on analytic standards, source evaluation, estimative language and report writing now shared by all the SOsintOps tools: the likelihood table says to use one row only, a *Writing the Report* section joins the graph to the written product, and every text in *Further Reading* is linked. `docs/field-notes/` carries an offline copy of the notes.
+- **Docs:** FAQ: new entry *Are there related SOsintOps projects?*; the documentation entry points to the Field Notes.
+- **Fixed:** FAQ and README named the uninstaller `disinstall.bat`; it is `uninstall.bat` since 1.5.0. The OCR answer of the FAQ showed the Windows path `tools\tesseract\tessdata` with tab characters instead of backslashes. The README names the maintainer as the credits do, Sitticus. *Planned* no longer lists the fork's own name, given in 1.5.0; a definitive logo is still wanted.
 
 ---
 

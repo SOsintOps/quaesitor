@@ -40,6 +40,7 @@ Frequently asked questions about Quaesitor — the project, the licence, install
 * [Where do the node icons come from?](#where-do-the-node-icons-come-from)
 * [Where do I report a problem or ask a question?](#where-do-i-report-a-problem-or-ask-a-question)
 * [Where is the rest of the documentation?](#where-is-the-rest-of-the-documentation)
+* [Are there related SOsintOps projects?](#are-there-related-sosintops-projects)
 
 ## About the Project & Its Name
 
@@ -86,7 +87,7 @@ Nothing is triggered: copyleft and the renaming clause apply to distribution. Th
 
 ### How do I install it on Windows?
 
-Double-click `install.bat` in the program folder (or run `.\install.bat` from PowerShell). It finds Python 3.10 or newer, creates `.venv`, installs the libraries, prepares `chatbot.conf` and `services.conf` from the examples, creates the `fonti` folder and asks whether to download Tesseract for OCR. Then `start.bat` starts the program and opens the browser on http://127.0.0.1:5000. `update.bat` pulls the repository and updates the libraries; `disinstall.bat` removes `.venv` and asks before touching the cases.
+Double-click `install.bat` in the program folder (or run `.\install.bat` from PowerShell). It finds Python 3.10 or newer, creates `.venv`, installs the libraries, prepares `chatbot.conf` and `services.conf` from the examples, creates the `fonti` folder and asks whether to download Tesseract for OCR. Then `start.bat` starts the program and opens the browser on http://127.0.0.1:5000. `update.bat` pulls the repository and updates the libraries; `uninstall.bat` removes `.venv` and asks before touching the cases.
 
 ### How do I run it from source on any system?
 
@@ -111,7 +112,7 @@ Yes, and that is how the SOsintOps workstations ship it: Argos (Ubuntu Budgie 24
 
 ### Which languages does the OCR read?
 
-All the Tesseract language packs installed on the machine, joined together with English last (for example `ita+rus+eng`: the first language leads the recognition), so accents and non-Latin scripts are read correctly; with only the engine installed Tesseract reads English and drops accents ("citta" for "città"). Install the packs you need (`tesseract-ocr-ita`, `tesseract-ocr-chi-sim`, `tesseract-ocr-rus`, `tesseract-ocr-ara` on Debian and Ubuntu; on Windows the `.traineddata` files go into `tools	esseract	essdata`) or set `TESSERACT_LANG` to choose. The languages in use are shown by `/api/sources/status`.
+All the Tesseract language packs installed on the machine, joined together with English last (for example `ita+rus+eng`: the first language leads the recognition), so accents and non-Latin scripts are read correctly; with only the engine installed Tesseract reads English and drops accents ("citta" for "città"). Install the packs you need (`tesseract-ocr-ita`, `tesseract-ocr-chi-sim`, `tesseract-ocr-rus`, `tesseract-ocr-ara` on Debian and Ubuntu; on Windows the `.traineddata` files go into `tools\tesseract\tessdata`) or set `TESSERACT_LANG` to choose. The languages in use are shown by `/api/sources/status`.
 
 ### Which branch do I use? What is `osintgraph`?
 
@@ -234,4 +235,15 @@ In the issues of the SOsintOps repository. Not to the original author: the chang
 
 ### Where is the rest of the documentation?
 
-The README section *Documentation* lists every page. The analytic standards, the 5W1H method and OPSEC are in the [Guidelines](guidelines.md); the method behind the graph is in the [Link Analysis Guidelines](link-analysis.md), rewritten from the UNODC manual for analysts; the node types are in [Graph Entities](ontology.md); the releases are in the [Version History](versionhistory.md) and what is planned in [Ideas & Roadmap](todo.md).
+The README section *Documentation* lists every page. The analytic standards, the 5W1H method and OPSEC are in the [Guidelines](guidelines.md); the method behind the graph is in the [Link Analysis Guidelines](link-analysis.md), rewritten from the UNODC manual for analysts; the node types are in [Graph Entities](ontology.md); the releases are in the [Version History](versionhistory.md) and what is planned in [Ideas & Roadmap](todo.md). The common method of the SOsintOps tools (analytic standards, source evaluation, estimative language, report writing) is in the [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes), copied for offline reading in [`field-notes`](field-notes/README.md).
+
+### Are there related SOsintOps projects?
+
+Yes:
+
+* **[Argos](https://github.com/SOsintOps/Argos)** and **[Speculator](https://github.com/SOsintOps/Speculator-Project)**: the OSINT workstations for Ubuntu Budgie and Debian that install and start Quaesitor, and carry the report templates the graph is an annex to.
+* **[Wukong](https://github.com/SOsintOps/Wukong)**: the China-focused workstation, for the Chinese names the transliteration dictionary handles.
+* **[Exploratores](https://github.com/SOsintOps/Exploratores)**: the browser toolkit for the searches whose results become nodes.
+* **[Aethelburg](https://github.com/SOsintOps/Aethelburg-project)**: an analyser of UK company registers, for the ownership chains drawn with Follow the Money relations.
+* **[Elementary CTI](https://github.com/SOsintOps/elementary-CTI)**: a ransomware threat-intelligence aggregator.
+* **[Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes)**: the method all of them share.

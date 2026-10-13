@@ -1,6 +1,6 @@
-# Quaesitor 1.7.1
+# Quaesitor 1.7.2
 
-![version](https://img.shields.io/badge/version-1.7.1-blue)
+![version](https://img.shields.io/badge/version-1.7.2-blue)
 ![licence](https://img.shields.io/github/license/SOsintOps/quaesitor)
 ![last commit](https://img.shields.io/github/last-commit/SOsintOps/quaesitor)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
@@ -9,7 +9,7 @@
 
 **Quaesitor** is a case graph for OSINT investigations: people, phones, e-mails, social profiles, companies, vehicles, places and documents as an interactive graph, with every case stored on your own computer. It is a fork of [OSInt Graph](https://github.com/tingon11/OsintGraph) by Andrea Cumini (andrea@osintinfo.net, [www.osintinfo.net](https://www.osintinfo.net)): the program, its design, its code and its illustrated manual are his work, released as free software under the GNU GPL v3 with attribution terms. The fork exists because his program was already excellent and only needed adapting to the needs of one analyst — non-Latin names, the Follow the Money data model, the Epieos API, a one-click Windows install and the bridge with Cognitor, the face-recognition program of the same holder. It adds those and nothing else; see [Credits](#credits).
 
-Version 1.7.1 completes the colour icons: articles, calls and the sub-types of drugs, documents, judicial acts and devices. Version 1.7.0 gives every node type a colour icon, generated for this fork (see the FAQ). Version 1.6.1 named the fork's maintainer in the credits, with the attribution of the original author kept on its own line. Version 1.6.0 opened the cases of Cognitor (face photos, co-appearances, videos with their transcripts) through the Follow the Money import, read large files by their path, fixed the import of every Follow the Money file, and brought the transcription of videos on this computer with the modules of Cognitor, released by their holder under the GPL. Version 1.5.1 verifies the Linux install used by Argos and Speculator and makes OCR use every installed Tesseract language. Version 1.5.0 was the first public release: the fork carries its own name, wordmark and icon in the interface, as the licence requires, while the attribution of the original author stays in every place it was. Version 1.4.0 named the fork and brought the FAQ, the guidelines, the link analysis primer and this documentation layout. See the full [version history](docs/versionhistory.md) for previous releases and for what is planned next.
+Version 1.7.2 aligns the guidelines with the [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes), the method shared by the SOsintOps tools, links every text they cite and fixes the FAQ. Version 1.7.1 completes the colour icons: articles, calls and the sub-types of drugs, documents, judicial acts and devices. Version 1.7.0 gives every node type a colour icon, generated for this fork (see the FAQ). Version 1.6.1 named the fork's maintainer in the credits, with the attribution of the original author kept on its own line. Version 1.6.0 opened the cases of Cognitor (face photos, co-appearances, videos with their transcripts) through the Follow the Money import, read large files by their path, fixed the import of every Follow the Money file, and brought the transcription of videos on this computer with the modules of Cognitor, released by their holder under the GPL. Version 1.5.1 verifies the Linux install used by Argos and Speculator and makes OCR use every installed Tesseract language. Version 1.5.0 was the first public release: the fork carries its own name, wordmark and icon in the interface, as the licence requires, while the attribution of the original author stays in every place it was. Version 1.4.0 named the fork and brought the FAQ, the guidelines, the link analysis primer and this documentation layout. See the full [version history](docs/versionhistory.md) for previous releases and for what is planned next.
 
 ---
 
@@ -52,7 +52,7 @@ Version 1.7.1 completes the colour icons: articles, calls and the sub-types of d
 2. Double-click **`install.bat`**: it finds Python 3.10+, creates the `.venv` environment, installs the libraries, prepares `chatbot.conf` and `services.conf` from the examples, creates the `fonti` folder and asks whether to download Tesseract. It can be run again at any time: it never overwrites configuration or data.
 3. Double-click **`start.bat`**: the program starts and the browser opens on http://127.0.0.1:5000. Closing the window stops it.
 
-`update.bat` pulls the repository and updates the libraries; `disinstall.bat` removes `.venv` and the temporary files and asks before touching the cases in `data\`. The program is not "installed" in Windows: it is only this folder.
+`update.bat` pulls the repository and updates the libraries; `uninstall.bat` removes `.venv` and the temporary files and asks before touching the cases in `data\`. The program is not "installed" in Windows: it is only this folder.
 
 ### Linux
 
@@ -98,7 +98,8 @@ The left panel groups everything the program does:
 
 ## Documentation
 
-* [Guidelines](docs/guidelines.md): analytic standards, 5W1H method, OPSEC best practices.
+* [Guidelines](docs/guidelines.md): analytic standards, 5W1H method, OPSEC best practices, writing the report.
+* [Intelligence Field Notes](docs/field-notes/README.md): offline copy of the [notes](https://github.com/SOsintOps/intelligence-field-notes) on analytic standards, source evaluation, estimative language and report writing shared by the SOsintOps tools.
 * [FAQ](docs/faq.md): the project and its name, licence, installation, data and privacy, AI, Follow the Money, Epieos, non-Latin names, integrations.
 * [Link Analysis Guidelines](docs/link-analysis.md): the method behind the graph, from the UNODC manual for analysts, and how each step maps onto the program.
 * [Version History](docs/versionhistory.md): full changelog, from the upstream 1.0.0 onward.
@@ -147,7 +148,7 @@ OSInt Graph is developed and maintained by **Andrea Cumini**: the idea, the desi
 
 The name "OSInt Graph", its logo and its "OG" icon identify the original program and belong to its author (NOTICE, point 3). They are not distributed with Quaesitor: the interface carries a provisional wordmark and icon of its own. "Quaesitor" is the Latin name of the magistrate who conducted a criminal inquiry.
 
-The Quaesitor fork is developed and maintained by Ramingo (SOsintOps). The link analysis guidelines are rewritten from the United Nations Office on Drugs and Crime, *Criminal Intelligence: Manual for Analysts* (United Nations, 2011).
+The Quaesitor fork is developed and maintained by Sitticus (SOsintOps, [osintops.com](https://osintops.com)). The link analysis guidelines are rewritten from the United Nations Office on Drugs and Crime, *Criminal Intelligence: Manual for Analysts* (United Nations, 2011).
 
 ---
 
