@@ -157,7 +157,7 @@ def main():
         st, n4 = api(base, "/api/node/add", {"ntype": "name", "cognome": "Петров", "nome": "Иван", "parent": n1.get("id", "")})
         step("add Cyrillic name (transliteration)", st == 200 and n4.get("ok"), str(n4.get("label") or n4.get("error")))
 
-        csv = os.path.join(app_dir, "esempi", "sample_import_en.csv")
+        csv = os.path.join(app_dir, "examples", "sample_import_en.csv")
         st, p = api(base, "/api/import/preview", {"filename": "sample_import_en.csv", "data": b64(csv)})
         step("CSV preview", st == 200 and p.get("ok") and p.get("total", 0) > 0, f"rows={p.get('total')} cols={p.get('columns')}")
         st, r = api(base, "/api/import/commit", {"filename": "sample_import_en.csv", "data": b64(csv)})

@@ -109,7 +109,7 @@ The left panel groups everything the program does:
 * [Intelligence Field Notes](docs/field-notes/README.md): offline copy of the [notes](https://github.com/SOsintOps/intelligence-field-notes) on analytic standards, source evaluation, estimative language and report writing shared by the SOsintOps tools.
 * [FAQ](docs/faq.md): the project and its name, licence, installation, data and privacy, AI, Follow the Money, Epieos, non-Latin names, integrations.
 * [Link Analysis Guidelines](docs/link-analysis.md): the method behind the graph, from the UNODC manual for analysts, and how each step maps onto the program.
-* [Case Study: Blood of the Dragon](docs/case-study-game-of-thrones.md): the method applied end to end to the family network of *Game of Thrones* and *House of the Dragon*, with the import files in `esempi/`.
+* [Case Study: Blood of the Dragon](docs/case-study-game-of-thrones.md): the method applied end to end to the family network of *Game of Thrones* and *House of the Dragon*, with the import files in `examples/`.
 * [Version History](docs/versionhistory.md): full changelog, from the upstream 1.0.0 onward.
 * [Ideas & Roadmap](docs/todo.md): what is planned and under consideration.
 * [Graph Entities](docs/ontology.md): every node type with its identity rule, fields and Follow the Money equivalent, and the typed relations.

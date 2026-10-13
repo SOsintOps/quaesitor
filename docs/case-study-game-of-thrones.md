@@ -14,8 +14,8 @@ The text of AWOIAF is published under a Creative Commons Attribution-ShareAlike 
 ## The Files
 | File | What it is |
 | :--- | :--- |
-| `esempi/got_kinship.csv` | The chart: the largest family network of the source, 698 people and 1,108 links, one row per link. |
-| `esempi/got_kinship_hypotheses.csv` | Three hypothesised links and one open question, kept apart from the source on purpose. |
+| `examples/got_kinship.csv` | The chart: the largest family network of the source, 698 people and 1,108 links, one row per link. |
+| `examples/got_kinship_hypotheses.csv` | Three hypothesised links and one open question, kept apart from the source on purpose. |
 | `scripts/casestudy/got_kinship.py` | Builds both files from the scraped table and prints every number quoted on this page. Standard library only. |
 
 Run `python scripts/casestudy/got_kinship.py` to download the table and rebuild the files; pass the path of a local `characters.tsv` to work offline. The findings come out as Markdown on standard output.
@@ -54,7 +54,7 @@ Six more pages could not be classified from the data alone (`Cymmeri`, `Doshi`, 
 
 ## Importing the Chart
 1. Create a case (one per question set: this one could be *Blood of the Dragon*).
-2. **Import CSV/Excel**, drop `esempi/got_kinship.csv`. The preview reads the columns by their headers: two people per row, the relation, the arrow, the line style, the colour, and a Follow the Money **Family** relation with its `relationship` (father, mother, spouse).
+2. **Import CSV/Excel**, drop `examples/got_kinship.csv`. The preview reads the columns by their headers: two people per row, the relation, the arrow, the line style, the colour, and a Follow the Money **Family** relation with its `relationship` (father, mother, spouse).
 3. **Import.** Expected result: 698 nodes and 1,108 connections, no rows with errors.
 
 The conventions of the file: a parent link points from the child to the parent (blue for a father, pink for a mother), a marriage is a red line without arrows. Every card carries birth, death, titles and allegiance in its notes and the wiki page as its link. Jon Snow is marked as the **target** of the case.
@@ -122,7 +122,7 @@ Turn on the dashed links (or read them in the script's output): nineteen childre
 The finding for the Council: the claims of Robert's three children and of the three sons Rhaenyra bore while married to Laenor rest on a parentage that the realm's own records contradict. In both cases the doubt fed a war.
 
 ## Question 4: The Parents of Jon Snow
-The card of Jon Snow says his father is Eddard Stark and his mother is Wylla or Ashara Dayne. Import `esempi/got_kinship_hypotheses.csv` into the same case. It adds, dashed and purple, the hypothesis the source does not record (Rhaegar Targaryen as father, Lyanna Stark as mother, the two of them married), and a text node *Open question: who are the parents of Jon Snow?* linked to Jon and to every candidate parent, the method's way of keeping a collection gap on the chart.
+The card of Jon Snow says his father is Eddard Stark and his mother is Wylla or Ashara Dayne. Import `examples/got_kinship_hypotheses.csv` into the same case. It adds, dashed and purple, the hypothesis the source does not record (Rhaegar Targaryen as father, Lyanna Stark as mother, the two of them married), and a text node *Open question: who are the parents of Jon Snow?* linked to Jon and to every candidate parent, the method's way of keeping a collection gap on the chart.
 
 Lay the evidence of the books against the three hypotheses, as in the Analysis of Competing Hypotheses: ++ consistent, – inconsistent, · neutral.
 

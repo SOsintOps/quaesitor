@@ -4,16 +4,16 @@ Reads the character table scraped from A Wiki of Ice and Fire and published by
 Tomaz Bratanic (tomasonjo/blog-datasets, ice_fire/characters.tsv), keeps the
 father, mother and spouse links, cleans the source, and writes:
 
-- esempi/got_kinship.csv: the largest family network, one row per link, ready
+- examples/got_kinship.csv: the largest family network, one row per link, ready
   for the Quaesitor import (Family relations of Follow the Money); a child with
   two fathers or two mothers in the source gets both links dashed;
-- esempi/got_kinship_hypotheses.csv: the analyst's hypothesis on the parents of
+- examples/got_kinship_hypotheses.csv: the analyst's hypothesis on the parents of
   Jon Snow, dashed, and the open question as a text node;
 - the findings of the case study on standard output (Markdown), the numbers
   quoted in docs/case-study-game-of-thrones.md.
 
 Standard library only. Usage:
-    python scripts/casestudy/got_kinship.py [characters.tsv] [--out esempi/got_kinship.csv]
+    python scripts/casestudy/got_kinship.py [characters.tsv] [--out examples/got_kinship.csv]
 Without a file the table is downloaded from GitHub.
 """
 import argparse
@@ -336,7 +336,7 @@ def main():
     sys.stdout.reconfigure(encoding="utf-8")
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("tsv", nargs="?")
-    ap.add_argument("--out", default="esempi/got_kinship.csv")
+    ap.add_argument("--out", default="examples/got_kinship.csv")
     args = ap.parse_args()
 
     rows = load(args.tsv)
