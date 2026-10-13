@@ -1,10 +1,4 @@
-﻿name1,type1,relation,arrow,line,color,ftm,ftm_props,name2,type2,Source
-Jon Snow,person,hypothesis: father,->,dashed,#7c3aed,Family,"{""relationship"": ""father""}",Rhaegar Targaryen,person,"Analyst hypothesis, not in the source"
-Jon Snow,person,hypothesis: mother,->,dashed,#7c3aed,Family,"{""relationship"": ""mother""}",Lyanna Stark,person,"Analyst hypothesis, not in the source"
-Lyanna Stark,person,hypothesis: spouse,-,dashed,#7c3aed,Family,"{""relationship"": ""spouse""}",Rhaegar Targaryen,person,"Analyst hypothesis, not in the source"
-Open question: who are the parents of Jon Snow?,text,concerns,->,dotted,,,,Jon Snow,person,Collection plan
-Open question: who are the parents of Jon Snow?,text,candidate father,->,dotted,,,,Eddard Stark,person,Collection plan
-Open question: who are the parents of Jon Snow?,text,candidate mother,->,dotted,,,,Ashara Dayne,person,Collection plan
-Open question: who are the parents of Jon Snow?,text,candidate mother,->,dotted,,,,Wylla,person,Collection plan
-Open question: who are the parents of Jon Snow?,text,candidate father,->,dotted,,,,Rhaegar Targaryen,person,Collection plan
-Open question: who are the parents of Jon Snow?,text,candidate mother,->,dotted,,,,Lyanna Stark,person,Collection plan
+﻿name1,type1,sex1,relation,arrow,line,color,ftm,ftm_props,name2,type2,sex2,Source
+Rhaegar Targaryen,person,male,hypothesis: father of,->,dashed,#7c3aed,Family,"{""relationship"": ""son""}",Jon Snow,person,male,"Analyst hypothesis, not in the source"
+Lyanna Stark,person,female,hypothesis: mother of,->,dashed,#7c3aed,Family,"{""relationship"": ""son""}",Jon Snow,person,male,"Analyst hypothesis, not in the source"
+Lyanna Stark,person,female,hypothesis: spouse,-,dashed,#7c3aed,Family,"{""relationship"": ""spouse""}",Rhaegar Targaryen,person,male,"Analyst hypothesis, not in the source"

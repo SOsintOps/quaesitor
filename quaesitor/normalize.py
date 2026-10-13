@@ -161,6 +161,24 @@ def parse_birth(value):
     raise NodeError("data di nascita non valida (es. 12/03/1980)")
 
 
+SEX_WORDS = {
+    "male": {"m", "male", "man", "maschio", "uomo", "masculin", "homme", "mannlich", "männlich",
+             "mann", "masculino", "hombre", "ذكر"},
+    "female": {"f", "female", "woman", "femmina", "donna", "feminin", "féminin", "femme",
+               "weiblich", "frau", "femenino", "mujer", "w", "أنثى"},
+}
+
+
+def parse_sex(v):
+    """'male', 'female' or '' (not known): the values of the Follow the Money
+    gender property. Accepts M/F and the words of the interface languages."""
+    w = str(v or "").strip().lower().rstrip(".")
+    for sex, words in SEX_WORDS.items():
+        if w in words:
+            return sex
+    return ""
+
+
 def birth_it(iso):
     return f"{iso[8:10]}/{iso[5:7]}/{iso[0:4]}" if iso else ""
 

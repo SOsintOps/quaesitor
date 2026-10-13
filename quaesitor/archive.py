@@ -121,6 +121,7 @@ def manual_node(a, note=None):
     raw = {k: v for k, v in (("valore", a.get("value") if ntype not in onto.TYPES else None),
                              ("cognome", a.get("cognome")), ("nome", a.get("nome")),
                              ("data_nascita", birth_it(a.get("nascita") or "")),
+                             ("sesso", a.get("sex")),
                              ("descrizione", a.get("label") if a.get("ntype") == "vehicle"
                               and a.get("label") != a.get("value") else None),
                              ("colore", a.get("colore")), ("nota", a.get("note")),
@@ -152,6 +153,10 @@ def manual_node(a, note=None):
                      "images": [img] if img else [], "links": [], "raw": raw}],
         "aliases": [], "alias_ids": [], "merged": 1, "cards": 1, "manual": True,
     }
+    if a.get("sex"):
+        node["sex"] = a["sex"]        # male / female: icon by sex (also apply_sex)
+        if ntype == "name" and a["sex"] in onto.PERSON_ICONS:
+            node["ficon"] = onto.PERSON_ICONS[a["sex"]]
     if a.get("url"):
         node["url"] = a["url"]        # opens with Alt+Click
     if note:
@@ -366,6 +371,25 @@ def apply_targets(g, targets):
     return g
 
 
+def apply_sex(g, sexes):
+    """Sex of the persons: set by hand in the node editor ('sex' annotations, for
+    nodes from the data) or carried by the entry; a person of known sex gets the
+    icon of that sex. A target keeps the target icon."""
+    for i, n in enumerate(g["nodes"]):
+        sex = sexes.get(n["id"], n.get("sex")) if sexes else n.get("sex")
+        if not sex and not n.get("sex"):
+            continue
+        n = dict(n, sex=sex or None)
+        if n.get("ntype") == "name":
+            icon = onto.PERSON_ICONS.get(sex or "")
+            if icon:
+                n["ficon"] = icon
+            else:
+                n.pop("ficon", None)
+        g["nodes"][i] = n
+    return g
+
+
 def apply_annotations(graph):
     """Apply notes and deletions to the cached graph, without rebuilding it.
     Returns a copy: the cache stays the 'pure' graph of the source data."""
@@ -466,6 +490,7 @@ def apply_annotations(graph):
     g = relabel({"nodes": nodes, "edges": edges}, labels)
     apply_node_edits(g, ann.get("edits") or {})
     apply_targets(g, ann.get("targets") or {})
+    apply_sex(g, ann.get("sex") or {})
     # same address (city, street, house number) = one node; same street = dashed line
     g = merge_places(g)
     # first name and surname only ~ same person with the date of birth: dashed line

@@ -78,6 +78,7 @@ CREATE TABLE IF NOT EXISTS ann_labels     (id TEXT PRIMARY KEY, data TEXT NOT NU
 CREATE TABLE IF NOT EXISTS ann_edits      (id TEXT PRIMARY KEY, data TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS ann_edge_styles(id TEXT PRIMARY KEY, data TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS ann_targets    (id TEXT PRIMARY KEY, data TEXT NOT NULL);
+CREATE TABLE IF NOT EXISTS ann_sex        (id TEXT PRIMARY KEY, data TEXT NOT NULL);
 CREATE TABLE IF NOT EXISTS views (
     id    TEXT PRIMARY KEY,
     name  TEXT NOT NULL,
@@ -125,7 +126,7 @@ CREATE TABLE IF NOT EXISTS translit (
 # annotation collections: name -> (table, is it an ordered list?)
 _ANN_LISTS = {"added": "ann_added", "links": "ann_links", "deleted": "ann_deleted"}
 _ANN_MAPS = {"notes": "ann_notes", "labels": "ann_labels", "edits": "ann_edits",
-             "edge_styles": "ann_edge_styles", "targets": "ann_targets"}
+             "edge_styles": "ann_edge_styles", "targets": "ann_targets", "sex": "ann_sex"}
 
 
 def _now():
@@ -217,7 +218,7 @@ def _migrate_single_db():
 
 # tables that belong to a case (the old single database had all of them)
 _CASE_TABLES = ("meta", "imports", "ann_added", "ann_links", "ann_deleted", "ann_notes",
-                "ann_labels", "ann_edits", "ann_edge_styles", "ann_targets", "views")
+                "ann_labels", "ann_edits", "ann_edge_styles", "ann_targets", "ann_sex", "views")
 
 
 def _new_case_id():
@@ -433,7 +434,7 @@ def _merge_into(dest, src):
                 dest.execute("UPDATE ann_notes SET data = ? WHERE id = ?",
                              (_dumps(f"{a}\n---\n{b}"), r["id"]))
         # labels, edited values, styles: the first case wins
-        for table in ("ann_labels", "ann_edits", "ann_edge_styles"):
+        for table in ("ann_labels", "ann_edits", "ann_edge_styles", "ann_targets", "ann_sex"):
             for r in s.execute(f"SELECT id, data FROM {table}"):
                 dest.execute(f"INSERT OR IGNORE INTO {table}(id, data) VALUES(?, ?)", (r["id"], r["data"]))
         # views: renamed if the id is the same

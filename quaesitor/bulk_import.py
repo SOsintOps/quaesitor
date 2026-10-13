@@ -22,6 +22,7 @@ from . import ftm, store
 from .core import _hash, _json_obj, _truthy, NodeError
 from .dictionary import _translit_new_labels, new_added_entry, resolve_node, same_place_id
 from .archive import _store_props, current_graph, edge_props, load_annotations, save_annotations
+from .normalize import parse_sex
 
 
 # ============================ BULK IMPORT (CSV / EXCEL) ============================
@@ -107,6 +108,7 @@ _NODE_COLS = {
     "nascita": {"nascita", "datanascita", "datadinascita", "natoil", "birthdate",
                 "dateofbirth", "dob", "birthday"},
     "flag": {"target", "evidenzia", "flagtarget"},
+    "sex": {"sex", "sesso", "gender", "genere"},
     "address": {"indirizzo", "address", "via", "street"},
     "civico": {"civico", "numerocivico", "ncivico", "nr", "housenumber", "streetnumber"},
     "lat": {"lat", "latitudine", "latitude"},
@@ -250,6 +252,7 @@ def import_node_spec(row, side):
     spec = {"ntype": ntype, "value": name, "label": g("label"), "url": url,
             "text": g("text"), "address": g("address"), "civico": g("civico"),
             "cognome": g("cognome"), "nascita": g("nascita"), "colore": g("colore"),
+            "sex": parse_sex(g("sex")) if ntype in ("name", "target") else "",
             "fields": _json_obj(g("fields")),
             "target": ntype == "target" or _truthy(g("flag")),
             "lat": g("lat"), "lon": g("lon"),
@@ -377,7 +380,7 @@ def plan_rows(rows):
 # columns the user can assign in the wizard (besides
 # "extra1:<name>" / "extra2:<name>", which end up in the node's card)
 IMPORT_NODE_KEYS = ("name", "type", "label", "url", "platform", "text", "cognome", "nascita",
-                    "colore", "flag", "address", "civico", "lat", "lon", "note")
+                    "sex", "colore", "flag", "address", "civico", "lat", "lon", "note")
 IMPORT_EDGE_KEYS = ("rel", "arrow", "curve", "color", "lstyle", "width", "ftm", "ftm_props")
 
 
@@ -446,6 +449,9 @@ def _merge_entry(entry, n, spec):
             cur.update(new)
             entry["extra"] = cur
             changed = True
+    if spec.get("sex") and spec["sex"] != entry.get("sex"):
+        entry["sex"] = spec["sex"]
+        changed = True
     if spec.get("note") and spec["note"] != entry.get("note"):
         entry["note"] = str(spec["note"])[:4000]
         changed = True

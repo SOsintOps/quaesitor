@@ -2,6 +2,8 @@
  "_note": "Icon key of the client (node type, or sub-type icon from ontology.icon_of) -> [sheet, position]. A key missing here keeps its Font Awesome glyph.",
  "name": ["mystery-and-investigation-icon-grid", 1],
  "target": ["mystery-and-investigation-icon-grid", 2],
+ "person-male": ["glossy-3d-investigation-icon-atlas", 1],
+ "person-female": ["glossy-3d-investigation-icon-atlas", 2],
  "phone": ["mystery-and-investigation-icon-grid", 5],
  "email": ["mystery-and-investigation-icon-grid", 6],
  "username": ["mystery-and-investigation-icon-grid", 7],

@@ -1409,6 +1409,9 @@ function render(els) {
       // Style chosen for ALL links from the left panel: it sits at the
       // bottom, so it wins over the styles of the single link (to go
       // back, choose «as set»)
+      { selector: 'edge.gt-off', style: { 'label': '' } },
+      { selector: 'edge.lv-arc', style: { 'curve-style': 'unbundled-bezier',
+        'control-point-distances': 'data(lvd)', 'control-point-weights': 0.5 } },
       { selector: 'edge.gs-bezier', style: { 'curve-style': 'bezier' } },
       { selector: 'edge.gs-straight', style: { 'curve-style': 'straight' } },
       { selector: 'edge.gs-unbundled-bezier', style: {
@@ -2051,12 +2054,36 @@ function runLayout(extra = {}) {
     quality: big ? 'draft' : 'default'
   }, extra);
   if (name === 'breadthfirst') { opts.directed = false; opts.spacingFactor = 1.3; }
-  if (opts.fit) opts.stop = () => capZoom();
+  if (opts.fit) opts.stop = () => { capZoom(); roomForKey(); };
   if (name !== 'fcose') delete opts.fixedNodeConstraint;
+  // "Levels" (dagre): the levels follow the arrows, from the tail to the head
+  // (parent to child, owner to owned, superior to subordinate). Only the links
+  // with one forward arrow rank the nodes; the others (spouses, plain links,
+  // arrows at both ends) are drawn but move no one to another row, and when
+  // their two nodes share a row they become an arc above it, so the line does
+  // not run through the nodes in between.
+  let layEles = eles;
+  cy.edges('.lv-arc').removeClass('lv-arc');
+  if (name === 'dagre') {
+    layEles = eles.nodes().union(eles.edges().filter(e => e.data('arrow') === 'target'));
+    Object.assign(opts, { rankDir: 'TB', nodeSep: 28, rankSep: 95, edgeSep: 8,
+                          ranker: 'network-simplex', spacingFactor: 1 });
+    const done = opts.stop;
+    opts.stop = () => {
+      eles.edges().filter(e => e.data('arrow') !== 'target' &&
+        Math.abs(e.source().position('y') - e.target().position('y')) < 2).forEach(e => {
+        // always above the row, higher the longer the span
+        const dx = e.target().position('x') - e.source().position('x');
+        e.data('lvd', (dx > 0 ? -1 : 1) * Math.max(36, Math.abs(dx) * 0.28));
+        e.addClass('lv-arc');
+      });
+      if (done) done();
+    };
+  }
 
   try {
     cy.stop();
-    eles.layout(opts).run();
+    layEles.layout(opts).run();
   } catch (err) {
     console.warn('layout fallback', err);
     eles.layout({ name: 'cose', animate: false, fit: true, padding: 60 }).run();
@@ -2888,7 +2915,7 @@ function openAdd(node, opts = {}) {
   $('#add-text').value = '';
   ['#add-address', '#add-civico', '#add-lat', '#add-lon'].forEach(s => { if ($(s)) $(s).value = ''; });
   fillToponimi();
-  ['#add-cognome', '#add-nome', '#add-nascita', '#add-colore'].forEach(s => { if ($(s)) $(s).value = ''; });
+  ['#add-cognome', '#add-nome', '#add-nascita', '#add-colore', '#add-sex'].forEach(s => { if ($(s)) $(s).value = ''; });
   if ($('#add-target')) $('#add-target').checked = !!opts.target;
   if (opts.kind) $('#add-type').value = opts.kind;
   $('#add-onto-row').dataset.kind = '';          // empty ontology fields
@@ -3055,7 +3082,9 @@ function addPayloadOf(kind) {
     const full = `${cognome} ${nomeP}`.trim();
     if (!full) return { err: '' };
     if (full.length < 2) return { err: t('add.errName') };
-    return { ntype: 'name', platform: 'name', value: full, cognome, nome: nomeP, nascita,
+    const sex = $('#add-sex').value || '';
+    return { ntype: 'name', platform: 'name', value: full, cognome, nome: nomeP, nascita, sex,
+             ficon: { male: 'person-male', female: 'person-female' }[sex],
              label: nascita ? `${full} (${birthIt(nascita)})` : full };
   }
   if (!v) return { err: '' };
@@ -3378,7 +3407,8 @@ on('#addmodal-save', 'click', async () => {
       parent: parentId, ntype: p.ntype, platform: p.platform || '',
       value, label: p.label, url: p.url || '', text: p.text || '',
       address: p.address || '', civico: p.civico || '', lat: p.lat || '', lon: p.lon || '',
-      cognome: p.cognome || '', nome: p.nome || '', nascita: p.nascita || '', target: !!p.target,
+      cognome: p.cognome || '', nome: p.nome || '', nascita: p.nascita || '', sex: p.sex || '',
+      target: !!p.target,
       colore: p.colore || '', fields: p.fields || null,
       edge: parentId ? readEdgeProps('add') : null   // name, arrows, shape, colour, line
     });
@@ -3460,7 +3490,7 @@ function downloadTemplate() {
 let impCols = null;                 // response of /api/import/columns
 let impMapping = {};                // {column index: key}
 const IMP_NODE_KEYS = ['name', 'type', 'label', 'url', 'platform', 'text', 'cognome', 'nascita',
-                       'colore', 'flag', 'address', 'civico', 'lat', 'lon', 'note'];
+                       'sex', 'colore', 'flag', 'address', 'civico', 'lat', 'lon', 'note'];
 const IMP_EDGE_KEYS = ['rel', 'arrow', 'curve', 'color', 'lstyle', 'width'];
 
 function impStep(n) {
@@ -5101,7 +5131,80 @@ function buildLegend() {
       `${esc(groupTitle(nt).replace(/^\S+\s/, ''))}</span>`).join('') +
     (fused ? `<span><i style="background:#f59e0b"></i>${esc(t('card.merged', { n: fused }))}</span>` : '') +
     (seed ? `<span><i class="lg-seed"></i>${esc(t('legend.seed'))}</span>` : '');
+  buildChartKey();
 }
+
+/* ============ CHART KEY ============
+   Every chart carries its date and a key (Link Analysis Guidelines, step 7): the
+   case, the date and time, the symbols of the nodes on view and one line per
+   colour and line style of the links, named after their most frequent label.
+   It sits on the graph and goes into the graph PDF; the panel can hide it. */
+/* With the key on the graph, the drawing is scaled and moved so that no node
+   hides under it: into the space left of the key or above it, whichever is larger. */
+function roomForKey() {
+  const box = $('#chartkey');
+  if (!box || box.hidden || !cy) return;
+  const eles = cy.elements().not('.hidden');
+  if (!eles.length) return;
+  const c = cy.container().getBoundingClientRect(), k = box.getBoundingClientRect();
+  const kx = k.left - c.left, ky = k.top - c.top, pad = 24;
+  const bb = eles.renderedBoundingBox();
+  if (bb.x2 < kx || bb.y2 < ky) return;               // nothing under the key
+  const fa = Math.min((kx - 2 * pad) / bb.w, (c.height - 2 * pad) / bb.h);
+  const fb = Math.min((c.width - 2 * pad) / bb.w, (ky - 2 * pad) / bb.h);
+  const f = Math.min(1, Math.max(fa, fb));
+  if (f > 0) cy.zoom({ level: cy.zoom() * f, renderedPosition: { x: bb.x1, y: bb.y1 } });
+  const nb = eles.renderedBoundingBox();
+  const free = fa >= fb ? { w: kx, h: c.height } : { w: c.width, h: ky };
+  cy.panBy({ x: (free.w - nb.w) / 2 - nb.x1, y: (free.h - nb.h) / 2 - nb.y1 });
+}
+
+function chartKeyOn() {
+  try { return localStorage.getItem('chartKey') !== '0'; } catch (_) { return true; }
+}
+
+function buildChartKey() {
+  const box = $('#chartkey');
+  if (!box || !cy) return;
+  const vis = cy.elements().not('.hidden');
+  if (!chartKeyOn() || !vis.nodes().length) { box.hidden = true; return; }
+  const sexed = vis.nodes().some(n => n.data('sex'));
+  const nodes = new Map();
+  vis.nodes().forEach(n => {
+    const d = n.data();
+    const k = d.ntype === 'name' && sexed ? 'name:' + (d.sex || '') : d.ntype;
+    if (nodes.has(k)) return;
+    let label = groupTitle(d.ntype).replace(/^\S+\s/, '');
+    if (d.ntype === 'name' && sexed) label = t('key.person') + ' · ' + t('sex.' + (d.sex || 'unknown'));
+    nodes.set(k, { icon: d.icon, label });
+  });
+  const links = new Map();
+  vis.edges().forEach(e => {
+    const d = e.data();
+    const col = e.style('line-color'), ls = e.style('line-style') || 'solid';
+    const r = links.get(col + '|' + ls) || { col, ls, labels: new Map() };
+    const lab = String(d.label || '').trim() || t('key.link');
+    r.labels.set(lab, (r.labels.get(lab) || 0) + 1);
+    links.set(col + '|' + ls, r);
+  });
+  const opt = $('#caseSel') && $('#caseSel').selectedOptions[0];
+  box.innerHTML =
+    `<div class="ck-h">${esc(t('key.title'))}${opt ? ' · ' + esc(opt.textContent) : ''}</div>` +
+    `<div class="ck-d">${esc(new Date().toLocaleString(LANG))} · ${vis.nodes().length} ${esc(t('exp.nodes'))}` +
+    ` · ${vis.edges().length} ${esc(t('exp.edges'))}</div>` +
+    [...nodes.values()].map(v => `<div class="ck-r"><img src="${esc(v.icon || '')}" alt="">${esc(v.label)}</div>`).join('') +
+    [...links.values()].map(r => {
+      const top = [...r.labels.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(x => x[0]).join(', ');
+      return `<div class="ck-r"><i class="ck-l" style="border-top:2px ${r.ls} ${esc(r.col)}"></i>${esc(top)}</div>`;
+    }).join('');
+  box.hidden = false;
+}
+
+on('#keyShow', 'change', e => {
+  try { localStorage.setItem('chartKey', e.target.checked ? '1' : '0'); } catch (_) {}
+  buildChartKey();
+});
+if ($('#keyShow')) $('#keyShow').checked = chartKeyOn();
 
 /* "Links" drop-down: list of the numbers of connections actually present
    in the graph. The selection is EXACT: each entry shows how many nodes have
@@ -5305,6 +5408,7 @@ on('#catToggleAll', 'click', () => {
 on('#lyFcose', 'click', () => setLayout('fcose', '#lyFcose'));
 on('#lyCircle', 'click', () => setLayout('circle', '#lyCircle'));
 on('#lyTree', 'click', () => setLayout('breadthfirst', '#lyTree'));
+on('#lyLevels', 'click', () => setLayout('dagre', '#lyLevels'));
 on('#lyGrid', 'click', () => setLayout('grid', '#lyGrid'));
 on('#lyUntangle', 'click', untangle);
 
@@ -5906,6 +6010,9 @@ function openEditModal(node) {
       <textarea id="ed-note" rows="3">${esc(d.note || '')}</textarea>
       <label class="af-check"><input type="checkbox" id="ed-target"${d.ntype === 'target' ? ' checked' : ''}>
         <span>${esc(t('add.isTarget'))}</span></label>
+      ${['name', 'target'].includes(d.ntype) ? `<label class="af-lb" for="ed-sex">${esc(t('add.sex'))}</label>
+      <select id="ed-sex">${['', 'male', 'female'].map(v => `<option value="${v}"${(d.sex || '') === v ? ' selected' : ''}>${
+        esc(t('sex.' + (v || 'unknown')))}</option>`).join('')}</select>` : ''}
     </div>`;
   const recs = d.records || [];
   let extra = [];
@@ -5981,6 +6088,8 @@ async function saveEdit() {
     // any node can become (or stop being) a target
     const tgt = $('#ed-target') && $('#ed-target').checked;
     if (tgt !== (d.ntype === 'target')) await apiPost('/api/node/target', { id: d.id, target: tgt });
+    const sex = $('#ed-sex') ? $('#ed-sex').value : (d.sex || '');
+    if (sex !== (d.sex || '')) await apiPost('/api/node/sex', { id: d.id, sex });
     let id = d.id;
     if (label && label !== String(d.label || '').trim()) {
       const j = await apiPost('/api/node/label', { id: d.id, label });
@@ -6141,12 +6250,16 @@ function exportGraphPdf() {
   }
   const html = `<!doctype html><html lang="${LANG}"><head><meta charset="utf-8">
     <title>${esc(t('exp.graphTitle'))}</title><style>${REPORT_CSS}
-    img.g{width:100%;height:auto;max-height:186mm;object-fit:contain}
+    img.g{width:100%;height:auto;max-height:170mm;object-fit:contain}
+    .key{font-size:9pt;columns:3;margin-top:4mm}.key .ck-h{font-weight:700}
+    .key .ck-r{display:flex;align-items:center;gap:6px;break-inside:avoid}
+    .key .ck-r img{width:14px;height:14px}.key .ck-l{display:inline-block;width:26px}
     @page{size:A4 landscape;margin:10mm}</style></head><body>
     <h1>${esc(t('exp.graphTitle'))}</h1>
     <div class="gen">${esc(t('card.generated', { date: new Date().toLocaleString(LANG) }))}
       · ${eles.nodes().length} ${esc(t('exp.nodes'))} · ${eles.edges().length} ${esc(t('exp.edges'))}</div>
-    <img class="g" src="${png}" alt=""></body></html>`;
+    <img class="g" src="${png}" alt="">
+    ${$('#chartkey') && !$('#chartkey').hidden ? `<div class="key">${$('#chartkey').innerHTML}</div>` : ''}</body></html>`;
   printDoc(html, 900);
   $('#stat').textContent = t('stat.pdfReady');
 }
@@ -6546,7 +6659,7 @@ loadCases();
    Applies to the whole graph and sits on top of the single link's style,
    which stays saved: with «as set» every link goes back to how it was.
    The choice is a viewer preference: it lives in the browser, not in the data. */
-const GSTYLE = { shape: '', line: '', width: '' };
+const GSTYLE = { shape: '', line: '', width: '', labels: '' };
 
 function loadGStyle() {
   try {
@@ -6560,17 +6673,19 @@ function loadGStyle() {
   }
   if ($('#gsLine')) $('#gsLine').value = GSTYLE.line || '';
   if ($('#gsWidth')) $('#gsWidth').value = GSTYLE.width || '';
+  if ($('#gsLabels')) $('#gsLabels').value = GSTYLE.labels || '';
 }
 
 function applyGStyle() {
   if (!cy) return;
   cy.batch(() => {
     cy.edges().forEach(e => {
-      const cls = e.classes().filter(c => /^g[slw]-/.test(c));
+      const cls = e.classes().filter(c => /^g[slwt]-/.test(c));
       if (cls.length) e.removeClass(cls.join(' '));
       if (GSTYLE.shape) e.addClass('gs-' + GSTYLE.shape);
       if (GSTYLE.line) e.addClass('gl-' + GSTYLE.line);
       if (GSTYLE.width) e.addClass('gw-' + GSTYLE.width);
+      if (GSTYLE.labels) e.addClass('gt-' + GSTYLE.labels);
     });
   });
 }
@@ -6584,4 +6699,5 @@ function setGStyle(k, v) {
 on('#gsShape', 'change', e => setGStyle('shape', e.target.value));
 on('#gsLine', 'change', e => setGStyle('line', e.target.value));
 on('#gsWidth', 'change', e => setGStyle('width', e.target.value));
+on('#gsLabels', 'change', e => setGStyle('labels', e.target.value));
 loadGStyle();

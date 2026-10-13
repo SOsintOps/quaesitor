@@ -26,6 +26,7 @@ from ..core import _flat, _hash, DATA_DIR, MEDIA_DIRNAME, NodeError
 from ..transliteration import translit_mode
 from ..labels import _cache
 from ..dictionary import _translit_new_labels, new_added_entry, resolve_node, same_place_id
+from ..normalize import parse_sex
 from ..archive import (
     _store_props, BEND_CURVES, current_graph, deleted_ids, edge_props, load_annotations,
     manual_edge, manual_node, save_annotations,
@@ -166,6 +167,7 @@ def api_node_delete():
             ann["labels"].pop(k, None)
             ann["edits"].pop(k, None)
             ann.get("targets", {}).pop(k, None)
+            ann.get("sex", {}).pop(k, None)
         data_ids = group - manual
         # the node left after a merge is manual only if all the entries are
         # (a data node would take precedence): then it is gone
@@ -526,6 +528,32 @@ def api_node_target():
         return jsonify({"error": "salvataggio fallito"}), 500
     logging.info(f"Nodo {nid}: target = {want}")
     return jsonify({"ok": True, "id": nid, "target": want})
+
+
+@bp.route("/api/node/sex", methods=["POST"])
+def api_node_sex():
+    """Sex of a person (male, female, '' = not known). For nodes created by hand
+    the entry is updated; for those from the data the choice lives in the
+    annotations ('sex') and is applied when building the graph."""
+    data = request.get_json(silent=True) or {}
+    nid = str(data.get("id") or "").strip()
+    if not nid:
+        return jsonify({"error": "id mancante"}), 400
+    sex = parse_sex(data.get("sex"))
+    ann = load_annotations()
+    sexes = ann.setdefault("sex", {})
+    added = next((x for x in ann["added"] if str(x.get("id")) == nid), None)
+    if added is not None:
+        if sex:
+            added["sex"] = sex
+        else:
+            added.pop("sex", None)
+        sexes.pop(nid, None)
+    else:
+        sexes[nid] = sex
+    if not save_annotations(ann):
+        return jsonify({"error": "salvataggio fallito"}), 500
+    return jsonify({"ok": True, "id": nid, "sex": sex})
 
 
 @bp.route("/api/manual")

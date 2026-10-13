@@ -1614,3 +1614,13 @@ body.rtl .dict-val, body.rtl .dict-src, body.rtl .dict-script { direction: ltr; 
 #tr-log { max-height: 160px; overflow: auto; font-size: 11px; color: var(--tx2); margin: 0;
   white-space: pre-wrap; background: rgba(0,0,0,.2); padding: 6px 8px; border-radius: 6px; }
 #tr-log:empty { display: none; }
+
+/* chart key on the graph (buildChartKey in app.js) */
+#chartkey { position: fixed; right: 12px; bottom: 12px; z-index: 5; max-width: 300px; max-height: 45vh;
+  overflow: auto; padding: 8px 10px; font-size: 11px; color: #111827; background: rgba(255,255,255,.95);
+  border: 1px solid #cbd5e1; border-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,.12); }
+#chartkey .ck-h { font-weight: 700; }
+#chartkey .ck-d { color: #4b5563; margin: 1px 0 5px; }
+#chartkey .ck-r { display: flex; align-items: center; gap: 7px; margin: 2px 0; }
+#chartkey .ck-r img { width: 18px; height: 18px; object-fit: contain; }
+#chartkey .ck-l { display: inline-block; width: 28px; height: 0; flex: none; }

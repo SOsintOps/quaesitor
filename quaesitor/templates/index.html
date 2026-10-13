@@ -26,6 +26,8 @@
 <script src="{{ url_for('static', filename='vendor/layout-base.js') }}?v={{ asset_ver }}"></script>
 <script src="{{ url_for('static', filename='vendor/cose-base.js') }}?v={{ asset_ver }}"></script>
 <script src="{{ url_for('static', filename='vendor/cytoscape-fcose.js') }}?v={{ asset_ver }}"></script>
+<script src="{{ url_for('static', filename='vendor/dagre.min.js') }}?v={{ asset_ver }}"></script>
+<script src="{{ url_for('static', filename='vendor/cytoscape-dagre.js') }}?v={{ asset_ver }}"></script>
 </head>
 <body>
 
@@ -227,6 +229,13 @@
         <option value="4">4</option><option value="6">6</option><option value="8">8</option>
       </select>
     </div>
+    <div class="gs-row">
+      <label class="af-lb" for="gsLabels" data-i18n="gstyle.labels">Etichette</label>
+      <select id="gsLabels">
+        <option value="" data-i18n="gstyle.labelsOn">visibili</option>
+        <option value="off" data-i18n="gstyle.labelsOff">nascoste (spiega la legenda)</option>
+      </select>
+    </div>
   </div>
 
   <div class="grp">
@@ -235,6 +244,7 @@
       <button id="lyFcose" class="ly on" data-i18n="ly.organic">Organico</button>
       <button id="lyCircle" class="ly" data-i18n="ly.circle">Circolare</button>
       <button id="lyTree" class="ly" data-i18n="ly.tree">Gerarchico</button>
+      <button id="lyLevels" class="ly" data-i18n="ly.levels" data-i18n-title="ly.levelsTip">Livelli</button>
       <button id="lyGrid" class="ly" data-i18n="ly.grid">Griglia</button>
       <button id="lyUntangle" data-i18n="ly.untangle">✂ Riduci incroci</button>
     </div>
@@ -279,11 +289,14 @@
   </div>
 
   <div id="hint" data-i18n="hint">Click = Espandi/Comprimi · Tasto Destro = Dettagli · Ctrl+Click = Seleziona · Alt+Click = Apri profilo social</div>
+  <label class="af-check"><input type="checkbox" id="keyShow" checked>
+    <span data-i18n="key.show">Legenda sul grafico</span></label>
   <div id="legend"></div>
   <div id="stat"></div>
 </aside>
 
 <main id="graph"></main>
+<aside id="chartkey" hidden></aside>
 
 <div id="tip"></div>
 
@@ -402,6 +415,14 @@
           <div>
             <label class="af-lb" for="add-nascita" data-i18n="add.birth">Data di nascita (facoltativa)</label>
             <input id="add-nascita" type="date" autocomplete="off">
+          </div>
+          <div>
+            <label class="af-lb" for="add-sex" data-i18n="add.sex">Sesso</label>
+            <select id="add-sex">
+              <option value="" data-i18n="sex.unknown">Non noto</option>
+              <option value="male" data-i18n="sex.male">Maschio</option>
+              <option value="female" data-i18n="sex.female">Femmina</option>
+            </select>
           </div>
         </div>
       </div>

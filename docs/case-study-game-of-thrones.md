@@ -15,7 +15,7 @@ The text of AWOIAF is published under a Creative Commons Attribution-ShareAlike 
 | File | What it is |
 | :--- | :--- |
 | `examples/got_kinship.csv` | The chart: the largest family network of the source, 698 people and 1,108 links, one row per link. |
-| `examples/got_kinship_hypotheses.csv` | Three hypothesised links and one open question, kept apart from the source on purpose. |
+| `examples/got_kinship_hypotheses.csv` | Three hypothesised links, kept apart from the source on purpose. |
 | `scripts/casestudy/got_kinship.py` | Builds both files from the scraped table and prints every number quoted on this page. Standard library only. |
 
 Run `python scripts/casestudy/got_kinship.py` to download the table and rebuild the files; pass the path of a local `characters.tsv` to work offline. The findings come out as Markdown on standard output.
@@ -59,7 +59,9 @@ Six more pages could not be classified from the data alone (`Cymmeri`, `Doshi`, 
 
 The conventions of the file: a parent link points from the child to the parent (blue for a father, pink for a mother), a marriage is a red line without arrows. Every card carries birth, death, titles and allegiance in its notes and the wiki page as its link. Jon Snow is marked as the **target** of the case.
 
-A link is drawn **dashed** with the label `father (conflicting records)` or `mother (conflicting records)` when the source gives the same child two fathers or two mothers. Neither of the two can be confirmed, and the method says an unconfirmed link is never drawn solid. There are 36 such links.
+A link is drawn **dashed** with the label `father of (conflicting records)` or `mother of (conflicting records)` when the source gives the same child two fathers or two mothers. Neither of the two can be confirmed, and the method says an unconfirmed link is never drawn solid. There are 36 such links.
+
+The chart follows the conventions of a family tree. Every parent link runs **from the parent to the child** (`father of`, `mother of`), so the **Levels** layout puts each generation on its own row, ancestors above; spouses are joined by a thicker line without arrows, which does not move either of them to another row. Each person carries a **sex**, shown by the icon (a man, a woman, or the generic person when not known): 502 of the 698 come from [An API of Ice and Fire](https://anapioficeandfire.com) (matched by name or alias, used only where the match is unambiguous), 76 from their role as a father or a mother in this source, and 120 stay not known, which the chart shows rather than guesses. With the **Key on the graph** on and the link labels hidden (panel, *Connection style*), the colours are explained once: blue father of, pink mother of, red spouse, dashed contested, purple the analyst's hypotheses. The key also carries the case and the date, as every chart should.
 
 ## Question 1: Who Holds the Network Together?
 Step 5 of the method counts the links of each entity. In Quaesitor the count is the **Conn.** column of the export and the filter **Show nodes with** under *Connections*, which lists every degree present in the graph with the number of nodes that have it: choose `= 45 · 1 nodes` and Walder Frey appears with his neighbours; **Hide the others** leaves him alone.
@@ -106,7 +108,7 @@ The article then asks how closely Robert is related to the king he overthrew, Ae
 
 Shorter answers fit in one search: Sansa Stark to Cersei Lannister is 3 hops, two paths (through her husband Tyrion and either of his parents, Tywin or Joanna); Margaery Tyrell to Sansa Stark is 5, with eight paths of up to five hops, all through Joffrey or Tommen, the Lannisters and Tyrion. Four of the eight pass through Jaime as the boys' father, a dashed line: a path is only as confirmed as its weakest link, so report the four that run through Cersei. The first segment of the Tyrion path above also has two variants, through Tywin or through Joanna.
 
-The second notebook query, the ancestry of Margaery Tyrell, is three generations in this source: Mace Tyrell and Alerie Hightower; Luthor Tyrell, Olenna Tyrell and Leyton Hightower; Runceford Redwyne. Highlight the paths from Margaery to Runceford Redwyne and to Leyton Hightower, **Hide the rest**, and choose the **Hierarchical** layout to read it as a tree.
+The second notebook query, the ancestry of Margaery Tyrell, is three generations in this source: Mace Tyrell and Alerie Hightower; Luthor Tyrell, Olenna Tyrell and Leyton Hightower; Runceford Redwyne. Highlight the paths from Margaery to Runceford Redwyne and to Leyton Hightower, **Hide the rest**, and choose the **Levels** layout to read it as a tree, the oldest generation at the top.
 
 The article adds that Margaery is said to be distantly related to Otto and Alicent Hightower of *House of the Dragon*, "although no explicit connections are defined". The cleaned data confirm the gap: Margaery shares no ancestor with either of them, and the only path to Alicent (11 hops) runs through Margaery's marriage to Renly, the Baratheon–Targaryen corridor and Alicent's marriage to Viserys I, not through the Hightowers at all. A claim of kinship with no line behind it goes in the list of gaps, not on the chart.
 
@@ -122,7 +124,7 @@ Turn on the dashed links (or read them in the script's output): nineteen childre
 The finding for the Council: the claims of Robert's three children and of the three sons Rhaenyra bore while married to Laenor rest on a parentage that the realm's own records contradict. In both cases the doubt fed a war.
 
 ## Question 4: The Parents of Jon Snow
-The card of Jon Snow says his father is Eddard Stark and his mother is Wylla or Ashara Dayne. Import `examples/got_kinship_hypotheses.csv` into the same case. It adds, dashed and purple, the hypothesis the source does not record (Rhaegar Targaryen as father, Lyanna Stark as mother, the two of them married), and a text node *Open question: who are the parents of Jon Snow?* linked to Jon and to every candidate parent, the method's way of keeping a collection gap on the chart.
+The card of Jon Snow says his father is Eddard Stark and his mother is Wylla or Ashara Dayne. Import `examples/got_kinship_hypotheses.csv` into the same case. It adds, dashed and purple, the hypothesis the source does not record (Rhaegar Targaryen as father, Lyanna Stark as mother, the two of them married). The open question itself, *who are the parents of Jon Snow?*, with the candidate parents, goes in the **note of Jon's card**, where it travels with the target and into the PDF: written as a node with lines to every candidate, it would be a judgement drawn as if it were an entity, and it crowds the very links it is about.
 
 Lay the evidence of the books against the three hypotheses, as in the Analysis of Competing Hypotheses: ++ consistent, – inconsistent, · neutral.
 
@@ -159,4 +161,4 @@ The article and its notebooks answer the same questions in Neo4j, and their larg
 None of this is a criticism of a blog post that set out to show Cypher, not to grade a source. It is the difference between computing an answer and standing behind it.
 
 ## What the Program Does and Does Not Do Here
-Quaesitor carried the mechanics: identity of the nodes, the typed Family relations, dashed and solid lines, the degree filter, paths up to six hops, the target, the open question as a text node, saved views per revision. It did not compute betweenness, cut points or paths longer than six hops: the script does, and its numbers are checked on the chart. It did not grade the source or choose between the hypotheses: those were the analyst's judgements, written above, and the report remains the product.
+Quaesitor carried the mechanics: identity of the nodes, the typed Family relations, dashed and solid lines, the degree filter, paths up to six hops, the target, the sex of the people, the Levels layout and the key on the graph, the open question in the card, saved views per revision. It did not compute betweenness, cut points or paths longer than six hops: the script does, and its numbers are checked on the chart. It did not grade the source or choose between the hypotheses: those were the analyst's judgements, written above, and the report remains the product.

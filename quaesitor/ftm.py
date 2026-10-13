@@ -49,7 +49,7 @@ try:
 except ImportError:                       # ontology not generated: built-ins only
     FTM_TYPE_OF, FTM_SCHEMA_OF, FTM_TYPES = {}, {}, {}
 # FtM properties with a native import column
-NATIVE_COLS = {"birthDate": "nascita", "sourceUrl": "url", "website": "url",
+NATIVE_COLS = {"birthDate": "nascita", "gender": "sesso", "sourceUrl": "url", "website": "url",
                "notes": "nota", "summary": "nota"}
 # properties already used as the node name: no duplicate column
 SKIP_FREE = {"name"}
@@ -522,7 +522,8 @@ def rows_from_entities(ents, native_types=(), media=None, reserved=None):
             rows.append(r)
 
     fixed = ["name1", "type1", "label1", "relation", "arrow", "ftm_edge", "ftm_props", "name2", "type2",
-             "label2", "campi1", "campi2", "nascita1", "nascita2", "url1", "url2", "nota1", "nota2",
+             "label2", "campi1", "campi2", "nascita1", "nascita2", "sesso1", "sesso2", "url1", "url2",
+             "nota1", "nota2",
              "text1", "text2", "Schema FtM1", "Schema FtM2", "FtM id1", "FtM id2"]
     used = {k for r in rows for k in r}
     cols = [c for c in fixed if c in used] + sorted(free)
@@ -624,6 +625,7 @@ def export_entities(graph, entries, ftm_ids, only=None):
                 if entry.get("nome"):
                     _add(props, "firstName", entry["nome"])
                 _add(props, "birthDate", entry.get("nascita"))
+                _add(props, "gender", n.get("sex") or entry.get("sex"))
                 for a in n.get("aliases") or []:
                     _add(props, "alias", a)
             elif sc == "Address":

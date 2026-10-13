@@ -90,6 +90,36 @@
   "bundled": true
  },
  {
+  "id": "cytoscape-dagre",
+  "name": "cytoscape-dagre",
+  "version": "2.5.0",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2016-2018, 2020, 2022, The Cytoscape Consortium",
+  "url": "https://github.com/cytoscape/cytoscape.js-dagre",
+  "role": {
+   "it": "Disposizione ad albero per livelli, secondo le frecce",
+   "en": "Tree layout by levels, following the arrows"
+  },
+  "file": "cytoscape-dagre.txt",
+  "group": "js",
+  "bundled": true
+ },
+ {
+  "id": "dagre",
+  "name": "dagre",
+  "version": "0.8.5",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2012-2014 Chris Pettitt",
+  "url": "https://github.com/dagrejs/dagre",
+  "role": {
+   "it": "Disposizione ad albero per livelli, secondo le frecce",
+   "en": "Tree layout by levels, following the arrows"
+  },
+  "file": "dagre.txt",
+  "group": "js",
+  "bundled": true
+ },
+ {
   "id": "font-awesome",
   "name": "Font Awesome Free",
   "version": "6",

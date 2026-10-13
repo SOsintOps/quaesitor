@@ -8,19 +8,29 @@ father, mother and spouse links, cleans the source, and writes:
   for the Quaesitor import (Family relations of Follow the Money); a child with
   two fathers or two mothers in the source gets both links dashed;
 - examples/got_kinship_hypotheses.csv: the analyst's hypothesis on the parents of
-  Jon Snow, dashed, and the open question as a text node;
+  Jon Snow, dashed;
 - the findings of the case study on standard output (Markdown), the numbers
   quoted in docs/case-study-game-of-thrones.md.
 
+Parent links run from the parent to the child ("father of", "mother of"), as a
+family tree is read, so the Levels layout puts every generation on its own row.
+The sex of each person comes from An API of Ice and Fire (anapioficeandfire.com,
+matched by name or alias, without ambiguity) and, where the API has no match, from
+the person's role as a father or a mother in the source; otherwise it stays not
+known.
+
 Standard library only. Usage:
     python scripts/casestudy/got_kinship.py [characters.tsv] [--out examples/got_kinship.csv]
-Without a file the table is downloaded from GitHub.
+                                            [--api <folder with the API pages>]
+Without a file the table is downloaded from GitHub; without --api the characters
+of the API are downloaded (43 pages), and saved in that folder when it is given.
 """
 import argparse
 import ast
 import collections
 import csv
 import io
+import json
 import os
 import re
 import sys
@@ -35,7 +45,7 @@ TARGETS = {"Jon Snow"}
 HYPOTHESES = [("Jon Snow", "father", "Rhaegar Targaryen"),
               ("Jon Snow", "mother", "Lyanna Stark"),
               ("Lyanna Stark", "spouse", "Rhaegar Targaryen")]
-QUESTION = "Open question: who are the parents of Jon Snow?"
+API_URL = "https://anapioficeandfire.com/api/characters?page={}&pageSize=50"
 # pages the source links as a parent or spouse that are not people: groups,
 # places, gods, trades. Their links are dropped (checked by hand on the wiki titles)
 NOT_PEOPLE = {"acorn_water", "andal", "archmaester", "craster%27s_wives", "dothraki",
@@ -274,9 +284,62 @@ def cut_size(adj, nodes, x):
     return sum(sizes[1:]) if sizes else 0
 
 
-def write_csv(path, people, links, keep):
-    cols = ["name1", "type1", "target1", "note1", "url1", "relation", "arrow", "line", "color",
-            "width", "ftm", "ftm_props", "name2", "type2", "target2", "note2", "url2", "Source"]
+def api_genders(folder=None):
+    """{name or alias in lower case: {sex}} from An API of Ice and Fire; the pages
+    are read from `folder` when it holds them, otherwise downloaded (and saved there)."""
+    chars = []
+    have = folder and os.path.isdir(folder) and any(f.endswith(".json") for f in os.listdir(folder))
+    page = 1
+    while True:
+        cached = os.path.join(folder, f"p{page}.json") if folder else None
+        if have:
+            if not os.path.exists(cached):
+                break
+            batch = json.load(open(cached, encoding="utf-8"))
+        else:
+            with urllib.request.urlopen(API_URL.format(page), timeout=60) as r:
+                raw = r.read()
+            batch = json.loads(raw.decode("utf-8"))
+            if folder and batch:
+                os.makedirs(folder, exist_ok=True)
+                open(cached, "wb").write(raw)
+        if not batch:
+            break
+        chars += batch
+        page += 1
+    idx = collections.defaultdict(set)
+    for c in chars:
+        sex = {"male": "male", "female": "female"}.get(str(c.get("gender") or "").lower())
+        for name in [c.get("name")] + list(c.get("aliases") or []):
+            if name and sex:
+                idx[name.strip().lower()].add(sex)
+    return idx, len(chars)
+
+
+def sexes(people, links, idx):
+    """{person: 'male' | 'female' | ''} and how many come from the API and from the
+    roles: the API when the name (or the name without the qualifier in brackets)
+    matches one sex only, otherwise the role of father or mother in the source."""
+    role = {}
+    for a, rel, b in links:
+        if rel in ("father", "mother"):
+            role[b] = "male" if rel == "father" else "female"
+    out, src = {}, collections.Counter()
+    for k, p in people.items():
+        base = re.sub(r"\s*\(.*\)$", "", p["name"]).strip().lower()
+        g = idx.get(p["name"].lower()) or idx.get(base) or set()
+        if len(g) == 1:
+            out[k] = next(iter(g))
+            src["api"] += 1
+        else:
+            out[k] = role.get(k, "")
+            src["role" if out[k] else "unknown"] += 1
+    return out, src
+
+
+def write_csv(path, people, links, keep, sex):
+    cols = ["name1", "type1", "sex1", "target1", "note1", "url1", "relation", "arrow", "line", "color",
+            "width", "ftm", "ftm_props", "name2", "type2", "sex2", "target2", "note2", "url2", "Source"]
     colour = {"father": "#2563eb", "mother": "#db2777", "spouse": "#dc2626"}
     noted = set()
     # two fathers (or two mothers) for one child: neither link is confirmed
@@ -292,7 +355,7 @@ def write_csv(path, people, links, keep):
                      f"Titles: {p['titles']}" if p["titles"] else "",
                      f"Allegiance: {', '.join(p['houses'])}" if p["houses"] else ""]
             note = " | ".join(x for x in parts if x)
-        return [p["name"], "person", "yes" if p["name"] in TARGETS else "", note, p["url"]]
+        return [p["name"], "person", sex.get(k, ""), "yes" if p["name"] in TARGETS else "", note, p["url"]]
 
     rows = sorted((l for l in links if l[0] in keep),
                   key=lambda l: (people[l[0]]["name"], l[1], people[l[2]]["name"]))
@@ -301,32 +364,39 @@ def write_csv(path, people, links, keep):
         w.writerow(cols)
         for a, rel, b in rows:
             doubt = (a, rel) in contested
-            w.writerow(side(a) + [f"{rel} (conflicting records)" if doubt else rel,
-                                  "->" if rel != "spouse" else "-", "dashed" if doubt else "",
-                                  colour[rel], "2" if rel == "spouse" else "", "Family",
-                                  '{"relationship": "%s"}' % rel] + side(b) + [SOURCE])
+            if rel == "spouse":
+                w.writerow(side(a) + ["spouse", "-", "", colour[rel], "2", "Family",
+                                      '{"relationship": "spouse"}'] + side(b) + [SOURCE])
+                continue
+            # from the parent to the child; for Follow the Money the parent is the
+            # person and the child the relative, so the relationship is the child's
+            label = f"{rel} of" + (" (conflicting records)" if doubt else "")
+            w.writerow(side(b) + [label, "->", "dashed" if doubt else "", colour[rel], "", "Family",
+                                  '{"relationship": "%s"}' % child_word(sex.get(a))] + side(a) + [SOURCE])
     return len(rows)
 
 
-def write_hypotheses(path, people, hyp):
-    """Second import file: the hypothesised links, dashed, plus a text node for
-    the open question linked to every candidate parent."""
-    jon = next(k for k, p in people.items() if p["name"] == "Jon Snow")
-    cols = ["name1", "type1", "relation", "arrow", "line", "color", "ftm", "ftm_props",
-            "name2", "type2", "Source"]
+def child_word(sex):
+    return {"male": "son", "female": "daughter"}.get(sex, "child")
+
+
+def write_hypotheses(path, people, hyp, sex):
+    """Second import file: the hypothesised links, dashed and purple, never mixed
+    with the source file. The open question itself goes in the card of Jon Snow,
+    not on the chart (see the case study)."""
+    cols = ["name1", "type1", "sex1", "relation", "arrow", "line", "color", "ftm", "ftm_props",
+            "name2", "type2", "sex2", "Source"]
     with open(path, "w", encoding="utf-8-sig", newline="") as f:
         w = csv.writer(f)
         w.writerow(cols)
         for a, rel, b in hyp:
-            w.writerow([people[a]["name"], "person", f"hypothesis: {rel}",
-                        "-" if rel == "spouse" else "->", "dashed", "#7c3aed", "Family",
-                        '{"relationship": "%s"}' % rel, people[b]["name"], "person",
-                        "Analyst hypothesis, not in the source"])
-        w.writerow([QUESTION, "text", "concerns", "->", "dotted", "", "", "",
-                    people[jon]["name"], "person", "Collection plan"])
-        for rel, b in sorted((rel, b) for a, rel, b in [l for l in LINKS if l[0] == jon]) +                 [(rel, b) for a, rel, b in hyp if a == jon]:
-            w.writerow([QUESTION, "text", f"candidate {rel}", "->", "dotted", "", "", "",
-                        people[b]["name"], "person", "Collection plan"])
+            if rel == "spouse":
+                one, two, label, arrow, ftm = a, b, "hypothesis: spouse", "-", "spouse"
+            else:
+                one, two, label, arrow, ftm = b, a, f"hypothesis: {rel} of", "->", child_word(sex.get(a))
+            w.writerow([people[one]["name"], "person", sex.get(one, ""), label, arrow, "dashed",
+                        "#7c3aed", "Family", '{"relationship": "%s"}' % ftm, people[two]["name"],
+                        "person", sex.get(two, ""), "Analyst hypothesis, not in the source"])
 
 
 LINKS = []
@@ -337,6 +407,7 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("tsv", nargs="?")
     ap.add_argument("--out", default="examples/got_kinship.csv")
+    ap.add_argument("--api", help="folder of the pages of An API of Ice and Fire (read or saved)")
     args = ap.parse_args()
 
     rows = load(args.tsv)
@@ -355,7 +426,9 @@ def main():
     rel_of = {(x, y): ("father" if r == "father of" else "mother" if r == "mother of"
                        else "spouse" if r == "spouse of" else "child") for (x, y), r in rel_of.items()}
 
-    written = write_csv(args.out, people, links, big)
+    idx, api_count = api_genders(args.api)
+    sex, sex_src = sexes({k: people[k] for k in big}, links, idx)
+    written = write_csv(args.out, people, links, big, sex)
     pr = print
     pr(f"# Findings\n\nSource rows: {len(rows)} characters. Family network: {len(adj)} people, "
        f"{len(links)} links ({', '.join(f'{c} {r}' for r, c in collections.Counter(l[1] for l in links).most_common())}).")
@@ -428,7 +501,10 @@ def main():
             pr(f"- {n(k)}: {len(adj[k])} links, in the largest network: {k in big}")
     hyp = [(find(a), rel, find(b)) for a, rel, b in HYPOTHESES]
     hpath = os.path.splitext(args.out)[0] + "_hypotheses.csv"
-    write_hypotheses(hpath, people, hyp)
+    write_hypotheses(hpath, people, hyp, sex)
+    pr(f"\nSex of the {len(sex)} people of the network: {sex_src['api']} from An API of Ice and Fire "
+       f"({api_count} characters), {sex_src['role']} from their role of father or mother, "
+       f"{sex_src['unknown']} not known.")
     for a, rel, b in hyp:
         adj[a].add(b)
         adj[b].add(a)

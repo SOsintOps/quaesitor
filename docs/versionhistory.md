@@ -10,6 +10,15 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 1.10.0 — 2026
+
+- **New:** Sex of the persons: male, female or not known, from the new node dialog, Edit values and the import (`sex1`/`sex2`, also `sesso`, `gender`, `genere`), exported and imported as the `gender` of Follow the Money Person. A person of known sex shows the man or the woman of the colour icons; not known keeps the generic person, and a target keeps the target icon.
+- **New:** **Levels** layout (dagre and cytoscape-dagre, MIT): one row per generation or tier, following the arrows from tail to head; links without one forward arrow, such as spouses, stay on one row and are drawn as an arc above it.
+- **New:** **Key on the graph**, also in the graph PDF: the case, the date and time, the symbols of the nodes on view and one line per colour and line style of the links; the drawing makes room for it. *Connection style, Labels* hides the link labels when the key explains them.
+- **Changed:** The case study draws a family tree: parent links run from the parent to the child (`father of`, `mother of`), every person carries a sex (502 from [An API of Ice and Fire](https://anapioficeandfire.com), 76 from their role of father or mother, 120 not known), and the open question on Jon Snow moves from a text node to the note of his card. The Link Analysis Guidelines and the screenshots of the manual follow.
+
+---
+
 ## 1.9.1 — 2026
 
 - **New:** The built-in manual shows its eighteen figures again, in all six languages: screenshots of Quaesitor in English, taken from the [case study](case-study-game-of-thrones.md) by `scripts/screenshots.py`, which drives the installed Chrome (`pip install --group docs`) and can be run again after a change to the interface. The README opens with the overview.

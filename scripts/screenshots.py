@@ -176,15 +176,21 @@ def take_all(s, page, base):
     page.evaluate("document.querySelector('#loadTargets').click()")
     page.wait_for_function("cy.nodes('[ntype=\"target\"]').length > 0")
     tid = page.evaluate(f"{TARGET}.id()")
-    api(base, "/api/note", {"id": tid, "note": "Parentage contested in the sources: two records name "
-                                               "different mothers. Hypothesis under test: Rhaegar "
-                                               "Targaryen and Lyanna Stark."})
+    api(base, "/api/note", {"id": tid, "note": "Open question: who are the parents of Jon Snow? The "
+                                               "source names Eddard Stark as father and two mothers, "
+                                               "Wylla and Ashara Dayne (conflicting records). Hypothesis "
+                                               "under test: Rhaegar Targaryen and Lyanna Stark."})
     page.evaluate("() => syncGraph()")
     page.wait_for_timeout(600)
-    for sel in (TARGET, by_label("Eddard Stark")):
+    for sel in (TARGET, by_label("Eddard Stark"), by_label("Rhaegar Targaryen")):
         page.evaluate(f"() => {{ const n = {sel}; if (n) toggleExpand(n); }}")
         page.wait_for_timeout(700)
-    s.settle()
+    # a family tree: one row per generation, labels explained by the key
+    page.select_option("#gsLabels", "off")
+    page.evaluate("() => { cy.nodes('.fresh').removeClass('fresh'); setLayout('dagre', '#lyLevels'); }")
+    page.wait_for_timeout(1200)
+    page.evaluate("() => { runLayout({fit: true, animate: false}); buildChartKey(); }")
+    page.wait_for_timeout(900)
 
     # 2. overview, 17-18 panel
     s.save("over")
@@ -204,13 +210,14 @@ def take_all(s, page, base):
     page.wait_for_timeout(200)
 
     # 8. context menu on the background
+    page.evaluate("document.querySelector('#chartkey').hidden = true")   # it covers that corner
     page.mouse.click(1300, 820, button="right")
     page.wait_for_selector("#ctxmenu", state="visible")
     box = page.locator("#ctxmenu").bounding_box()
     s.save("ctx", clip={"x": box["x"] - 24, "y": box["y"] - 24,
                         "width": box["width"] + 48, "height": box["height"] + 48})
     page.keyboard.press("Escape")
-    page.mouse.click(1420, 880)
+    page.evaluate("() => buildChartKey()")
 
     # the windows below are taller than the screen: a taller viewport shows them whole
     page.set_viewport_size({"width": VIEW["width"], "height": 1150})

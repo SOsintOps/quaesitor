@@ -109,6 +109,16 @@ for id_, name, ver in (("cytoscape-fcose", "cytoscape-fcose", "2.2.0"),
         "Disposizione automatica dei nodi (layout organico)", "Automatic node layout (organic layout)",
         wr(f"{id_}.txt", MIT.format(holder="i-Vis Research Group, Bilkent University")), "js")
 
+for id_, name, ver, copy, holder, url in (
+        ("cytoscape-dagre", "cytoscape-dagre", "2.5.0", "Copyright (c) 2016-2018, 2020, 2022, The Cytoscape Consortium", "2016-2018, 2020, 2022, The Cytoscape Consortium",
+         "https://github.com/cytoscape/cytoscape.js-dagre"),
+        ("dagre", "dagre", "0.8.5", "Copyright (c) 2012-2014 Chris Pettitt", "2012-2014 Chris Pettitt",
+         "https://github.com/dagrejs/dagre"),
+        ):
+    add(id_, name, ver, "MIT", copy, url,
+        "Disposizione ad albero per livelli, secondo le frecce", "Tree layout by levels, following the arrows",
+        wr(f"{id_}.txt", MIT.format(holder=holder)), "js")
+
 # ---------------------------------------------------------- icons and font ---
 add("font-awesome", "Font Awesome Free", "6", "Icone CC BY 4.0, codice MIT",
     "Fonticons, Inc.", "https://fontawesome.com",

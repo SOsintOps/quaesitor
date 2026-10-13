@@ -640,6 +640,11 @@ def ident_of(ntype, fields):
     return ""
 
 
+# person nodes: colour icon by sex (scripts/icons/mapping.json); not known = the
+# icon of the type
+PERSON_ICONS = {"male": "person-male", "female": "person-female"}
+
+
 def icon_of(ntype, fields):
     if ntype == "drug":
         return DRUG_ICONS.get(fields.get("sostanza"), TYPES[ntype]["icon"])

@@ -11,6 +11,8 @@ texts are in `quaesitor/static/licenses/` and can be read from the program itsel
 | [cytoscape-fcose](https://github.com/iVis-at-Bilkent/cytoscape-fcose) | 2.2.0 | MIT | Copyright (c) i-Vis Research Group, Bilkent University | Automatic node layout (organic layout) |
 | [cose-base](https://github.com/iVis-at-Bilkent/cose-base) | 2.2.0 | MIT | Copyright (c) i-Vis Research Group, Bilkent University | Automatic node layout (organic layout) |
 | [layout-base](https://github.com/iVis-at-Bilkent/layout-base) | 2.0.1 | MIT | Copyright (c) i-Vis Research Group, Bilkent University | Automatic node layout (organic layout) |
+| [cytoscape-dagre](https://github.com/cytoscape/cytoscape.js-dagre) | 2.5.0 | MIT | Copyright (c) 2016-2018, 2020, 2022, The Cytoscape Consortium | Tree layout by levels, following the arrows |
+| [dagre](https://github.com/dagrejs/dagre) | 0.8.5 | MIT | Copyright (c) 2012-2014 Chris Pettitt | Tree layout by levels, following the arrows |
 | [Font Awesome Free](https://fontawesome.com) | 6 | Icone CC BY 4.0, codice MIT | Fonticons, Inc. | Fallback node type icons and interface icons |
 | [Quaesitor node icons](https://github.com/SOsintOps/quaesitor) | 1.7.1 | GPL-3.0-or-later (as the program) | Ramingo (SOsintOps) | Colour node type icons, generated with ChatGPT and Gemini (quaesitor/static/icons/entities) |
 | [Simple Icons](https://simpleicons.org) |  | CC0 1.0 (pubblico dominio); i loghi restano marchi dei rispettivi titolari | Simple Icons contributors | Social platform logos (Facebook, Instagram, Telegram…) |

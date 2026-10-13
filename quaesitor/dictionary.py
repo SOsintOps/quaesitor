@@ -22,7 +22,7 @@ from .core import _json_obj, _truthy, DATA_DIR, NodeError, PHOTO_EXT
 from .chatbot import chatbot_ready
 from .transliteration import ai_fill_translit, parole_da_traslitterare, script_of
 from .normalize import (
-    _fold, _TYPE_HEAD, canon_streets, norm_city, norm_civico, norm_street, parse_birth,
+    _fold, _TYPE_HEAD, canon_streets, norm_city, norm_civico, norm_street, parse_birth, parse_sex,
     person_id, person_key, person_label, place_is_address, place_parts, split_civico,
     STREET_TYPES,
 )
@@ -231,6 +231,9 @@ def new_added_entry(nid, label, platform, ntype, value, data, parent, now):
         nascita = parse_birth(data.get("nascita"))
         if nascita:
             entry["nascita"] = nascita
+        sex = parse_sex(data.get("sex"))
+        if sex:
+            entry["sex"] = sex
         if _truthy(data.get("target")):
             entry["target"] = True           # highlighted as target
     if ntype == "place":

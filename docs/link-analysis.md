@@ -122,14 +122,16 @@ Quaesitor automates the mechanics of steps 3 to 7 and leaves the thinking where 
 | Direction | The **arrow** on the link, set by clicking the preview. Owner to owned, payer to payee, superior to subordinate. |
 | Ownership with percentage, positions, membership | **Follow the Money relations** on the link: Ownership with `percentage`, Directorship with `role`, Membership, Employment, Family, Payment with amount and date. The label is generated as `verb (caption)`. |
 | Person inside an organisation | A Directorship, Employment or Membership link to the organisation node, with the role; the hierarchical layout draws the organisation above its officers. |
+| Sex of a person | The **Sex** field of the person (new node, Edit values, `sex1`/`sex2` in an import): a man, a woman or the generic person when not known. Not known is information: leave it unset rather than guess. |
+| Family trees, company trees, chains of command | Arrows from the parent to the child, the owner to the owned, the superior to the subordinate, then the **Levels** layout: one row per generation or tier. Links without an arrow (spouses, associates) are drawn but do not change the rows. |
 | Unknown person | A person node labelled "unknown" with the link; replace the label when the name arrives, the identity stays. |
 | Hypothesised link | A dashed link with a label starting with "hypothesis" and the reasoning in the link's notes. |
-| Time, date, sequence number, key | A saved view per revision, named with date and number; the PDF export of the graph carries the date. The key is the legend of styles you adopt in the case notes. |
+| Time, date, sequence number, key | A saved view per revision, named with date and number; the PDF export of the graph carries the date. The key is the legend of styles you adopt in the case notes. The **Key on the graph** (panel) adds to the chart, and to its PDF, the case, the date and time, the symbols of the nodes and one line per colour and style of the links; with the key on, the link labels can be hidden (*Connection style*, Labels). |
 | Freeze-frame versus evolution | Several saved views over time; typed relations carry `startDate` and `endDate`. |
 | Grades and sanitisation | Source grades in the card fields; the raw report in **document sources**, indexed and searchable, never on the chart. |
 | Biographical summaries | The node card: notes, grouped connections, raw records, images, PDF export of the card. |
 | The written report | Outside the program. Export the graph and the cards to PDF as its attachments; the report remains the product. |
-| Collection plan and gaps | A text node per open question, linked to the entities it concerns, until it is answered and deleted. |
+| Collection plan and gaps | The open question in the **note** of the card of the entity it concerns, with the candidates named, until it is answered. A text node is for a question that concerns no single entity: drawn with a line to every candidate it becomes a judgement shown as an entity, and it crowds the links it is about. |
 
 Two things the program does not do, by design. It does not grade information for you: the grade is a judgement, and the manual's three principles apply to the analyst, not to the software. And it does not write the report: the standard says a chart is an addition to a written product, and that remains true with a better chart.
 

@@ -242,6 +242,8 @@ const I18N = {
     'ly.organic': 'Organico',
     'ly.circle': 'Circolare',
     'ly.tree': 'Gerarchico',
+    'ly.levels': 'Livelli',
+    'ly.levelsTip': 'Albero per livelli secondo le frecce: genitori sopra i figli, proprietari sopra le società',
     'ly.grid': 'Griglia',
     'ly.untangle': 'Riduci incroci',
     'ly.working': '…',
@@ -724,6 +726,8 @@ const I18N = {
     'ly.organic': 'Organic',
     'ly.circle': 'Circular',
     'ly.tree': 'Hierarchical',
+    'ly.levels': 'Levels',
+    'ly.levelsTip': 'Tree by levels following the arrows: parents above children, owners above companies',
     'ly.grid': 'Grid',
     'ly.untangle': 'Reduce crossings',
     'ly.working': '…',
@@ -1206,6 +1210,8 @@ const I18N = {
     'ly.organic': 'Organique',
     'ly.circle': 'Circulaire',
     'ly.tree': 'Hiérarchique',
+    'ly.levels': 'Niveaux',
+    'ly.levelsTip': 'Arbre par niveaux selon les flèches : parents au-dessus des enfants, propriétaires au-dessus des sociétés',
     'ly.grid': 'Grille',
     'ly.untangle': 'Réduire les croisements',
     'ly.working': '…',
@@ -1688,6 +1694,8 @@ const I18N = {
     'ly.organic': 'Organisch',
     'ly.circle': 'Kreisförmig',
     'ly.tree': 'Hierarchisch',
+    'ly.levels': 'Ebenen',
+    'ly.levelsTip': 'Baum nach Ebenen entlang der Pfeile: Eltern über Kindern, Eigentümer über Firmen',
     'ly.grid': 'Raster',
     'ly.untangle': 'Überschneidungen reduzieren',
     'ly.working': '…',
@@ -2170,6 +2178,8 @@ const I18N = {
     'ly.organic': 'Orgánico',
     'ly.circle': 'Circular',
     'ly.tree': 'Jerárquico',
+    'ly.levels': 'Niveles',
+    'ly.levelsTip': 'Árbol por niveles según las flechas: padres sobre hijos, propietarios sobre empresas',
     'ly.grid': 'Cuadrícula',
     'ly.untangle': 'Reducir cruces',
     'ly.working': '…',
@@ -2652,6 +2662,8 @@ const I18N = {
     'ly.organic': 'عضوي',
     'ly.circle': 'دائري',
     'ly.tree': 'هرمي',
+    'ly.levels': 'مستويات',
+    'ly.levelsTip': 'شجرة بمستويات حسب الأسهم: الوالدان فوق الأبناء والمالكون فوق الشركات',
     'ly.grid': 'شبكي',
     'ly.untangle': 'تقليل التقاطعات',
     'ly.working': '…',
@@ -3711,6 +3723,7 @@ Object.assign(I18N.it, {
   'add.surname': 'Cognome', 'add.surnamePh': 'es. Rossi',
   'add.firstname': 'Nome', 'add.firstnamePh': 'es. Mario',
   'add.birth': 'Data di nascita (facoltativa)',
+  'add.sex': 'Sesso', 'sex.unknown': 'Non noto', 'sex.male': 'Maschio', 'sex.female': 'Femmina',
   'add.isTarget': 'Evidenzia come target',
   'add.vehNameLabel': 'Marca e modello (facoltativo)',
   'add.vehNamePh': 'es. Audi A4',
@@ -3724,6 +3737,7 @@ Object.assign(I18N.en, {
   'add.surname': 'Surname', 'add.surnamePh': 'e.g. Smith',
   'add.firstname': 'Name', 'add.firstnamePh': 'e.g. John',
   'add.birth': 'Date of birth (optional)',
+  'add.sex': 'Sex', 'sex.unknown': 'Not known', 'sex.male': 'Male', 'sex.female': 'Female',
   'add.isTarget': 'Highlight as target',
   'add.vehNameLabel': 'Make and model (optional)',
   'add.vehNamePh': 'e.g. Audi A4',
@@ -3769,6 +3783,7 @@ Object.assign(I18N.fr, {
   'add.topoLabel': 'Type', 'add.optPerson': 'Personne / cible (nom, prénom, date de naissance)',
   'add.surname': 'Nom', 'add.surnamePh': 'ex. Dupont', 'add.firstname': 'Prénom', 'add.firstnamePh': 'ex. Jean',
   'add.birth': 'Date de naissance (facultative)', 'add.isTarget': 'Marquer comme cible',
+  'add.sex': 'Sexe', 'sex.unknown': 'Inconnu', 'sex.male': 'Masculin', 'sex.female': 'Féminin',
   'add.color': 'Couleur (facultative)', 'add.colorPh': 'ex. Noir',
   'modal.importAi': 'Importer avec l\'IA', 'add.ontoGroup': "Éléments d'enquête",
   'case.title': 'Dossier', 'case.switchTip': 'Dossier ouvert : choisissez-en un autre pour changer',
@@ -3787,6 +3802,7 @@ Object.assign(I18N.de, {
   'add.topoLabel': 'Typ', 'add.optPerson': 'Person / Zielperson (Nachname, Vorname, Geburtsdatum)',
   'add.surname': 'Nachname', 'add.surnamePh': 'z. B. Müller', 'add.firstname': 'Vorname', 'add.firstnamePh': 'z. B. Hans',
   'add.birth': 'Geburtsdatum (optional)', 'add.isTarget': 'Als Zielperson markieren',
+  'add.sex': 'Geschlecht', 'sex.unknown': 'Unbekannt', 'sex.male': 'Männlich', 'sex.female': 'Weiblich',
   'add.color': 'Farbe (optional)', 'add.colorPh': 'z. B. Schwarz',
   'modal.importAi': 'Mit KI importieren', 'add.ontoGroup': 'Ermittlungsobjekte',
   'case.title': 'Fall', 'case.switchTip': 'Geöffneter Fall: einen anderen wählen, um zu wechseln',
@@ -3805,6 +3821,7 @@ Object.assign(I18N.es, {
   'add.topoLabel': 'Tipo', 'add.optPerson': 'Persona / objetivo (apellido, nombre, fecha de nacimiento)',
   'add.surname': 'Apellido', 'add.surnamePh': 'p. ej. García', 'add.firstname': 'Nombre', 'add.firstnamePh': 'p. ej. Juan',
   'add.birth': 'Fecha de nacimiento (opcional)', 'add.isTarget': 'Marcar como objetivo',
+  'add.sex': 'Sexo', 'sex.unknown': 'Desconocido', 'sex.male': 'Masculino', 'sex.female': 'Femenino',
   'add.color': 'Color (opcional)', 'add.colorPh': 'p. ej. Negro',
   'modal.importAi': 'Importar con IA', 'add.ontoGroup': 'Elementos de investigación',
   'case.title': 'Caso', 'case.switchTip': 'Caso abierto: elige otro para cambiar',
@@ -3823,6 +3840,7 @@ Object.assign(I18N.ar, {
   'add.topoLabel': 'النوع', 'add.optPerson': 'شخص / هدف (اللقب، الاسم، تاريخ الميلاد)',
   'add.surname': 'اللقب', 'add.surnamePh': 'مثال: الشريف', 'add.firstname': 'الاسم', 'add.firstnamePh': 'مثال: محمد',
   'add.birth': 'تاريخ الميلاد (اختياري)', 'add.isTarget': 'تمييز كهدف',
+  'add.sex': 'الجنس', 'sex.unknown': 'غير معروف', 'sex.male': 'ذكر', 'sex.female': 'أنثى',
   'add.color': 'اللون (اختياري)', 'add.colorPh': 'مثال: أسود',
   'modal.importAi': 'استيراد بالذكاء الاصطناعي', 'add.ontoGroup': 'عناصر التحقيق',
   'case.title': 'القضية', 'case.switchTip': 'القضية المفتوحة: اختر قضية أخرى للتبديل',
@@ -3845,6 +3863,18 @@ Object.assign(I18N.fr, { 'gstyle.title': 'Style des liens', 'gstyle.shape': 'For
 Object.assign(I18N.de, { 'gstyle.title': 'Stil der Verbindungen', 'gstyle.shape': 'Form', 'gstyle.keep': 'wie eingestellt' });
 Object.assign(I18N.es, { 'gstyle.title': 'Estilo de las conexiones', 'gstyle.shape': 'Forma', 'gstyle.keep': 'como están' });
 Object.assign(I18N.ar, { 'gstyle.title': 'نمط الروابط', 'gstyle.shape': 'الشكل', 'gstyle.keep': 'كما هي' });
+Object.assign(I18N.it, { 'gstyle.labels': 'Etichette', 'gstyle.labelsOn': 'visibili', 'gstyle.labelsOff': 'nascoste (spiega la legenda)' });
+Object.assign(I18N.en, { 'gstyle.labels': 'Labels', 'gstyle.labelsOn': 'shown', 'gstyle.labelsOff': 'hidden (the key explains them)' });
+Object.assign(I18N.fr, { 'gstyle.labels': 'Étiquettes', 'gstyle.labelsOn': 'visibles', 'gstyle.labelsOff': 'masquées (la légende les explique)' });
+Object.assign(I18N.de, { 'gstyle.labels': 'Beschriftungen', 'gstyle.labelsOn': 'sichtbar', 'gstyle.labelsOff': 'ausgeblendet (die Legende erklärt sie)' });
+Object.assign(I18N.es, { 'gstyle.labels': 'Etiquetas', 'gstyle.labelsOn': 'visibles', 'gstyle.labelsOff': 'ocultas (la leyenda las explica)' });
+Object.assign(I18N.ar, { 'gstyle.labels': 'التسميات', 'gstyle.labelsOn': 'ظاهرة', 'gstyle.labelsOff': 'مخفية (يشرحها المفتاح)' });
+Object.assign(I18N.it, { 'key.person': 'Persona', 'key.title': 'Legenda', 'key.show': 'Legenda sul grafico', 'key.link': 'collegamento' });
+Object.assign(I18N.en, { 'key.person': 'Person', 'key.title': 'Key', 'key.show': 'Key on the graph', 'key.link': 'link' });
+Object.assign(I18N.fr, { 'key.person': 'Personne', 'key.title': 'Légende', 'key.show': 'Légende sur le graphe', 'key.link': 'liaison' });
+Object.assign(I18N.de, { 'key.person': 'Person', 'key.title': 'Legende', 'key.show': 'Legende auf dem Graphen', 'key.link': 'Verbindung' });
+Object.assign(I18N.es, { 'key.person': 'Persona', 'key.title': 'Leyenda', 'key.show': 'Leyenda en el grafo', 'key.link': 'conexión' });
+Object.assign(I18N.ar, { 'key.person': 'شخص', 'key.title': 'المفتاح', 'key.show': 'المفتاح على الرسم', 'key.link': 'رابط' });
 
 /* ---------------------------------------------------------------- runtime */
 
@@ -4064,6 +4094,7 @@ Object.assign(I18N.it, {
   'imp.f.text': 'Testo',
   'imp.f.cognome': 'Cognome',
   'imp.f.nascita': 'Data di nascita',
+  'imp.f.sex': 'Sesso',
   'imp.f.colore': 'Colore (veicolo)',
   'imp.f.flag': 'Target (sì/no)',
   'imp.f.address': 'Indirizzo',
@@ -4110,6 +4141,7 @@ Object.assign(I18N.en, {
   'imp.f.text': 'Text',
   'imp.f.cognome': 'Surname',
   'imp.f.nascita': 'Date of birth',
+  'imp.f.sex': 'Sex',
   'imp.f.colore': 'Colour (vehicle)',
   'imp.f.flag': 'Target (yes/no)',
   'imp.f.address': 'Address',
@@ -4156,6 +4188,7 @@ Object.assign(I18N.fr, {
   'imp.f.text': 'Texte',
   'imp.f.cognome': 'Nom de famille',
   'imp.f.nascita': 'Date de naissance',
+  'imp.f.sex': 'Sexe',
   'imp.f.colore': 'Couleur (véhicule)',
   'imp.f.flag': 'Cible (oui/non)',
   'imp.f.address': 'Adresse',
@@ -4202,6 +4235,7 @@ Object.assign(I18N.de, {
   'imp.f.text': 'Text',
   'imp.f.cognome': 'Nachname',
   'imp.f.nascita': 'Geburtsdatum',
+  'imp.f.sex': 'Geschlecht',
   'imp.f.colore': 'Farbe (Fahrzeug)',
   'imp.f.flag': 'Zielperson (ja/nein)',
   'imp.f.address': 'Adresse',
@@ -4248,6 +4282,7 @@ Object.assign(I18N.es, {
   'imp.f.text': 'Texto',
   'imp.f.cognome': 'Apellido',
   'imp.f.nascita': 'Fecha de nacimiento',
+  'imp.f.sex': 'Sexo',
   'imp.f.colore': 'Color (vehículo)',
   'imp.f.flag': 'Objetivo (sí/no)',
   'imp.f.address': 'Dirección',
@@ -4294,6 +4329,7 @@ Object.assign(I18N.ar, {
   'imp.f.text': 'النص',
   'imp.f.cognome': 'اسم العائلة',
   'imp.f.nascita': 'تاريخ الميلاد',
+  'imp.f.sex': 'الجنس',
   'imp.f.colore': 'اللون (مركبة)',
   'imp.f.flag': 'هدف (نعم/لا)',
   'imp.f.address': 'العنوان',

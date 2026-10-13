@@ -10,7 +10,8 @@ DEST = ROOT / "quaesitor" / "static" / "icons" / "entities"
 
 def _known():
     keys = set(onto.TYPES) | set(onto.BASE_ICONS) | {"account", "photo", "audio", "video"}
-    for table in (onto.DRUG_ICONS, onto.DOC_ICONS, onto.FINDOC_ICONS, onto.LEGALDOC_ICONS, onto.DEVICE_ICONS):
+    for table in (onto.DRUG_ICONS, onto.DOC_ICONS, onto.FINDOC_ICONS, onto.LEGALDOC_ICONS, onto.DEVICE_ICONS,
+                  onto.PERSON_ICONS):
         keys |= set(table.values())
     return keys
 
