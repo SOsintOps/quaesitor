@@ -7,5 +7,5 @@ rights to the icons.
 
 The brands' names and logos remain the property and trademarks of their
 respective owners. OSInt Graph uses them only to identify the platform a
-profile belongs to. OSInt Graph is not affiliated with, endorsed by or
-sponsored by any of these companies.
+profile, a payment card, a wallet or an e-mail address belongs to. OSInt Graph
+is not affiliated with, endorsed by or sponsored by any of these companies.

@@ -1,0 +1,6 @@
+Unicode CLDR - https://cldr.unicode.org
+
+The country names in quaesitor/generated/countries.json come from the Unicode Common
+Locale Data Repository, read through Intl.DisplayNames of Node.js by
+scripts/appearance/make_assets.py. CLDR data are released under the Unicode License v3:
+https://www.unicode.org/license.txt

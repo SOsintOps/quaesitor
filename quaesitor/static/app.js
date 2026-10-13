@@ -1395,6 +1395,8 @@ function render(els) {
         'background-fit': 'cover', 'background-width': '100%', 'background-height': '100%',
         'background-clip': 'node', 'border-width': 3
       } },
+      // corner marks (appearance.py): after the photo styles, which they extend
+      { selector: 'node[?badges]', style: MARK_STYLE },
       // evidence imported from Cognitor or from a transcription
       { selector: 'edge[evid = "seen"]', style: {
         'line-color': '#b45309', 'target-arrow-color': '#b45309', 'source-arrow-color': '#b45309',
@@ -2636,6 +2638,14 @@ function bodyFor(node, opts = {}) {
   // User's note, clearly visible at the top
   if (d.note) {
     h += `<div class="d-note"><b>${esc(t('card.note'))}</b><div>${esc(d.note).replace(/\n/g, '<br>')}</div></div>`;
+  }
+
+  // corner marks with their meaning (number not valid, country, network...)
+  if ((d.badges || []).length) {
+    h += '<div class="d-marks">' + d.badges.map(b => {
+      const img = markImage(b);
+      return `<span class="chip">${img ? `<img src="${esc(img)}" alt="">` : ''}${esc(markTitle(b))}</span>`;
+    }).join('') + '</div>';
   }
 
   // Latin form of the label (transliteration as a node attribute)
@@ -5190,13 +5200,22 @@ function buildChartKey() {
   if (!chartKeyOn() || !vis.nodes().length) { box.hidden = true; return; }
   const sexed = vis.nodes().some(n => n.data('sex'));
   const nodes = new Map();
+  const marks = new Map();
   vis.nodes().forEach(n => {
     const d = n.data();
-    const k = d.ntype === 'name' && sexed ? 'name:' + (d.sex || '') : d.ntype;
-    if (nodes.has(k)) return;
-    let label = groupTitle(d.ntype).replace(/^\S+\s/, '');
-    if (d.ntype === 'name' && sexed) label = t('key.person') + ' · ' + t('sex.' + (d.sex || 'unknown'));
-    nodes.set(k, { icon: d.icon, label });
+    // one row per type and icon variant: two drugs with different icons are two rows
+    const k = d.ntype === 'name' && sexed ? 'name:' + (d.sex || '') : d.ntype + '|' + (d.ficon || '');
+    const row = nodes.get(k);
+    if (row) { if (d.fvalue) row.values.add(ot(d.fvalue, d.ntype)); }
+    else {
+      let label = ONTO[d.ntype] ? ontoLabel(ONTO[d.ntype]) : groupTitle(d.ntype).replace(/^\S+\s/, '');
+      if (d.ntype === 'name' && sexed) label = t('key.person') + ' · ' + t('sex.' + (d.sex || 'unknown'));
+      nodes.set(k, { icon: d.icon, label, values: new Set(d.fvalue ? [ot(d.fvalue, d.ntype)] : []) });
+    }
+    nodeMarks(n).forEach(m => {
+      const mk = m.b.kind + ':' + m.b.key;
+      if (!marks.has(mk)) marks.set(mk, { icon: m.img, label: markTitle(m.b) });
+    });
   });
   const links = new Map();
   vis.edges().forEach(e => {
@@ -5212,7 +5231,9 @@ function buildChartKey() {
     `<div class="ck-h">${esc(t('key.title'))}${opt ? ' · ' + esc(opt.textContent) : ''}</div>` +
     `<div class="ck-d">${esc(new Date().toLocaleString(LANG))} · ${vis.nodes().length} ${esc(t('exp.nodes'))}` +
     ` · ${vis.edges().length} ${esc(t('exp.edges'))}</div>` +
-    [...nodes.values()].map(v => `<div class="ck-r"><img src="${esc(v.icon || '')}" alt="">${esc(v.label)}</div>`).join('') +
+    [...nodes.values()].map(v => `<div class="ck-r"><img src="${esc(v.icon || '')}" alt="">${esc(v.label +
+      (v.values.size ? ' · ' + [...v.values].slice(0, 3).join(', ') + (v.values.size > 3 ? '…' : '') : ''))}</div>`).join('') +
+    [...marks.values()].map(v => `<div class="ck-r ck-m"><img src="${esc(v.icon)}" alt="">${esc(v.label)}</div>`).join('') +
     [...links.values()].map(r => {
       const top = [...r.labels.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2).map(x => x[0]).join(', ');
       return `<div class="ck-r"><i class="ck-l" style="border-top:2px ${r.ls} ${esc(r.col)}"></i>${esc(top)}</div>`;
@@ -5225,6 +5246,106 @@ on('#keyShow', 'change', e => {
   buildChartKey();
 });
 if ($('#keyShow')) $('#keyShow').checked = chartKeyOn();
+
+/* ================= CORNER MARKS (appearance.py) =================
+   Up to four marks on the corners of a node, one meaning per corner: brand or
+   network (NE), country (SW), alert (SE), role (NW). Each mark is ONE image: a
+   white disc with the flag (cut round) or the logo inside, built as an SVG data
+   URI, so it is drawn on the canvas and in the PDF like the icon. Flags and logos
+   are read once from static/ and kept in MARK_CACHE. */
+const svgUri = inner => 'data:image/svg+xml;utf8,' + encodeURIComponent(
+  `<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">${inner}</svg>`);
+const MARK_DISC = '<circle cx="32" cy="32" r="30" fill="#ffffff" stroke="#64748b" stroke-width="3"/>';
+const MARK_ALERT = {
+  'triangle-exclamation': svgUri('<circle cx="32" cy="32" r="30" fill="#dc2626" stroke="#ffffff" stroke-width="3"/>' +
+    '<rect x="28" y="13" width="8" height="25" rx="4" fill="#ffffff"/><circle cx="32" cy="48" r="5" fill="#ffffff"/>'),
+  clock: svgUri('<circle cx="32" cy="32" r="30" fill="#d97706" stroke="#ffffff" stroke-width="3"/>' +
+    '<circle cx="32" cy="32" r="17" fill="none" stroke="#ffffff" stroke-width="5"/>' +
+    '<path d="M32 21v12l8 5" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round"/>')
+};
+const MARK_CACHE = {};                 // 'kind:key' -> data URI ('' = not available)
+const MARK_PENDING = new Set();
+const MARK_XY = { ne: ['100%', '0%'], sw: ['0%', '100%'], se: ['100%', '100%'], nw: ['0%', '0%'] };
+
+function marksOn() {
+  try { return localStorage.getItem('cornerMarks') !== '0'; } catch (_) { return true; }
+}
+
+function markLetter(key) {
+  const [ch, col] = String(key).split(':');
+  return svgUri(`<circle cx="32" cy="32" r="30" fill="${esc(col || '#475569')}" stroke="#ffffff" stroke-width="3"/>` +
+    `<text x="32" y="43" text-anchor="middle" font-family="Arial,Helvetica,sans-serif" font-size="32" ` +
+    `font-weight="700" fill="#ffffff">${esc(ch || '?')}</text>`);
+}
+
+let _marksTimer = null;
+function marksLoaded() {             // a flag or a logo arrived: redraw once, shortly after
+  clearTimeout(_marksTimer);
+  _marksTimer = setTimeout(() => { if (cy) cy.style().update(); buildChartKey(); }, 60);
+}
+
+/* The image of a mark, or null while its flag or logo is still loading. */
+function markImage(b) {
+  const k = b.kind + ':' + b.key;
+  if (k in MARK_CACHE) return MARK_CACHE[k] || null;
+  if (b.kind === 'alert') return (MARK_CACHE[k] = MARK_ALERT[b.key] || MARK_ALERT['triangle-exclamation']);
+  if (b.kind === 'letter') return (MARK_CACHE[k] = markLetter(b.key));
+  if (!/^[a-z0-9-]+$/.test(b.key) || MARK_PENDING.has(k)) return null;
+  MARK_PENDING.add(k);
+  const url = b.kind === 'flag' ? `/static/vendor/flags/${b.key}.svg` : `/static/vendor/icons/${b.key}.svg`;
+  fetch(url).then(r => (r.ok ? r.text() : '')).then(svg => {
+    if (!svg) { MARK_CACHE[k] = ''; return; }
+    const inner = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg);
+    MARK_CACHE[k] = b.kind === 'flag'
+      ? svgUri(MARK_DISC + '<clipPath id="c"><circle cx="32" cy="32" r="25"/></clipPath>' +
+               `<image href="${inner}" x="7" y="7" width="50" height="50" clip-path="url(#c)" preserveAspectRatio="xMidYMid slice"/>`)
+      : svgUri(MARK_DISC + `<image href="${inner}" x="15" y="15" width="34" height="34"/>`);
+    marksLoaded();
+  }).catch(() => { MARK_CACHE[k] = ''; });
+  return null;
+}
+
+/* The marks of a node ready to be drawn: [{img, pos, b}]. */
+function nodeMarks(ele) {
+  if (!marksOn()) return [];
+  return (ele.data('badges') || []).map(b => ({ img: markImage(b), pos: b.pos, b }))
+    .filter(m => m.img && MARK_XY[m.pos]);
+}
+
+/* Title of a mark in the language of the interface (country names from the browser). */
+function markTitle(b) {
+  if (b.kind === 'flag') {
+    try { return new Intl.DisplayNames([LANG], { type: 'region' }).of(b.key.toUpperCase()) || b.title; }
+    catch (_) { return b.title; }
+  }
+  return b.kind === 'alert' ? ot(b.title) : b.title;   // a brand keeps its name ("Visa" is not a visa)
+}
+
+/* Node style with the marks: the icon first, then one image per mark. A photo (or a
+   person pictured by one) keeps its photo filling the node. */
+const _photoLike = ele => ele.data('ntype') === 'photo' || !!ele.data('pic');
+const _markOut = ele => Math.round((+ele.data('size') || 30) * 0.12);
+const MARK_STYLE = {
+  'background-image': ele => [ele.data('icon')].concat(nodeMarks(ele).map(m => m.img)),
+  'background-fit': ele => [_photoLike(ele) ? 'cover' : 'contain'].concat(nodeMarks(ele).map(() => 'none')),
+  'background-clip': ele => [_photoLike(ele) ? 'node' : 'none'].concat(nodeMarks(ele).map(() => 'none')),
+  'background-width': ele => [_photoLike(ele) ? '100%' : '62%'].concat(nodeMarks(ele).map(() => '52%')),
+  'background-height': ele => [_photoLike(ele) ? '100%' : '62%'].concat(nodeMarks(ele).map(() => '52%')),
+  'background-position-x': ele => ['50%'].concat(nodeMarks(ele).map(m => MARK_XY[m.pos][0])),
+  'background-position-y': ele => ['50%'].concat(nodeMarks(ele).map(m => MARK_XY[m.pos][1])),
+  // the marks stand a little out of the node, on its corners
+  'background-offset-x': ele => [0].concat(nodeMarks(ele).map(m => _markOut(ele) * (m.pos[1] === 'e' ? 1 : -1))),
+  'background-offset-y': ele => [0].concat(nodeMarks(ele).map(m => _markOut(ele) * (m.pos[0] === 's' ? 1 : -1))),
+  'bounds-expansion': ele => (nodeMarks(ele).length ? _markOut(ele) + 2 : 0),
+  'background-image-containment': ele => ['inside'].concat(nodeMarks(ele).map(() => 'over'))
+};
+
+on('#marksShow', 'change', e => {
+  try { localStorage.setItem('cornerMarks', e.target.checked ? '1' : '0'); } catch (_) {}
+  if (cy) cy.style().update();
+  buildChartKey();
+});
+if ($('#marksShow')) $('#marksShow').checked = marksOn();
 
 /* "Links" drop-down: list of the numbers of connections actually present
    in the graph. The selection is EXACT: each entry shows how many nodes have

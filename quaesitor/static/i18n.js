@@ -3883,6 +3883,12 @@ Object.assign(I18N.es, { 'gstyle.labels': 'Etiquetas', 'gstyle.labelsOn': 'visib
 Object.assign(I18N.ar, { 'gstyle.labels': 'التسميات', 'gstyle.labelsOn': 'ظاهرة', 'gstyle.labelsOff': 'مخفية (يشرحها المفتاح)' });
 Object.assign(I18N.it, { 'key.person': 'Persona', 'key.title': 'Legenda', 'key.show': 'Legenda sul grafico', 'key.link': 'collegamento' });
 Object.assign(I18N.en, { 'key.person': 'Person', 'key.title': 'Key', 'key.show': 'Key on the graph', 'key.link': 'link' });
+Object.assign(I18N.en, { 'marks.show': 'Corner marks on the nodes' });
+Object.assign(I18N.it, { 'marks.show': 'Segni agli angoli dei nodi' });
+Object.assign(I18N.fr, { 'marks.show': 'Marques aux coins des nœuds' });
+Object.assign(I18N.de, { 'marks.show': 'Markierungen an den Knotenecken' });
+Object.assign(I18N.es, { 'marks.show': 'Marcas en las esquinas de los nodos' });
+Object.assign(I18N.ar, { 'marks.show': 'علامات على زوايا العقد' });
 Object.assign(I18N.fr, { 'key.person': 'Personne', 'key.title': 'Légende', 'key.show': 'Légende sur le graphe', 'key.link': 'liaison' });
 Object.assign(I18N.de, { 'key.person': 'Person', 'key.title': 'Legende', 'key.show': 'Legende auf dem Graphen', 'key.link': 'Verbindung' });
 Object.assign(I18N.es, { 'key.person': 'Persona', 'key.title': 'Leyenda', 'key.show': 'Leyenda en el grafo', 'key.link': 'conexión' });

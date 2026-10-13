@@ -50,6 +50,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 - **Identity** (same value = same node): `serial_number`
 - **Label:** `category`, `make`, `model`, `calibre:cal. {}`, `serial_number:s/n {}`
 - **Follow the Money:** Note (declared loss)
+- **Icon by `category`:** `rifle.png` Submachine gun, Hunting rifle, Pump-action shotgun, Carbine, Sniper rifle, Assault rifle, Machine gun; `knife.png` Bladed weapon (knife, machete…); any other value shows the icon of the type
 - **Fields** (7):
   - `category` Category (select · values: Semi-automatic pistol, Revolver, Submachine gun, Hunting rifle, Pump-action shotgun, Carbine, Sniper rifle, Assault rifle, Machine gun, Blank-firing / converted gun, Air gun, Improvised / home-made gun, Bladed weapon (knife, machete…), Crossbow / bow, Stun gun / spray, Other)
   - `make` Make (text)
@@ -134,6 +135,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 - **Identity** (same value = same node): `serial_number`
 - **Label:** `type`, `description`, `estimated_value+currency`
 - **Follow the Money:** Asset
+- **Icon by `type`:** `gold.png` Gold / jewellery, Precious metals (bullion); `watch.png` Luxury watches; `artwork.png` Works of art; any other value shows the icon of the type
 - **Fields** (5):
   - `type` Type (select · values: Gold / jewellery, Luxury watches, Precious metals (bullion), Precious stones, Works of art, Securities / bonds, Savings bonds, Luxury goods, Other)
   - `description` Description (text)
@@ -245,6 +247,7 @@ Entered by hand (New node) or proposed by the AI. Field keys and select values a
 - **Identity** (same value = same node): `tax_number` · alternative key: `name`
 - **Label:** `name`, `tax_number:VAT {}`
 - **Follow the Money:** Company
+- **Icon by `type`:** `criminal-group.png` Criminal group, Clan / mafia family; `terrorist-group.png` Terrorist organization; any other value shows the icon of the type
 - **Fields** (4):
   - `name` Name (text)
   - `type` Type (select · values: Limited company, Partnership, Sole proprietorship, Association, Public body, Criminal group, Clan / mafia family, Terrorist organization, Other)
@@ -1397,3 +1400,25 @@ Chosen in the link window ("Follow the Money relation"); the fields sit on the l
 | Representation | represents | yes | `role` Role (text), `startDate` Start date (date), `endDate` End date (date), `date` Date (date), `status` Status (text) |
 | Succession | preceeds | yes | `date` Date (date), `startDate` Start date (date), `endDate` End date (date), `role` Role (text), `status` Status (text) |
 | UnknownLink | linked to | no | `role` Role (text), `startDate` Start date (date), `endDate` End date (date), `date` Date (date), `status` Status (text) |
+
+---
+
+## 5. Node Appearance
+
+Computed by `quaesitor/appearance.py` every time the graph is built, from the node as the interface shows it (its cards, its edited values, its sex), and never saved. Like the overlays of Maltego, a node gets a **variant of its icon** (the sub-type icons of sections 2 and 3, a man or a woman for a person) and up to four **corner marks**, one meaning per corner: **NE** brand or network (Simple Icons logo, or an initial on a colour), **SW** country (flag-icons), **SE** alert, **NW** role. The interface translates their titles, lists them in the card of the node and in the key, and hides them with *Corner marks on the nodes*.
+
+| Node types | Rule | Corner |
+| :--- | :--- | :--- |
+| `card` | network from `network` or from the first digits of `number` (IIN ranges); Luhn check; `expiry` MM/YY passed | NE, SE |
+| `crypto`, `cryptowallet` | chain from `blockchain` / `currency` or from the form of the address (bc1/1/3, 0x, T…, ltc1/L/M, 4/8 of 95 characters, base58 of 43-44) | NE |
+| `bankaccount`, `ftmbankaccount` | country of the IBAN, else of the BIC, else `country`; IBAN check digits (ISO 13616, mod 97) | SW, SE |
+| `phone` | country of the international prefix (+CC or 00CC, libphonenumber; +1 only with an area code that names the country), else the country in the cards of the checkers | SW |
+| `email` | provider of the domain: Gmail, Outlook, Yahoo, Proton Mail, iCloud, GMX, Mail.ru, Yandex, Zoho | NE |
+| `document`, `identification`, `passport` | `country`; `forged`, else `expiry` / `endDate` passed | SW, SE |
+| `weapon` | `serial_removed` | SE |
+| `cash` | `counterfeit` | SE |
+| `name`, `target` | `nationality` / `citizenship` in the cards (Follow the Money Person) | SW |
+| `company`, `legalentity`, `ftmorganization`, `publicbody`, `organization` | `jurisdiction`, `mainCountry` or `country` | SW |
+| `vessel` | `flag`, else `country` | SW |
+| `vehicle` | sign of the country of the plate in a dossier (`I`, `D`, `GB`, `LAR`, `LY`…) | SW |
+| every other type with a `country` field | `country` (ISO code or name in an interface language) | SW |

@@ -10,6 +10,15 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 2.1.0 — 2026
+
+- **New:** Corner marks on the nodes, as the overlays of Maltego: top right the network of a payment card (recognised from its first digits, also when masked), the chain of a crypto wallet (from the form of the address) or the provider of an e-mail; bottom left the flag of the country of an IBAN or BIC, of the international prefix of a phone, of a document, of the jurisdiction of a company, of the flag of a vessel, of the nationality of a person; bottom right an alert for a card number that fails the Luhn check, a wrong IBAN, a forged or expired document, an expired card, a removed serial number, counterfeit banknotes. They are listed in the card of the node and in the key on the graph, and *Corner marks on the nodes* hides them. The rules are in [Graph Entities](ontology.md#5-node-appearance).
+- **New:** Icons by kind for weapons (rifle, bladed weapon), valuables (gold, watches, works of art) and organisations (criminal group, terrorist organisation). The key on the graph has one row per icon variant, with the values that picked it: two drugs with different icons are no longer folded into one row.
+- **New:** Country flags of [flag-icons](https://github.com/lipis/flag-icons) (MIT), logos of payment networks, blockchains and e-mail providers from Simple Icons, country names in the six interface languages (Unicode CLDR) and the calling codes of [libphonenumber](https://github.com/google/libphonenumber), built by `scripts/appearance/make_assets.py`.
+- **Changed:** The icon of a node is computed in one pass at the end of the graph, from its cards as shown: a card added by hand to a node of the data keeps its sub-type icon, and an edited value changes the icon at once. The country of a vehicle in a dossier ("(LY)") stays in its card.
+
+---
+
 ## 2.0.0 — 2026
 
 - **Changed:** What the program saves is English. The investigative types have English field keys (`serial_number`, `substance`, `network`...), drop-down values ("Semi-automatic pistol", "Cocaine", "Passport", "Other"), labels and groups; a node added by hand keeps its data under English keys (`surname`, `birth`, `city`, `house_number`...) and its card shows English headings ("Date of birth", "Added on"); the links the program draws itself are `manual_link`, `same_name` and `same_street`; collections, sources, saved views, the API and the files it writes (dictionary CSV, import template, default names) are English too. The interface shows all of it in its language: Italian is now one of the translations, and English is the language the page falls back to.

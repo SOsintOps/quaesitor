@@ -17,9 +17,7 @@ from quaesitor import ftm
 OUT = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "docs", "ontology.md")
 ICON_DIR = os.path.join(os.path.dirname(OUT), "..", "quaesitor", "static", "icons", "entities")
 # sub-type icons: the select field that picks them and the table of ontology.py
-SUB_ICONS = {"drug": ("substance", o.DRUG_ICONS), "document": ("type", o.DOC_ICONS),
-             "findoc": ("type", o.FINDOC_ICONS), "legaldoc": ("type", o.LEGALDOC_ICONS),
-             "device": ("type", o.DEVICE_ICONS)}
+SUB_ICONS = o.SUBTYPE_ICONS
 
 
 def icon_note(key, t):
@@ -57,6 +55,31 @@ CORE = [
     ("text", "Note / text", "document", "own id", "title, body", "Note (`name`, `description`)"),
     ("breach", "Data breach", "fact", "`breach:<name of the leak>`", "name of the leak, source (hibp, naz.api)", "no FtM schema: exported as Note"),
     ("latin", "Latin form (twin node)", "person", "`latin:<...>` only with the \"Separate Latin nodes\" switch; otherwise it is the `roman` attribute of the node", "transliteration", "alias of the Person"),
+]
+
+
+# the rules of quaesitor/appearance.py, in words
+APPEARANCE = [
+    ("`card`", ("network from `network` or from the first digits of `number` (IIN ranges); Luhn check; "
+                "`expiry` MM/YY passed", "NE, SE")),
+    ("`crypto`, `cryptowallet`", ("chain from `blockchain` / `currency` or from the form of the address "
+                                  "(bc1/1/3, 0x, T…, ltc1/L/M, 4/8 of 95 characters, base58 of 43-44)", "NE")),
+    ("`bankaccount`, `ftmbankaccount`", ("country of the IBAN, else of the BIC, else `country`; IBAN check "
+                                         "digits (ISO 13616, mod 97)", "SW, SE")),
+    ("`phone`", ("country of the international prefix (+CC or 00CC, libphonenumber; +1 only with an area "
+                 "code that names the country), else the country in the cards of the checkers", "SW")),
+    ("`email`", ("provider of the domain: Gmail, Outlook, Yahoo, Proton Mail, iCloud, GMX, Mail.ru, Yandex, "
+                 "Zoho", "NE")),
+    ("`document`, `identification`, `passport`", ("`country`; `forged`, else `expiry` / `endDate` passed",
+                                                  "SW, SE")),
+    ("`weapon`", ("`serial_removed`", "SE")),
+    ("`cash`", ("`counterfeit`", "SE")),
+    ("`name`, `target`", ("`nationality` / `citizenship` in the cards (Follow the Money Person)", "SW")),
+    ("`company`, `legalentity`, `ftmorganization`, `publicbody`, `organization`",
+     ("`jurisdiction`, `mainCountry` or `country`", "SW")),
+    ("`vessel`", ("`flag`, else `country`", "SW")),
+    ("`vehicle`", ("sign of the country of the plate in a dossier (`I`, `D`, `GB`, `LAR`, `LY`…)", "SW")),
+    ("every other type with a `country` field", ("`country` (ISO code or name in an interface language)", "SW")),
 ]
 
 
@@ -141,6 +164,20 @@ def main():
     for name, e in ftm.edges_public().items():
         fields = ", ".join(f"`{f['key']}` {esc(f.get('label'))} ({f.get('type','text')})" for f in e.get("fields", []))
         out.append(f"| {name} | {esc(e.get('verb'))} | {'yes' if e.get('directed') else 'no'} | {fields} |")
+    out.append("")
+    out.append("---\n")
+
+    out.append("## 5. Node Appearance\n")
+    out.append("Computed by `quaesitor/appearance.py` every time the graph is built, from the node as the "
+               "interface shows it (its cards, its edited values, its sex), and never saved. Like the overlays of "
+               "Maltego, a node gets a **variant of its icon** (the sub-type icons of sections 2 and 3, a man or a "
+               "woman for a person) and up to four **corner marks**, one meaning per corner: **NE** brand or network "
+               "(Simple Icons logo, or an initial on a colour), **SW** country (flag-icons), **SE** alert, **NW** "
+               "role. The interface translates their titles, lists them in the card of the node and in the key, "
+               "and hides them with *Corner marks on the nodes*.\n")
+    out.append("| Node types | Rule | Corner |\n| :--- | :--- | :--- |")
+    for types, (rule, corner) in APPEARANCE:
+        out.append(f"| {types} | {esc(rule)} | {corner} |")
     out.append("")
     with open(OUT, "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(out))

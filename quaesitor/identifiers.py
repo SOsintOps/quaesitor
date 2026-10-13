@@ -532,7 +532,10 @@ def build_graph():
                 continue
             targa, descr, paese = parsed
             lab = f"{targa} {descr}".strip() + (f" ({paese})" if paese else "")
-            add_edge(tid, node_vehicle(targa, lab, card(voce)), "vehicle")
+            rec = card(voce)
+            if paese:
+                rec["raw"]["Country"] = paese      # sign of the country: the flag of the node
+            add_edge(tid, node_vehicle(targa, lab, rec), "vehicle")
 
     # ---------- JSON imported from third-party apps (database) ----------
     # Each file is attached to a node (usually the target, a person): the node

@@ -12,7 +12,7 @@ What it does:
     chatbot.conf and services.conf of this folder (keys, endpoints) are never read;
   * drives the installed Chrome (Playwright, channel "chrome": no browser download),
     1440 x 900, interface in English, animations off;
-  * writes the 18 PNG files named in the IMG map of quaesitor/static/manual/manual.html
+  * writes the 19 PNG files named in the IMG map of quaesitor/static/manual/manual.html
     into quaesitor/static/manual/img/ (or --out), optimised with Pillow.
 Nothing leaves the computer: the AI settings point to a local address and stay off.
 """
@@ -38,7 +38,7 @@ NAMES = {
     "imp1": "10-import-1-file.png", "imp2": "11-import-2-columns.png",
     "imp3": "12-import-3-preview.png", "ai": "13-ai-settings.png", "lic": "14-licences.png",
     "caseEdit": "15-edit-case.png", "manual": "16-manual-changes.png",
-    "sideTop": "17-panel-top.png", "sideBottom": "18-panel-bottom.png",
+    "sideTop": "17-panel-top.png", "sideBottom": "18-panel-bottom.png", "marks": "19-corner-marks.png",
 }
 TARGET = "cy.nodes('[ntype=\"target\"]')[0]"
 
@@ -276,6 +276,35 @@ def take_all(s, page, base):
     page.wait_for_selector("#imp-res table", state="visible")
     page.wait_for_timeout(400)
     s.save("imp3", "#impmodal-box")
+    s.close_modals()
+
+    # 19. corner marks: what the program reads in a card number, an IBAN, a phone...
+    api(base, "/api/cases/add", {"name": "Iron Bank", "description": "Corner marks of the nodes."})
+    pid = api(base, "/api/node/add", {"ntype": "name", "surname": "Baelish", "given_name": "Petyr",
+                                      "sex": "male", "target": True})["id"]
+    for body in (
+            {"ntype": "card", "fields": {"number": "4111 1111 1111 1111", "expiry": "12/30"}},
+            {"ntype": "card", "fields": {"number": "5555 5555 5555 4440"}},
+            {"ntype": "bankaccount", "fields": {"iban": "IT60 X054 2811 1010 0000 0123 456"}},
+            {"ntype": "crypto", "fields": {"address": "bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq"}},
+            {"ntype": "phone", "value": "+44 7700 900123"},
+            {"ntype": "email", "value": "petyr.baelish@gmail.com"},
+            {"ntype": "document", "fields": {"type": "Passport", "number": "YA1234567", "country": "Russia",
+                                             "expiry": "2020-01-01"}},
+            {"ntype": "weapon", "fields": {"category": "Assault rifle", "serial_number": "removed"}}):
+        api(base, "/api/node/add", dict(body, parent=pid, edge={"label": "uses", "arrow": "target"}))
+    page.reload()
+    s.ready()
+    page.evaluate("document.querySelector('#loadTargets').click()")
+    page.wait_for_function("cy.nodes('[ntype=\"target\"]').length > 0")
+    page.evaluate(f"() => toggleExpand({TARGET})")
+    page.wait_for_timeout(900)
+    page.select_option("#gsLabels", "off")
+    # a tight ring, zoomed in, left of the key: the marks must be readable
+    page.evaluate("""() => { cy.layout({name: 'circle', radius: 150, fit: false, animate: false}).run();
+        buildChartKey(); cy.fit(cy.nodes(), 110); cy.panBy({x: -90, y: 0}); }""")
+    page.wait_for_timeout(1500)                           # flags and logos load once
+    s.save("marks")
 
 
 def main():

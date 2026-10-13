@@ -19,6 +19,7 @@ import os
 import re
 
 from . import ontology as onto
+from .appearance import apply_appearance, decorate
 from . import sources as _src
 from . import ftm, store
 from .paths import BASE_DIR
@@ -156,16 +157,12 @@ def manual_node(a, note=None):
         "aliases": [], "alias_ids": [], "merged": 1, "cards": 1, "manual": True,
     }
     if a.get("sex"):
-        node["sex"] = a["sex"]        # male / female: icon by sex (also apply_sex)
-        if ntype == "name" and a["sex"] in onto.PERSON_ICONS:
-            node["ficon"] = onto.PERSON_ICONS[a["sex"]]
+        node["sex"] = a["sex"]        # male / female: icon by sex (appearance.py)
     if a.get("url"):
         node["url"] = a["url"]        # opens with Alt+Click
     if note:
         node["note"] = note
-    if ntype in onto.TYPES:
-        node["ficon"] = onto.icon_of(ntype, fields)   # e.g. cannabis, syringe, passport
-    return node
+    return decorate(node)             # icon variant and corner marks (appearance.py)
 
 
 EDGE_ARROWS = {"none", "target", "source", "both"}
@@ -375,20 +372,13 @@ def apply_targets(g, targets):
 
 def apply_sex(g, sexes):
     """Sex of the persons: set by hand in the node editor ('sex' annotations, for
-    nodes from the data) or carried by the entry; a person of known sex gets the
-    icon of that sex. A target keeps the target icon."""
+    nodes from the data) or carried by the entry; the icon of that sex comes from
+    apply_appearance. A target keeps the target icon."""
     for i, n in enumerate(g["nodes"]):
         sex = sexes.get(n["id"], n.get("sex")) if sexes else n.get("sex")
         if not sex and not n.get("sex"):
             continue
-        n = dict(n, sex=sex or None)
-        if n.get("ntype") == "name":
-            icon = onto.PERSON_ICONS.get(sex or "")
-            if icon:
-                n["ficon"] = icon
-            else:
-                n.pop("ficon", None)
-        g["nodes"][i] = n
+        g["nodes"][i] = dict(n, sex=sex or None)
     return g
 
 
@@ -506,7 +496,8 @@ def apply_annotations(graph):
     if manual_ids:
         add_translit(g, only=manual_ids, offline=True)
     mark_evidence(g)
-    return g
+    # icon variants and corner marks, from the node as it is now (cards, edits, sex)
+    return apply_appearance(g)
 
 
 def mark_evidence(g):

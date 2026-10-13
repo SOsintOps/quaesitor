@@ -10,8 +10,7 @@ DEST = ROOT / "quaesitor" / "static" / "icons" / "entities"
 
 def _known():
     keys = set(onto.TYPES) | set(onto.BASE_ICONS) | {"account", "photo", "audio", "video"}
-    for table in (onto.DRUG_ICONS, onto.DOC_ICONS, onto.FINDOC_ICONS, onto.LEGALDOC_ICONS, onto.DEVICE_ICONS,
-                  onto.PERSON_ICONS):
+    for table in [t for _, t in onto.SUBTYPE_ICONS.values()] + [onto.PERSON_ICONS]:
         keys |= set(table.values())
     return keys
 
@@ -26,7 +25,7 @@ def test_index_matches_files_and_known_types():
 
 def test_every_sub_type_icon_is_installed():
     keys = set(json.loads((DEST / "index.json").read_text(encoding="utf-8")))
-    for table in (onto.DRUG_ICONS, onto.DOC_ICONS, onto.FINDOC_ICONS, onto.LEGALDOC_ICONS, onto.DEVICE_ICONS):
+    for _, table in onto.SUBTYPE_ICONS.values():
         assert set(table.values()) <= keys, set(table.values()) - keys
     assert onto.icon_of("drug", {"substance": "MDMA / Ecstasy"}) == "prescription-bottle-medical"
     assert onto.icon_of("device", {"type": "Router / modem"}) == "router"

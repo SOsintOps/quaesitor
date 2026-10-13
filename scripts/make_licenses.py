@@ -138,7 +138,8 @@ node icons come from?".
 """), "assets")
 add("simple-icons", "Simple Icons", "", "CC0 1.0 (pubblico dominio); i loghi restano marchi dei rispettivi titolari",
     "Simple Icons contributors", "https://simpleicons.org",
-    "Loghi delle piattaforme social (Facebook, Instagram, Telegram…)", "Social platform logos (Facebook, Instagram, Telegram…)",
+    "Loghi delle piattaforme social, dei circuiti di pagamento, delle criptovalute e dei servizi email",
+    "Logos of social platforms, payment networks, cryptocurrencies and e-mail services",
     wr("simple-icons.txt", """Simple Icons - https://simpleicons.org
 
 The SVG icons are released under the CC0 1.0 Universal Public Domain
@@ -148,9 +149,30 @@ rights to the icons.
 
 The brands' names and logos remain the property and trademarks of their
 respective owners. OSInt Graph uses them only to identify the platform a
-profile belongs to. OSInt Graph is not affiliated with, endorsed by or
-sponsored by any of these companies.
+profile, a payment card, a wallet or an e-mail address belongs to. OSInt Graph
+is not affiliated with, endorsed by or sponsored by any of these companies.
 """), "assets")
+add("flag-icons", "flag-icons", "7.5.0", "MIT", "Copyright (c) 2013 Panayiotis Lipiridis",
+    "https://github.com/lipis/flag-icons",
+    "Bandiere dei paesi sui nodi (quaesitor/static/vendor/flags)",
+    "Country flags on the nodes (quaesitor/static/vendor/flags)",
+    wr("flag-icons.txt", rd(os.path.join(RES, "static", "vendor", "flags", "LICENSE"))), "assets")
+add("cldr", "Unicode CLDR (country names)", "", "Unicode License v3",
+    "Copyright (c) 1991-2026 Unicode, Inc.", "https://cldr.unicode.org",
+    "Nomi dei paesi nelle lingue dell'interfaccia (quaesitor/generated/countries.json)",
+    "Country names in the interface languages (quaesitor/generated/countries.json)",
+    wr("cldr.txt", """Unicode CLDR - https://cldr.unicode.org
+
+The country names in quaesitor/generated/countries.json come from the Unicode Common
+Locale Data Repository, read through Intl.DisplayNames of Node.js by
+scripts/appearance/make_assets.py. CLDR data are released under the Unicode License v3:
+https://www.unicode.org/license.txt
+"""), "assets")
+add("libphonenumber", "libphonenumber (calling codes)", "9.0.40", "Apache-2.0",
+    "Copyright (C) 2009 The Libphonenumber Authors", "https://github.com/google/libphonenumber",
+    "Prefissi telefonici internazionali dei paesi (quaesitor/generated/countries.json)",
+    "International calling codes of the countries (quaesitor/generated/countries.json)",
+    "apache-2.0.txt", "assets")
 add("panchang", "Panchang (carattere del logo)", "", "Fontshare Free Font License (solo contorni: il font non è distribuito)",
     "Indian Type Foundry", "https://www.fontshare.com/fonts/panchang",
     "Carattere del logo originale di OSInt Graph (Quaesitor ha un logo proprio, in Bodoni Moda)", "Typeface of the original OSInt Graph logo (Quaesitor has a logo of its own, set in Bodoni Moda)",

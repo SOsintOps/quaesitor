@@ -692,17 +692,25 @@ def ident_of(ntype, fields):
 PERSON_ICONS = {"male": "person-male", "female": "person-female"}
 
 
+# weapons, valuables and organisations by kind (colour icons, scripts/icons/mapping.json)
+WEAPON_ICONS = {k: "rifle" for k in ("Submachine gun", "Hunting rifle", "Pump-action shotgun", "Carbine",
+                                     "Sniper rifle", "Assault rifle", "Machine gun")}
+WEAPON_ICONS["Bladed weapon (knife, machete…)"] = "knife"
+VALUABLE_ICONS = {"Gold / jewellery": "gold", "Precious metals (bullion)": "gold",
+                  "Luxury watches": "watch", "Works of art": "artwork"}
+ORG_ICONS = {"Criminal group": "criminal-group", "Clan / mafia family": "criminal-group",
+             "Terrorist organization": "terrorist-group"}
+# type -> (field that picks the icon, table): every sub-type icon of the program
+SUBTYPE_ICONS = {"drug": ("substance", DRUG_ICONS), "document": ("type", DOC_ICONS),
+                 "findoc": ("type", FINDOC_ICONS), "legaldoc": ("type", LEGALDOC_ICONS),
+                 "device": ("type", DEVICE_ICONS), "weapon": ("category", WEAPON_ICONS),
+                 "valuable": ("type", VALUABLE_ICONS), "organization": ("type", ORG_ICONS)}
+
+
 def icon_of(ntype, fields):
-    if ntype == "drug":
-        return DRUG_ICONS.get(fields.get("substance"), TYPES[ntype]["icon"])
-    if ntype == "document":
-        return DOC_ICONS.get(fields.get("type"), TYPES[ntype]["icon"])
-    if ntype == "findoc":
-        return FINDOC_ICONS.get(fields.get("type"), TYPES[ntype]["icon"])
-    if ntype == "legaldoc":
-        return LEGALDOC_ICONS.get(fields.get("type"), TYPES[ntype]["icon"])
-    if ntype == "device":
-        return DEVICE_ICONS.get(fields.get("type"), TYPES[ntype]["icon"])
+    if ntype in SUBTYPE_ICONS:
+        key, table = SUBTYPE_ICONS[ntype]
+        return table.get(fields.get(key), TYPES[ntype]["icon"])
     return TYPES[ntype]["icon"] if ntype in TYPES else BASE_ICONS.get(ntype, "circle-question")
 
 

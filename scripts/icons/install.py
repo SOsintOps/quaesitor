@@ -32,8 +32,7 @@ DEST = os.path.join(ROOT, "quaesitor", "static", "icons", "entities")
 
 def known_keys():
     keys = set(onto.TYPES) | set(onto.BASE_ICONS) | {"account", "photo", "audio", "video"}
-    for table in (onto.DRUG_ICONS, onto.DOC_ICONS, onto.FINDOC_ICONS, onto.LEGALDOC_ICONS, onto.DEVICE_ICONS,
-                  onto.PERSON_ICONS):
+    for table in [t for _, t in onto.SUBTYPE_ICONS.values()] + [onto.PERSON_ICONS]:
         keys |= set(table.values())
     return keys
 

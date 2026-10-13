@@ -15,7 +15,10 @@ texts are in `quaesitor/static/licenses/` and can be read from the program itsel
 | [dagre](https://github.com/dagrejs/dagre) | 0.8.5 | MIT | Copyright (c) 2012-2014 Chris Pettitt | Tree layout by levels, following the arrows |
 | [Font Awesome Free](https://fontawesome.com) | 6 | Icone CC BY 4.0, codice MIT | Fonticons, Inc. | Fallback node type icons and interface icons |
 | [Quaesitor node icons](https://github.com/SOsintOps/quaesitor) | 1.7.1 | GPL-3.0-or-later (as the program) | Ramingo (SOsintOps) | Colour node type icons, generated with ChatGPT and Gemini (quaesitor/static/icons/entities) |
-| [Simple Icons](https://simpleicons.org) |  | CC0 1.0 (pubblico dominio); i loghi restano marchi dei rispettivi titolari | Simple Icons contributors | Social platform logos (Facebook, Instagram, Telegram…) |
+| [Simple Icons](https://simpleicons.org) |  | CC0 1.0 (pubblico dominio); i loghi restano marchi dei rispettivi titolari | Simple Icons contributors | Logos of social platforms, payment networks, cryptocurrencies and e-mail services |
+| [flag-icons](https://github.com/lipis/flag-icons) | 7.5.0 | MIT | Copyright (c) 2013 Panayiotis Lipiridis | Country flags on the nodes (quaesitor/static/vendor/flags) |
+| [Unicode CLDR (country names)](https://cldr.unicode.org) |  | Unicode License v3 | Copyright (c) 1991-2026 Unicode, Inc. | Country names in the interface languages (quaesitor/generated/countries.json) |
+| [libphonenumber (calling codes)](https://github.com/google/libphonenumber) | 9.0.40 | Apache-2.0 | Copyright (C) 2009 The Libphonenumber Authors | International calling codes of the countries (quaesitor/generated/countries.json) |
 | [Panchang (carattere del logo)](https://www.fontshare.com/fonts/panchang) |  | Fontshare Free Font License (solo contorni: il font non è distribuito) | Indian Type Foundry | Typeface of the original OSInt Graph logo (Quaesitor has a logo of its own, set in Bodoni Moda) |
 | [Bodoni Moda (carattere del logo)](https://github.com/indestructible-type/Bodoni) |  | SIL Open Font License 1.1 (solo contorni: il font non è distribuito) | The Bodoni Moda Project Authors | Typeface of the word Quaesitor in the logo, converted to outlines |
 | [Flask](https://pypi.org/project/Flask/) | 3.1.3 | BSD-3-Clause |  | Application web server |

@@ -107,10 +107,12 @@
    "taxroll|receipt||0|1|13": 3,
    "territory|globe||0|1|10": 3,
    "trip|location-dot||0|1|11": 3,
-   "valuable|gem||0|1|6": 3,
+   "valuable|gold||0|1|6": 2,
+   "valuable|watch||0|1|6": 1,
    "vessel|car||0|1|28": 3,
    "video|image||0|1|16": 3,
-   "weapon|gun||0|1|7": 3,
+   "weapon|gun||0|1|7": 2,
+   "weapon|rifle||0|1|7": 1,
    "workbook|file-lines||0|1|15": 3
   }
  },

@@ -157,10 +157,55 @@
   "copyright": "Simple Icons contributors",
   "url": "https://simpleicons.org",
   "role": {
-   "it": "Loghi delle piattaforme social (Facebook, Instagram, Telegram…)",
-   "en": "Social platform logos (Facebook, Instagram, Telegram…)"
+   "it": "Loghi delle piattaforme social, dei circuiti di pagamento, delle criptovalute e dei servizi email",
+   "en": "Logos of social platforms, payment networks, cryptocurrencies and e-mail services"
   },
   "file": "simple-icons.txt",
+  "group": "assets",
+  "bundled": true
+ },
+ {
+  "id": "flag-icons",
+  "name": "flag-icons",
+  "version": "7.5.0",
+  "license": "MIT",
+  "copyright": "Copyright (c) 2013 Panayiotis Lipiridis",
+  "url": "https://github.com/lipis/flag-icons",
+  "role": {
+   "it": "Bandiere dei paesi sui nodi (quaesitor/static/vendor/flags)",
+   "en": "Country flags on the nodes (quaesitor/static/vendor/flags)"
+  },
+  "file": "flag-icons.txt",
+  "group": "assets",
+  "bundled": true
+ },
+ {
+  "id": "cldr",
+  "name": "Unicode CLDR (country names)",
+  "version": "",
+  "license": "Unicode License v3",
+  "copyright": "Copyright (c) 1991-2026 Unicode, Inc.",
+  "url": "https://cldr.unicode.org",
+  "role": {
+   "it": "Nomi dei paesi nelle lingue dell'interfaccia (quaesitor/generated/countries.json)",
+   "en": "Country names in the interface languages (quaesitor/generated/countries.json)"
+  },
+  "file": "cldr.txt",
+  "group": "assets",
+  "bundled": true
+ },
+ {
+  "id": "libphonenumber",
+  "name": "libphonenumber (calling codes)",
+  "version": "9.0.40",
+  "license": "Apache-2.0",
+  "copyright": "Copyright (C) 2009 The Libphonenumber Authors",
+  "url": "https://github.com/google/libphonenumber",
+  "role": {
+   "it": "Prefissi telefonici internazionali dei paesi (quaesitor/generated/countries.json)",
+   "en": "International calling codes of the countries (quaesitor/generated/countries.json)"
+  },
+  "file": "apache-2.0.txt",
   "group": "assets",
   "bundled": true
  },

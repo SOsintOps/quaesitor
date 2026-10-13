@@ -1623,4 +1623,6 @@ body.rtl .dict-val, body.rtl .dict-src, body.rtl .dict-script { direction: ltr; 
 #chartkey .ck-d { color: #4b5563; margin: 1px 0 5px; }
 #chartkey .ck-r { display: flex; align-items: center; gap: 7px; margin: 2px 0; }
 #chartkey .ck-r img { width: 18px; height: 18px; object-fit: contain; }
+.d-marks { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 10px; }
+.d-marks .chip img { width: 18px; height: 18px; }
 #chartkey .ck-l { display: inline-block; width: 28px; height: 0; flex: none; }

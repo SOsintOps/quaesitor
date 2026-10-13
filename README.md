@@ -5,9 +5,9 @@
   </picture>
 </p>
 
-# Quaesitor 2.0.0
+# Quaesitor 2.1.0
 
-![version](https://img.shields.io/badge/version-2.0.0-blue)
+![version](https://img.shields.io/badge/version-2.1.0-blue)
 ![licence](https://img.shields.io/github/license/SOsintOps/quaesitor)
 ![last commit](https://img.shields.io/github/last-commit/SOsintOps/quaesitor)
 ![python](https://img.shields.io/badge/python-3.10%2B-blue)
@@ -16,7 +16,7 @@
 
 **Quaesitor** is a case graph for OSINT investigations: people, phones, e-mails, social profiles, companies, vehicles, places and documents as an interactive graph, with every case stored on your own computer. It is a fork of [OSInt Graph](https://github.com/tingon11/OsintGraph) by Andrea Cumini (andrea@osintinfo.net, [www.osintinfo.net](https://www.osintinfo.net)): the program, its design, its code and its illustrated manual are his work, released as free software under the GNU GPL v3 with attribution terms. The fork exists because his program was already excellent and only needed adapting to the needs of one analyst — non-Latin names, the Follow the Money data model, the Epieos API, a one-click Windows install and the bridge with Cognitor, the face-recognition program of the same holder. It adds those and nothing else; see [Credits](#credits).
 
-Version 2.0.0, the latest, saves its data in English: field keys, drop-down values, the keys of the nodes added by hand and the names of the links it draws are English, and the interface shows them in its language, Italian included. The import still reads Italian columns and values. Cases written by 1.x are not opened: they are rebuilt from their source files. Every release, with what it changed, is in the [version history](docs/versionhistory.md).
+Version 2.1.0, the latest, marks the nodes on their corners with what their data say, as Maltego does: the network of a payment card from its first digits, the flag of the country of an IBAN, a phone prefix, a document or a company, an alert for a card number or an IBAN that is not valid, a forged or expired document; and weapons, valuables and organisations get an icon by kind. Version 2.0.0 made English the language of the saved data. Every release, with what it changed, is in the [version history](docs/versionhistory.md).
 
 ![Quaesitor: the left panel and the graph of the case study, with Jon Snow as the target and the contested parentages dashed](quaesitor/static/manual/img/02-overview.png)
 

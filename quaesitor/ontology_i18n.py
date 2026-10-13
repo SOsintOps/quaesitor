@@ -527,6 +527,15 @@ ROWS = {
     "yes": ("sì", "oui", "ja", "sí", "نعم"),
     "e.g. A320": ("es. A320", "ex. A320", "z. B. A320", "p. ej. A320", "مثال: A320"),
     "e.g. AZA123": ("es. AZA123", "ex. AZA123", "z. B. AZA123", "p. ej. AZA123", "مثال: AZA123"),
+    # ---------------------------------- corner marks of the nodes (appearance.py)
+    "Card number not valid": ("Numero di carta non valido", "Numéro de carte non valide",
+                              "Kartennummer ungültig", "Número de tarjeta no válido", "رقم البطاقة غير صالح"),
+    "Expired": ("Scaduto", "Expiré", "Abgelaufen", "Caducado", "منتهي الصلاحية"),
+    "IBAN not valid": ("IBAN non valido", "IBAN non valide", "IBAN ungültig", "IBAN no válido", "IBAN غير صالح"),
+    "Forged": ("Falso", "Faux", "Gefälscht", "Falsificado", "مزور"),
+    "Serial number removed": ("Matricola abrasa", "Numéro de série effacé", "Seriennummer entfernt",
+                              "Número de serie borrado", "الرقم التسلسلي ممسوح"),
+    "Counterfeit": ("Falsi", "Contrefaits", "Gefälscht", "Falsos", "مزيفة"),
     # ------------------------------- card keys and collections of the program
     "Value": ("Valore", "Valeur", "Wert", "Valor", "القيمة"),
     "Date of birth": ("Data di nascita", "Date de naissance", "Geburtsdatum", "Fecha de nacimiento",
