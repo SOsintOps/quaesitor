@@ -9,25 +9,25 @@
 # any later version, with the additional terms in the file NOTICE.
 # See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
 
-"""Archivio SQLite dell'applicazione, organizzato per CASI (fascicoli).
+"""SQLite store of the application, organised by CASES (case files).
 
-    data/osintgraph.db        archivio GLOBALE, comune a tutti i casi:
-        cases                 elenco dei casi
-        translit              dizionario di traslitterazione
-        blobs                 indice dei documenti (fonti)
-        meta                  caso corrente, versione del dizionario
-    data/cases/<id>.db        un database per ogni caso:
-        imports               JSON importati da app terze, agganciati a un nodo
-        ann_*                 annotazioni: nodi aggiunti a mano (e schede),
-                              collegamenti, note, etichette, valori modificati,
-                              stili, nodi nascosti
-        views                 viste salvate del grafo
-        meta                  versione dei dati (invalida la cache del grafo)
+    data/osintgraph.db        GLOBAL store, shared by all cases:
+        cases                 list of cases
+        translit              transliteration dictionary
+        blobs                 document index (sources)
+        meta                  current case, dictionary version
+    data/cases/<id>.db        one database per case:
+        imports               JSON imported from third-party apps, attached to a node
+        ann_*                 annotations: manually added nodes (and cards),
+                              links, notes, labels, edited values,
+                              styles, hidden nodes
+        views                 saved graph views
+        meta                  data version (invalidates the graph cache)
 
-Le annotazioni si leggono come un unico dizionario (load_annotations) e si
-salvano per DIFFERENZA rispetto a quanto letto (save_annotations): si scrivono
-solo le righe cambiate, in una transazione. Cosi' due richieste ravvicinate
-che toccano cose diverse non si sovrascrivono a vicenda.
+Annotations are read as a single dictionary (load_annotations) and saved
+as a DIFF against what was read (save_annotations): only the changed rows
+are written, in one transaction. So two close requests touching
+different things do not overwrite each other.
 """
 # "Veritas filia temporis." (Aulus Gellius, Noctes Atticae)
 # Truth is the daughter of time.
@@ -44,8 +44,8 @@ import uuid
 DB_NAME = "osintgraph.db"
 CASES_DIR = "cases"
 _data_dir = None
-_g_path = None                  # archivio globale
-_db_path = None                 # database del caso corrente
+_g_path = None                  # global store
+_db_path = None                 # database of the current case
 _case_id = None
 _local = threading.local()
 _write_lock = threading.RLock()
@@ -58,7 +58,7 @@ CREATE TABLE IF NOT EXISTS meta (
 );
 CREATE TABLE IF NOT EXISTS imports (
     id           INTEGER PRIMARY KEY AUTOINCREMENT,
-    anchor       TEXT NOT NULL,          -- id del nodo (target) a cui si aggancia
+    anchor       TEXT NOT NULL,          -- id of the node (target) it is attached to
     anchor_label TEXT NOT NULL,
     anchor_ntype TEXT NOT NULL DEFAULT 'generic',
     anchor_platform TEXT NOT NULL DEFAULT 'generic',
@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS imports (
     content      TEXT NOT NULL,
     size         INTEGER NOT NULL,
     records      INTEGER NOT NULL,
-    dossier      INTEGER NOT NULL DEFAULT 0,   -- scheda anagrafica del target
+    dossier      INTEGER NOT NULL DEFAULT 0,   -- personal-details card of the target
     imported_at  TEXT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS imports_anchor ON imports(anchor);
@@ -86,8 +86,8 @@ CREATE TABLE IF NOT EXISTS views (
     data  TEXT NOT NULL
 );
 CREATE TABLE IF NOT EXISTS ftm_ids (
-    ftm_id     TEXT PRIMARY KEY,          -- id dell'entita' Follow the Money
-    node_id    TEXT NOT NULL,             -- nodo del grafo che la rappresenta
+    ftm_id     TEXT PRIMARY KEY,          -- id of the Follow the Money entity
+    node_id    TEXT NOT NULL,             -- graph node that represents it
     schema     TEXT NOT NULL DEFAULT '',
     dataset    TEXT NOT NULL DEFAULT '',
     updated_at TEXT NOT NULL
@@ -122,7 +122,7 @@ CREATE TABLE IF NOT EXISTS translit (
 );
 """
 
-# collezioni delle annotazioni: nome -> (tabella, e' una lista ordinata?)
+# annotation collections: name -> (table, is it an ordered list?)
 _ANN_LISTS = {"added": "ann_added", "links": "ann_links", "deleted": "ann_deleted"}
 _ANN_MAPS = {"notes": "ann_notes", "labels": "ann_labels", "edits": "ann_edits",
              "edge_styles": "ann_edge_styles", "targets": "ann_targets"}
@@ -133,14 +133,14 @@ def _now():
 
 
 class NoCaseError(RuntimeError):
-    """Nessun caso aperto: tutto cio' che vive nel database del caso (nodi,
-    collegamenti, note, viste, JSON importati) non e' disponibile."""
+    """No case open: everything that lives in the case database (nodes,
+    links, notes, views, imported JSON) is unavailable."""
 
 
 def init(data_dir):
-    """Apre l'archivio globale e il caso corrente. Se non esiste alcun caso
-    NON ne viene creato uno: l'utente deve crearne uno dall'interfaccia (al
-    primo avvio il programma parte senza casi)."""
+    """Open the global store and the current case. If no case exists, one is
+    NOT created: the user must create one from the interface (on first
+    start the program runs with no cases)."""
     global _data_dir, _g_path
     _data_dir = data_dir
     os.makedirs(os.path.join(data_dir, CASES_DIR), exist_ok=True)
@@ -160,7 +160,7 @@ def init(data_dir):
 
 
 def _close_case():
-    """Nessun caso corrente (archivio appena creato o ultimo caso eliminato)."""
+    """No current case (store just created or last case deleted)."""
     global _db_path, _case_id
     with _write_lock:
         _db_path, _case_id = None, None
@@ -168,8 +168,9 @@ def _close_case():
 
 
 def _migrate_single_db():
-    """Prima dei casi c'era un solo database (data/osintgraph.db) con tutto:
-    diventa il primo caso, e dizionario e indice passano all'archivio globale."""
+    """Before cases there was a single database (data/osintgraph.db) with
+    everything: it becomes the first case, and dictionary and index move to
+    the global store."""
     if not os.path.exists(_g_path):
         return
     c = sqlite3.connect(_g_path)
@@ -179,9 +180,9 @@ def _migrate_single_db():
         c.close()
     if "cases" in tabs or "ann_added" not in tabs:
         return
-    # Si COPIANO le tabelle nel database del nuovo caso invece di spostare il
-    # file: su Windows un file aperto da un altro processo (il ricaricatore di
-    # Flask, un secondo avvio) non si puo' spostare.
+    # The tables are COPIED into the new case's database instead of moving the
+    # file: on Windows a file held open by another process (the Flask reloader,
+    # a second start) cannot be moved.
     cid = _new_case_id()
     dest = _case_file(cid)
     d = sqlite3.connect(dest)
@@ -207,14 +208,14 @@ def _migrate_single_db():
         g.execute("DELETE FROM meta WHERE key = 'data_version'")
         for t in _CASE_TABLES:
             if t != "meta":
-                g.execute(f"DROP TABLE IF EXISTS {t}")     # ora stanno nel caso
+                g.execute(f"DROP TABLE IF EXISTS {t}")     # they now live in the case
         g.commit()
     finally:
         g.close()
     logging.info(f"Archivio convertito: i dati esistenti sono ora il caso {cid}")
 
 
-# tabelle che appartengono a un caso (nel vecchio database unico c'erano tutte)
+# tables that belong to a case (the old single database had all of them)
 _CASE_TABLES = ("meta", "imports", "ann_added", "ann_links", "ann_deleted", "ann_notes",
                 "ann_labels", "ann_edits", "ann_edge_styles", "ann_targets", "views")
 
@@ -247,8 +248,8 @@ def _connect(p):
 
 
 def conn():
-    """Connessione al database del CASO corrente, una per thread (Flask serve
-    le richieste su piu' thread). Cambiando caso si riapre da sola."""
+    """Connection to the current CASE database, one per thread (Flask serves
+    requests on several threads). It reopens by itself when the case changes."""
     if _db_path is None:
         raise NoCaseError("nessun caso aperto: crea un caso o scegline uno esistente")
     c = getattr(_local, "conn", None)
@@ -264,7 +265,7 @@ def conn():
 
 
 def gconn():
-    """Connessione all'archivio GLOBALE (casi, dizionario, indice fonti)."""
+    """Connection to the GLOBAL store (cases, dictionary, sources index)."""
     c = getattr(_local, "gconn", None)
     if c is None:
         c = _connect(_g_path)
@@ -273,7 +274,7 @@ def gconn():
 
 
 class _tx:
-    """Transazione in scrittura (una alla volta nel processo)."""
+    """Write transaction (one at a time in the process)."""
     def __init__(self, glob=False):
         self.glob = glob
 
@@ -299,7 +300,7 @@ def tx(glob=False):
     return _tx(glob)
 
 
-# ---------------------------------------------------------------------- casi ---
+# --------------------------------------------------------------------- cases ---
 def list_cases():
     rows = gconn().execute("SELECT * FROM cases ORDER BY name COLLATE NOCASE").fetchall()
     out = []
@@ -348,13 +349,13 @@ def update_case(cid, name=None, description=None):
 
 
 def open_case(cid):
-    """Rende corrente il caso: da qui in poi tutte le letture e scritture
-    (annotazioni, viste, JSON importati) vanno nel suo database."""
+    """Make the case current: from here on all reads and writes
+    (annotations, views, imported JSON) go to its database."""
     global _db_path, _case_id
     p = _case_file(cid)
     c = _connect(p)
     try:
-        c.executescript(SCHEMA)          # crea o aggiorna le tabelle del caso
+        c.executescript(SCHEMA)          # create or update the case tables
     finally:
         c.close()
     with _write_lock:
@@ -364,7 +365,7 @@ def open_case(cid):
 
 
 def delete_case(cid):
-    """Elimina il caso e il suo database (le immagini in data/media restano)."""
+    """Delete the case and its database (images in data/media are kept)."""
     p = _case_file(cid)
     with tx(True) as g:
         g.execute("DELETE FROM cases WHERE id = ?", (cid,))
@@ -372,7 +373,7 @@ def delete_case(cid):
         _local.conn.close()
         _local.conn = None
     if cid == _case_id:
-        _close_case()                    # era il caso aperto: ora non ce n'e' nessuno
+        _close_case()                    # it was the open case: now there is none
     for ext in ("", "-wal", "-shm"):
         try:
             os.remove(p + ext)
@@ -381,9 +382,9 @@ def delete_case(cid):
 
 
 def merge_cases(ids, name, description=""):
-    """Nuovo caso con il contenuto di tutti i casi indicati. Gli elementi con lo
-    stesso id (stessa persona, stesso telefono...) diventano UN nodo: se i dati
-    sono diversi, la voce del secondo caso diventa una scheda in piu'."""
+    """New case with the content of all the given cases. Items with the same
+    id (same person, same phone...) become ONE node: if the data differ, the
+    entry from the second case becomes an extra card."""
     new = create_case(name, description)
     dest = _connect(_case_file(new["id"]))
     try:
@@ -401,7 +402,7 @@ def _merge_into(dest, src):
     s = _connect(src)
     try:
         dest.execute("BEGIN IMMEDIATE")
-        # liste (nodi aggiunti, collegamenti, nodi nascosti)
+        # lists (added nodes, links, hidden nodes)
         for table in ("ann_added", "ann_links", "ann_deleted"):
             base = dest.execute(f"SELECT COALESCE(MAX(seq), 0) FROM {table}").fetchone()[0]
             for r in s.execute(f"SELECT id, data FROM {table} ORDER BY seq"):
@@ -409,7 +410,7 @@ def _merge_into(dest, src):
                 if old is not None:
                     if old["data"] == r["data"] or table == "ann_deleted":
                         continue
-                    # stesso id, dati diversi: scheda in piu' (nodi) o nuovo collegamento
+                    # same id, different data: extra card (nodes) or new link
                     nid = f"{r['id'].split('~')[0]}~{uuid.uuid4().hex[:6]}"
                     d = json.loads(r["data"])
                     d["id"] = nid
@@ -422,7 +423,7 @@ def _merge_into(dest, src):
                     data, rid = r["data"], r["id"]
                 base += 1
                 dest.execute(f"INSERT INTO {table}(id, seq, data) VALUES(?, ?, ?)", (rid, base, data))
-        # note: se ci sono in entrambi i casi si tengono tutte e due
+        # notes: if present in both cases, both are kept
         for r in s.execute("SELECT id, data FROM ann_notes"):
             old = dest.execute("SELECT data FROM ann_notes WHERE id = ?", (r["id"],)).fetchone()
             if old is None:
@@ -431,11 +432,11 @@ def _merge_into(dest, src):
                 a, b = json.loads(old["data"]), json.loads(r["data"])
                 dest.execute("UPDATE ann_notes SET data = ? WHERE id = ?",
                              (_dumps(f"{a}\n---\n{b}"), r["id"]))
-        # etichette, valori modificati, stili: vince il primo caso
+        # labels, edited values, styles: the first case wins
         for table in ("ann_labels", "ann_edits", "ann_edge_styles"):
             for r in s.execute(f"SELECT id, data FROM {table}"):
                 dest.execute(f"INSERT OR IGNORE INTO {table}(id, data) VALUES(?, ?)", (r["id"], r["data"]))
-        # viste: con lo stesso id si rinomina
+        # views: renamed if the id is the same
         for r in s.execute("SELECT * FROM views"):
             vid = r["id"]
             if dest.execute("SELECT 1 FROM views WHERE id = ?", (vid,)).fetchone():
@@ -444,7 +445,7 @@ def _merge_into(dest, src):
             d["id"] = vid
             dest.execute("INSERT INTO views(id, name, at, count, data) VALUES(?, ?, ?, ?, ?)",
                          (vid, r["name"], r["at"], r["count"], _dumps(d)))
-        # JSON importati: tutti (id nuovi)
+        # imported JSON: all of them (new ids)
         for r in s.execute("SELECT * FROM imports ORDER BY imported_at, id"):
             dest.execute("INSERT INTO imports(anchor, anchor_label, anchor_ntype, anchor_platform, "
                          "filename, content, size, records, dossier, imported_at) "
@@ -461,9 +462,9 @@ def _merge_into(dest, src):
         s.close()
 
 
-# ------------------------------------------------------------ versione dati ---
+# -------------------------------------------------------------- data version ---
 def bump(key="data_version"):
-    """Segnala che i dati da cui si costruisce il grafo sono cambiati."""
+    """Signal that the data the graph is built from have changed."""
     with tx() as c:
         _bump(c, key)
 
@@ -474,7 +475,7 @@ def _bump(c, key="data_version"):
 
 
 def version(key="data_version"):
-    """Versione dei dati del caso (o del dizionario, che e' globale)."""
+    """Version of the case data (or of the dictionary, which is global)."""
     c = gconn() if key == "translit_version" else conn()
     r = c.execute("SELECT value FROM meta WHERE key = ?", (key,)).fetchone()
     return int(r["value"]) if r else 0
@@ -502,14 +503,14 @@ def set_gmeta(key, value):
                   "DO UPDATE SET value = excluded.value", (key, str(value)))
 
 
-# ---------------------------------------------------------------- annotazioni ---
+# ---------------------------------------------------------------- annotations ---
 def _dumps(v):
     return json.dumps(v, ensure_ascii=False, sort_keys=True)
 
 
 def load_annotations():
     """{'added': [...], 'links': [...], 'deleted': [...], 'notes': {}, 'labels': {},
-    'edits': {}, 'edge_styles': {}} + '_snap' (stato letto, per il salvataggio)."""
+    'edits': {}, 'edge_styles': {}} + '_snap' (state as read, for saving)."""
     c = conn()
     ann, snap = {}, {}
     for name, table in _ANN_LISTS.items():
@@ -531,7 +532,7 @@ def _list_key(name, item):
 
 
 def save_annotations(ann):
-    """Scrive solo le differenze rispetto a quanto letto da load_annotations."""
+    """Write only the differences from what load_annotations read."""
     snap = ann.get("_snap") or {}
     with tx() as c:
         for name, table in _ANN_LISTS.items():
@@ -562,7 +563,7 @@ def save_annotations(ann):
                 if old.get(k) != v:
                     c.execute(f"INSERT INTO {table}(id, data) VALUES(?, ?) "
                               f"ON CONFLICT(id) DO UPDATE SET data = excluded.data", (k, v))
-    # il prossimo salvataggio dello stesso dizionario parte da qui
+    # the next save of the same dictionary starts from here
     ann["_snap"] = {n: {_list_key(n, i): _dumps(i) for i in ann.get(n) or []}
                     for n in _ANN_LISTS}
     ann["_snap"].update({n: {str(k): _dumps(v) for k, v in (ann.get(n) or {}).items()}
@@ -570,7 +571,7 @@ def save_annotations(ann):
     return True
 
 
-# ---------------------------------------------------------------------- viste ---
+# ---------------------------------------------------------------------- views ---
 def load_views():
     rows = conn().execute("SELECT data FROM views ORDER BY at").fetchall()
     return [json.loads(r["data"]) for r in rows]
@@ -595,9 +596,9 @@ def delete_view(vid):
         return c.execute("DELETE FROM views WHERE id = ?", (vid,)).rowcount
 
 
-# ------------------------------------------------------------ traslitterazione ---
+# ------------------------------------------------------------ transliteration ---
 def translit_dict():
-    """{parola: forma latina}; '' = parola nota ma ancora da tradurre."""
+    """{word: Latin form}; '' = known word not yet translated."""
     rows = gconn().execute("SELECT word, value FROM translit").fetchall()
     return {r["word"]: r["value"] for r in rows}
 
@@ -621,7 +622,7 @@ def translit_counts():
 
 
 def translit_add_pending(words, script_of=None):
-    """Parole nuove, da tradurre: non toccano quelle gia' presenti."""
+    """New words, to be translated: existing ones are left untouched."""
     if not words:
         return 0
     n = 0
@@ -636,7 +637,7 @@ def translit_add_pending(words, script_of=None):
 
 
 def translit_save_ai(values, model=""):
-    """Traduzioni dell'AI: non sovrascrivono mai una traduzione fatta a mano."""
+    """AI translations: they never overwrite a manual translation."""
     if not values:
         return 0
     n = 0
@@ -655,7 +656,7 @@ def translit_save_ai(values, model=""):
 
 
 def translit_set(word, value):
-    """Traduzione fatta a mano (vince sempre); valore vuoto = da tradurre."""
+    """Manual translation (always wins); empty value = to be translated."""
     value = str(value or "").strip()
     with tx(True) as c:
         c.execute("INSERT INTO translit(word, value, source, updated_at) VALUES(?, ?, ?, ?) "
@@ -673,21 +674,21 @@ def translit_delete(word):
         return n
 
 
-# ------------------------------------------- entita' Follow the Money ---
+# ------------------------------------------- Follow the Money entities ---
 def ftm_map():
-    """{id FtM: id nodo} del caso corrente (per re-import ed export)."""
+    """{FtM id: node id} of the current case (for re-import and export)."""
     rows = conn().execute("SELECT ftm_id, node_id FROM ftm_ids").fetchall()
     return {r["ftm_id"]: r["node_id"] for r in rows}
 
 
 def ftm_by_node():
-    """{id nodo: (id FtM, schema, dataset)}: per l'export."""
+    """{node id: (FtM id, schema, dataset)}: for export."""
     rows = conn().execute("SELECT ftm_id, node_id, schema, dataset FROM ftm_ids").fetchall()
     return {r["node_id"]: (r["ftm_id"], r["schema"], r["dataset"]) for r in rows}
 
 
 def ftm_set(items):
-    """items: iterable di (ftm_id, node_id, schema, dataset). Sovrascrive."""
+    """items: iterable of (ftm_id, node_id, schema, dataset). Overwrites."""
     items = list(items)
     if not items:
         return 0
@@ -713,7 +714,7 @@ def ftm_forget_nodes(node_ids):
     return n
 
 
-# ------------------------------------------- JSON importati da app terze ---
+# ------------------------------------- JSON imported from third-party apps ---
 def add_import(anchor, anchor_label, filename, content, records, dossier=False,
                anchor_ntype="generic", anchor_platform="generic"):
     with tx() as c:
@@ -742,7 +743,7 @@ def delete_import(iid):
 
 
 def delete_imports_of(anchors):
-    """JSON agganciati a questi nodi (si cancellano insieme al nodo)."""
+    """JSON attached to these nodes (deleted together with the node)."""
     anchors = list(anchors)
     if not anchors:
         return 0
@@ -755,14 +756,14 @@ def delete_imports_of(anchors):
 
 
 def iter_imports():
-    """Righe dei JSON importati (dict), nell'ordine di importazione."""
+    """Rows of the imported JSON (dict), in import order."""
     rows = conn().execute("SELECT id, anchor, anchor_label, anchor_ntype, anchor_platform, "
                           "filename, content, dossier FROM imports ORDER BY imported_at, id").fetchall()
     for r in rows:
         yield dict(r)
 
 
-# --------------------------------------------- blocchi JSON (indice fonti) ---
+# ------------------------------------------ JSON blobs (sources index) ---
 def get_blob(key):
     r = gconn().execute("SELECT data FROM blobs WHERE key = ?", (key,)).fetchone()
     return json.loads(r["data"]) if r else None

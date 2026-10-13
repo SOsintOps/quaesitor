@@ -13,24 +13,24 @@
 # any later version, with the additional terms in the file NOTICE.
 # See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
 
-"""Traduzione del trascritto (ROADMAP Fase 3): inglese e italiano, tutto offline.
+"""Translation of the transcript (ROADMAP Phase 3): English and Italian, fully offline.
 
-- Verso l'**inglese**: traduzione nativa di Whisper (seconda passata del modello
-  con `task="translate"`), riallineata ai segmenti della trascrizione per
-  sovrapposizione temporale. Se l'audio è già in inglese non serve nulla.
-- Verso l'**italiano**: pacchetto lingua di **Argos Translate** `en_it`
-  (modello CTranslate2 + SentencePiece) caricato direttamente con ctranslate2
-  — niente pacchetto `argostranslate` (che richiederebbe stanza/PyTorch).
-  Sorgenti diverse dall'inglese passano per l'inglese (pivot = la traduzione
-  Whisper del punto sopra). Se l'audio è già in italiano non serve nulla.
+- Into **English**: Whisper's native translation (second pass of the model
+  with `task="translate"`), realigned to the transcription segments by
+  temporal overlap. If the audio is already in English nothing is needed.
+- Into **Italian**: **Argos Translate** language package `en_it`
+  (CTranslate2 + SentencePiece model) loaded directly with ctranslate2
+  — no `argostranslate` package (which would require stanza/PyTorch).
+  Sources other than English go through English (pivot = the Whisper
+  translation of the point above). If the audio is already in Italian nothing is needed.
 
-Il pacchetto `.argosmodel` (~88 MB) viene scaricato al primo uso in
-~/.quaesitor/models/translate/ (override con QUAESITOR_MODELS_DIR); i modelli
-arrivano dall'indice ufficiale argospm. Nessun dato lascia la macchina.
+The `.argosmodel` package (~88 MB) is downloaded on first use to
+~/.quaesitor/models/translate/ (override with QUAESITOR_MODELS_DIR); the models
+come from the official argospm index. No data leaves the machine.
 
-Output: per ogni lingua richiesta `transcript_<lang>.txt` (stesso formato di
-transcript.txt, con parlanti) e, in transcript.json, `segments[i].tr[lang]` e
-la lista `translations`.
+Output: for every requested language `transcript_<lang>.txt` (same format as
+transcript.txt, with speakers) and, in transcript.json, `segments[i].tr[lang]` and
+the `translations` list.
 """
 # «Education never ends, Watson. It is a series of lessons, with the greatest for the last.»
 #   A. Conan Doyle, The Adventure of the Red Circle
@@ -49,7 +49,7 @@ ARGOS_SIZE_MB = 90
 
 
 # ---------------------------------------------------------------------------
-# pacchetti Argos: cache e download
+# Argos packages: cache and download
 # ---------------------------------------------------------------------------
 def models_dir() -> Path:
     env = os.environ.get("QUAESITOR_MODELS_DIR")
@@ -67,7 +67,7 @@ def pair_cached(src: str, dst: str) -> bool:
 
 
 def _package_url(src: str, dst: str) -> str:
-    """URL del pacchetto dall'indice argospm; in mancanza, lo schema classico v1."""
+    """URL of the package from the argospm index; failing that, the classic v1 scheme."""
     import urllib.request
     try:
         req = urllib.request.Request(ARGOS_INDEX_URL, headers={"User-Agent": "cognitor"})
@@ -76,13 +76,13 @@ def _package_url(src: str, dst: str) -> str:
         for p in index:
             if p.get("from_code") == src and p.get("to_code") == dst and p.get("links"):
                 return p["links"][0]
-    except Exception:  # noqa: BLE001 — indice irraggiungibile: si prova l'URL storico
+    except Exception:  # noqa: BLE001 — index unreachable: try the historical URL
         pass
     return ARGOS_FALLBACK_URL.format(src=src, dst=dst)
 
 
 def download_pair(src: str, dst: str, progress=None, cancel=None) -> Path:
-    """Scarica ed estrae il pacchetto <src>_<dst>; progress(done, total), cancel() -> bool."""
+    """Downloads and extracts the <src>_<dst> package; progress(done, total), cancel() -> bool."""
     import urllib.request
     dest = pair_dir(src, dst)
     if pair_cached(src, dst):
@@ -111,13 +111,13 @@ def download_pair(src: str, dst: str, progress=None, cancel=None) -> Path:
     dest.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(zip_path) as z:
         for name in z.namelist():
-            # dentro lo zip: <cartella>/model/*, <cartella>/sentencepiece.model, metadata.json
+            # inside the zip: <folder>/model/*, <folder>/sentencepiece.model, metadata.json
             parts = Path(name).parts
             if len(parts) < 2 or name.endswith("/"):
                 continue
             rel = Path(*parts[1:])
             if rel.parts[0] not in ("model", "sentencepiece.model", "metadata.json"):
-                continue            # stanza/ (tokenizer PyTorch) non serve
+                continue            # stanza/ (PyTorch tokenizer) is not needed
             out = dest / rel
             out.parent.mkdir(parents=True, exist_ok=True)
             with z.open(name) as s, open(out, "wb") as o:
@@ -129,13 +129,13 @@ def download_pair(src: str, dst: str, progress=None, cancel=None) -> Path:
 
 
 # ---------------------------------------------------------------------------
-# motore Argos (CTranslate2 + SentencePiece)
+# Argos engine (CTranslate2 + SentencePiece)
 # ---------------------------------------------------------------------------
 _SENT_SPLIT = re.compile(r"(?<=[.!?…])\s+(?=[^\s])")
 
 
 class ArgosPair:
-    """Traduttore <src>→<dst> su un pacchetto Argos già in cache."""
+    """Translator <src>→<dst> on an Argos package already in the cache."""
 
     def __init__(self, src: str, dst: str, use_gpu: bool = False):
         try:
@@ -153,11 +153,11 @@ class ArgosPair:
         try:
             self.tr = ctranslate2.Translator(str(d / "model"), device=device,
                                              compute_type="int8" if device == "cpu" else "default")
-        except Exception:  # noqa: BLE001 — CUDA non pronta per ctranslate2: CPU
+        except Exception:  # noqa: BLE001 — CUDA not ready for ctranslate2: CPU
             self.tr = ctranslate2.Translator(str(d / "model"), device="cpu", compute_type="int8")
 
     def translate(self, texts: list[str], beam_size: int = 4) -> list[str]:
-        """Traduce una lista di testi (frase per frase, in batch); mantiene l'ordine."""
+        """Translates a list of texts (sentence by sentence, in batches); keeps the order."""
         pieces, owner = [], []
         for i, t in enumerate(texts):
             t = (t or "").strip()
@@ -180,12 +180,12 @@ class ArgosPair:
 
 
 # ---------------------------------------------------------------------------
-# allineamento dei segmenti tradotti da Whisper
+# alignment of the segments translated by Whisper
 # ---------------------------------------------------------------------------
 def align_to_segments(segments: list[dict], translated: list[dict]) -> list[str]:
-    """Per ogni segmento originale, il testo dei segmenti `translated` ({t0,t1,text})
-    che lo coprono di più (per sovrapposizione; altrimenti il più vicino), nell'ordine.
-    Ogni segmento tradotto finisce in uno e un solo segmento originale."""
+    """For every original segment, the text of the `translated` segments ({t0,t1,text})
+    that cover it most (by overlap; otherwise the nearest), in order.
+    Every translated segment ends up in one and only one original segment."""
     texts = [[] for _ in segments]
     if not segments:
         return []
@@ -196,7 +196,7 @@ def align_to_segments(segments: list[dict], translated: list[dict]) -> list[str]
             ov = min(b, float(s["t1"])) - max(a, float(s["t0"]))
             if ov > best_ov:
                 best, best_ov = i, ov
-        if best is None:                      # nessuna sovrapposizione: il più vicino nel tempo
+        if best is None:                      # no overlap: the nearest in time
             mid = (a + b) / 2
             best = min(range(len(segments)),
                        key=lambda i: abs((float(segments[i]["t0"]) + float(segments[i]["t1"])) / 2 - mid))
@@ -205,7 +205,7 @@ def align_to_segments(segments: list[dict], translated: list[dict]) -> list[str]
 
 
 def whisper_translate(model, video_path, cancel=None, log=print) -> list[dict]:
-    """Seconda passata di Whisper con task="translate": segmenti in inglese."""
+    """Second Whisper pass with task="translate": segments in English."""
     seg_iter, info = model.transcribe(str(video_path), task="translate", vad_filter=True)
     total = float(getattr(info, "duration", 0.0) or 0.0)
     out = []
@@ -224,11 +224,11 @@ def whisper_translate(model, video_path, cancel=None, log=print) -> list[dict]:
 # ---------------------------------------------------------------------------
 def translate_transcript(transcript: dict, targets, video_path=None, model=None,
                          use_gpu: bool = False, cancel=None, log=print) -> dict:
-    """Aggiunge a `transcript` (dict di transcribe_video, in place) le traduzioni verso
-    `targets` ⊆ {"en","it"}: segments[i]["tr"][lang] e transcript["translations"].
-    `model` è il modello faster-whisper già caricato (per la passata verso l'inglese);
-    senza modello si usa il pacchetto Argos <src>_en se esiste.
-    Solleva RuntimeError quando una lingua non è producibile (chiamante decide)."""
+    """Adds to `transcript` (dict from transcribe_video, in place) the translations into
+    `targets` ⊆ {"en","it"}: segments[i]["tr"][lang] and transcript["translations"].
+    `model` is the faster-whisper model already loaded (for the pass into English);
+    without a model the Argos package <src>_en is used if it exists.
+    Raises RuntimeError when a language cannot be produced (the caller decides)."""
     targets = [t for t in targets if t in TARGETS]
     segs = transcript.get("segments", [])
     src = (transcript.get("languages") or [None])[0]
@@ -244,9 +244,9 @@ def translate_transcript(transcript: dict, targets, video_path=None, model=None,
         if lang not in done:
             done.append(lang)
 
-    # l'inglese serve se e' richiesto, o come pivot verso l'italiano da una terza
-    # lingua: con audio italiano e solo «italiano» richiesto partiva una seconda
-    # passata di Whisper che poi si scartava (2026-09-02)
+    # English is needed if requested, or as a pivot towards Italian from a third
+    # language: with Italian audio and only "Italian" requested, a second Whisper
+    # pass was started and then discarded (2026-09-02)
     need_en = ("en" in targets or ("it" in targets and src != "it")) and src != "en"
     english = None
     if src == "en":

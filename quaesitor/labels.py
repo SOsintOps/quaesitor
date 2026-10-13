@@ -25,20 +25,20 @@ from .records import norm_ident
 from .identifiers import TYPE_RANK
 
 
-# ==================== ETICHETTE MODIFICATE A MANO ====================
-# Rinominare la scheda non tocca i file di origine: l'etichetta nuova sta in
-# annotations.json e viene applicata al grafo a ogni caricamento. Se dopo la
-# modifica due schede rappresentano lo stesso identificativo (es. lo stesso
-# numero scritto con 00 e con +) vengono fuse in una sola scheda.
+# ==================== LABELS EDITED BY HAND ====================
+# Renaming a card does not touch the source files: the new label lives in
+# annotations.json and is applied to the graph on every load. If after the edit
+# two cards represent the same identifier (e.g. the same number written with 00
+# and with +) they are merged into a single card.
 
-# tipi che NON si fondono mai per etichetta: un target resta se stesso anche
-# se due fascicoli hanno lo stesso nome
+# types that are NEVER merged by label: a target stays itself even if two
+# dossiers have the same name
 NO_LABEL_MERGE = {"target"}
 
 
 def _key_text(s):
-    """Testo normalizzato per il confronto fra etichette (senza accenti,
-    punteggiatura e differenze di maiuscole)."""
+    """Normalised text for comparing labels (without accents, punctuation
+    and differences in case)."""
     s = unicodedata.normalize("NFKD", str(s or "")).casefold()
     s = unicodedata.normalize("NFC", _LATIN_DIACRITICS.sub("", s))
     s = _rx.sub(r"[^\p{L}\p{M}\p{N}_\s]+", " ", s)
@@ -46,17 +46,17 @@ def _key_text(s):
 
 
 def label_merge_key(node):
-    """Chiave con cui due schede con la stessa etichetta diventano una sola.
-    Telefoni ed email si confrontano sul VALORE normalizzato: '00218...' e
-    '+218...' hanno la stessa chiave. Gli altri tipi si confrontano sul testo,
-    ma solo fra nodi dello stesso tipo."""
+    """Key by which two cards with the same label become one.
+    Phones and emails are compared on the normalised VALUE: '00218...' and
+    '+218...' have the same key. The other types are compared on the text,
+    but only between nodes of the same type."""
     nt = node.get("ntype") or "generic"
     if nt in NO_LABEL_MERGE:
         return ""
     lab = _flat(node.get("label"))
     if len(lab) < 3:
         return ""
-    # un luogo generico non unisce mai due schede (vedi place_is_address)
+    # a generic place never merges two cards (see place_is_address)
     if nt == "place" and not place_is_address(lab, node.get("lat"), node.get("lon"),
                                               "address"):
         return ""
@@ -67,9 +67,9 @@ def label_merge_key(node):
 
 
 def merge_by_label(nodes, edges, renamed):
-    """Fonde i gruppi di nodi con la stessa chiave di etichetta, ma solo quelli
-    che contengono almeno un nodo rinominato a mano: la fusione e' sempre una
-    conseguenza di una scelta dell'utente, mai un effetto collaterale."""
+    """Merges the groups of nodes with the same label key, but only those that
+    contain at least one node renamed by hand: the merge is always a consequence
+    of a choice by the user, never a side effect."""
     groups = {}
     for n in nodes:
         k = label_merge_key(n)
@@ -82,8 +82,8 @@ def merge_by_label(nodes, edges, renamed):
 
     alias, fusi = {}, {}
     for g in fusioni:
-        # rappresentante: si preferisce la scheda NON rinominata (quella che
-        # esisteva gia'), poi il tipo piu' informativo e l'etichetta piu' ricca
+        # representative: the card NOT renamed is preferred (the one that already
+        # existed), then the most informative type and the richest label
         canon = sorted(g, key=lambda n: (n["id"] in renamed,
                                          TYPE_RANK.get(n.get("ntype"), 9),
                                          -len(_flat(n.get("label"))), n["id"]))[0]
@@ -142,7 +142,7 @@ def merge_by_label(nodes, edges, renamed):
 
 
 def relabel(graph, labels):
-    """Applica le etichette modificate a mano e, se servono, fonde le schede."""
+    """Applies the labels edited by hand and, if needed, merges the cards."""
     if not labels:
         return graph
     nodes, renamed = [], set()
@@ -164,8 +164,8 @@ _cache = {"key": None, "graph": None}
 
 
 def data_signature():
-    """Cambia quando cambiano i dati da cui si costruisce il grafo: i JSON
-    importati e il dizionario di traslitterazione (le annotazioni no: si
-    applicano a ogni richiesta sopra il grafo in cache)."""
+    """Changes when the data the graph is built from change: the imported JSON
+    and the transliteration dictionary (not the annotations: they are applied
+    on every request on top of the cached graph)."""
     return (store.current_case(), store.version(), store.version("translit_version"),
             translit_mode())

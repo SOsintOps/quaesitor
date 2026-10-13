@@ -13,36 +13,36 @@
 # any later version, with the additional terms in the file NOTICE.
 # See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
 
-"""Impronte vocali: di chi è una voce, dentro e fra i video.
+"""Voiceprints: whose voice it is, within and across videos.
 
-La diarizzazione (`diarize.py`) risponde a «quante voci e quando»: per ogni finestra di
-3 s calcola un embedding WeSpeaker, li raggruppa e numera i parlanti per ordine di prima
-comparsa. Fino alla 0.16.0 gli embedding venivano scartati subito dopo: «PARLANTE 1» di
-due video diversi non aveva nulla in comune se non l'etichetta. Questo modulo conserva
-l'impronta di ogni parlante (il centroide delle sue finestre) e la rende confrontabile
-fra run, fra video e con le persone del caso.
+Diarization (`diarize.py`) answers "how many voices and when": for every window of
+3 s it computes a WeSpeaker embedding, clusters them and numbers the speakers by order of
+first appearance. Up to 0.16.0 the embeddings were discarded right after: "PARLANTE 1" of
+two different videos had nothing in common but the label. This module keeps
+the voiceprint of every speaker (the centroid of their windows) and makes it comparable
+across runs, across videos and with the people of the case.
 
-Tre regole, prese dai volti:
-- **la famiglia**: modelli diversi producono vettori non confrontabili. La famiglia è l'id
-  del modello (`wr34`, `wcam`, `wr293`) e accompagna ogni impronta, nel file, nel
-  database e nel faldone. Il confronto avviene solo dentro la stessa famiglia.
-- **il minimo di parlato**: sotto `MIN_SPEECH_S` secondi netti il centroide è una finestra
-  rumorosa, non una voce. Il parlante mantiene la sua etichetta nel trascritto, ma non
-  entra nei confronti, e il motivo è scritto (`why`).
-- **nessuna fusione automatica**: il modulo produce punteggi e proposte. Collegare una voce
-  a una persona è un atto dell'analista, registrato e annullabile.
+Three rules, taken from the faces:
+- **the family**: different models produce vectors that cannot be compared. The family is
+  the model id (`wr34`, `wcam`, `wr293`) and goes with every voiceprint, in the file, in the
+  database and in the case file. Comparison happens only within the same family.
+- **the minimum of speech**: below `MIN_SPEECH_S` net seconds the centroid is a noisy
+  window, not a voice. The speaker keeps their label in the transcript, but does not
+  enter the comparisons, and the reason is written (`why`).
+- **no automatic merge**: the module produces scores and proposals. Linking a voice
+  to a person is an act of the analyst, recorded and reversible.
 
-Le soglie sono coseni fra centroidi L2-normalizzati (`T_VOICE_*`). Non vanno confuse con
-`diarize.CLUSTER_THRESHOLD`, che è una **distanza** (0,70 = similarità 0,30) fra finestre
-singole con average linkage: un'altra operazione. Un centroide di molte finestre è più
-stabile di una finestra sola, quindi le stesse voci risultano più simili e le soglie
-stanno più in alto.
+The thresholds are cosines between L2-normalised centroids (`T_VOICE_*`). They must not be
+confused with `diarize.CLUSTER_THRESHOLD`, which is a **distance** (0.70 = similarity 0.30)
+between single windows with average linkage: a different operation. A centroid of many
+windows is more stable than a single window, so the same voices come out more similar and
+the thresholds sit higher.
 
-Che cosa non è: un confronto vocale forense. Quello richiede una coorte di riferimento,
-una calibrazione a rapporto di verosimiglianza e un perito. Qui il punteggio è un indizio
-investigativo, accompagnato dai secondi di parlato e da un livello di affidabilità legato
-alla durata (`affidabilita`). La normalizzazione su coorte (`punteggio(..., coorte=...)`)
-è predisposta per ridurre l'effetto del canale, e si attiva dopo una misura sul campione.
+What it is not: a forensic voice comparison. That requires a reference cohort,
+a likelihood-ratio calibration and an expert. Here the score is an investigative
+lead, accompanied by the seconds of speech and by a reliability level tied to the
+duration (`affidabilita`). Cohort normalisation (`punteggio(..., coorte=...)`)
+is in place to reduce the channel effect, and is switched on after a measurement on the sample.
 """
 # «You know my method. It is founded upon the observation of trifles.»
 #   A. Conan Doyle, The Boscombe Valley Mystery
@@ -55,14 +55,14 @@ from urllib.parse import quote
 import numpy as np
 
 # ---------------------------------------------------------------------------
-# catalogo dei modelli voce (WeSpeaker, export ONNX di sherpa-onnx)
+# catalogue of the voice models (WeSpeaker, ONNX export by sherpa-onnx)
 # ---------------------------------------------------------------------------
 BASE_URL = "https://github.com/k2-fsa/sherpa-onnx/releases/download/speaker-recongition-models/"
 
-# Tutti gli export WeSpeaker hanno un solo input [B, T, 80] (fbank di diarize.fbank, scala
-# int16, CMN) e un solo output [B, dim]. Il numero di parametri e l'errore (EER su
-# VoxCeleb1-O, dal model zoo di WeSpeaker) sono nelle note. `dim` si verifica sui metadati
-# del file al primo uso (`verifica_dim`): se il catalogo sbaglia, l'errore lo dice.
+# All WeSpeaker exports have a single input [B, T, 80] (fbank from diarize.fbank, int16
+# scale, CMN) and a single output [B, dim]. The number of parameters and the error (EER on
+# VoxCeleb1-O, from the WeSpeaker model zoo) are in the notes. `dim` is checked against the
+# file metadata on first use (`verifica_dim`): if the catalogue is wrong, the error says so.
 VOICE_MODELS = {
     "wr34": {"file": "wespeaker_en_voxceleb_resnet34_LM.onnx", "size_mb": 26, "dim": 256,
              "label": "WeSpeaker ResNet34-LM", "eer": 0.72,
@@ -81,16 +81,16 @@ DEFAULT_VOICE = "wr34"
 FAMILY_LABEL = {fam: v["label"] for fam, v in VOICE_MODELS.items()}
 
 # ---------------------------------------------------------------------------
-# soglie (coseno fra centroidi L2-normalizzati della stessa famiglia)
+# thresholds (cosine between L2-normalised centroids of the same family)
 # ---------------------------------------------------------------------------
-MIN_SPEECH_S = 6.0        # parlato netto minimo per un'impronta: ≥ 3 finestre da 3 s a passo 1,5
-MIN_WINDOWS = 2           # seconda guardia, per i turni corti di pyannote
-T_VOICE_CLUSTER = 0.60    # due voci sconosciute di run diverse si uniscono da qui in su
-T_VOICE_PROBABILE = 0.65  # proposta «voce compatibile»: più severa della fusione fra sconosciuti
-T_VOICE_VERIFICA = 0.50   # proposta «da verificare»; sotto non si propone nulla
+MIN_SPEECH_S = 6.0        # minimum net speech for a voiceprint: ≥ 3 windows of 3 s at a 1.5 hop
+MIN_WINDOWS = 2           # second guard, for pyannote's short turns
+T_VOICE_CLUSTER = 0.60    # two unknown voices from different runs are merged from here up
+T_VOICE_PROBABILE = 0.65  # "compatible voice" proposal: stricter than merging unknowns
+T_VOICE_VERIFICA = 0.50   # "to be verified" proposal; below it nothing is proposed
 
-# affidabilità legata alla durata netta di parlato: i sistemi forensi validano per durata,
-# e sotto la mezza minuto il punteggio di una voce sola vale poco
+# reliability tied to the net duration of speech: forensic systems validate by duration,
+# and below half a minute the score of a single voice is worth little
 AFFIDABILITA_MEDIA_S = 15.0
 AFFIDABILITA_ALTA_S = 30.0
 
@@ -98,10 +98,10 @@ NPZ = "voices.npz"
 
 
 # ---------------------------------------------------------------------------
-# modelli: percorsi, download, verifica
+# models: paths, download, check
 # ---------------------------------------------------------------------------
 def cartella_modelli() -> Path:
-    """La stessa cartella di Silero VAD: ~/.quaesitor/models/diarize (o QUAESITOR_MODELS_DIR)."""
+    """The same folder as Silero VAD: ~/.quaesitor/models/diarize (or QUAESITOR_MODELS_DIR)."""
     env = os.environ.get("QUAESITOR_MODELS_DIR")
     base = Path(env) if env else Path.home() / ".quaesitor" / "models"
     return base / "diarize"
@@ -118,7 +118,7 @@ def model_path(fam: str) -> Path:
 
 
 def model_url(fam: str) -> str:
-    """L'URL dell'asset: `CAM++` diventa `CAM%2B%2B`, altrimenti GitHub risponde 404."""
+    """The asset URL: `CAM++` becomes `CAM%2B%2B`, otherwise GitHub answers 404."""
     return BASE_URL + quote(model_file(fam), safe="")
 
 
@@ -127,7 +127,7 @@ def model_cached(fam: str) -> bool:
 
 
 def scarica_file(url: str, dest: Path, progress=None, cancel=None) -> Path:
-    """Scarica `url` in `dest` passando da un `.part`; progress(fatti, totale), cancel() -> bool."""
+    """Downloads `url` to `dest` through a `.part`; progress(done, total), cancel() -> bool."""
     import urllib.request
     dest.parent.mkdir(parents=True, exist_ok=True)
     tmp = dest.with_name(dest.name + ".part")
@@ -159,16 +159,16 @@ def download_model(fam: str, progress=None, cancel=None) -> Path:
 
 
 def verifica_dim(session, fam: str) -> int:
-    """La dimensione dichiarata dal file (metadato `output_dim` degli export sherpa-onnx)
-    deve coincidere con il catalogo: due dimensioni diverse sotto la stessa famiglia
-    produrrebbero confronti sbagliati senza alcun errore."""
+    """The dimension declared by the file (`output_dim` metadata of the sherpa-onnx exports)
+    must match the catalogue: two different dimensions under the same family
+    would produce wrong comparisons without any error."""
     attesa = VOICE_MODELS[fam]["dim"]
     dim = None
     try:
         meta = session.get_modelmeta().custom_metadata_map or {}
         if meta.get("output_dim"):
             dim = int(meta["output_dim"])
-    except Exception:  # noqa: BLE001 — metadati assenti: si guarda la forma dell'uscita
+    except Exception:  # noqa: BLE001 — no metadata: look at the shape of the output
         pass
     if dim is None:
         try:
@@ -183,10 +183,10 @@ def verifica_dim(session, fam: str) -> int:
 
 
 # ---------------------------------------------------------------------------
-# impronte per parlante
+# voiceprints per speaker
 # ---------------------------------------------------------------------------
 def affidabilita(speech_seconds: float) -> str:
-    """`bassa` sotto 15 s netti, `media` sotto 30 s, `alta` da 30 s in su."""
+    """`bassa` below 15 net seconds, `media` below 30 s, `alta` from 30 s up."""
     s = float(speech_seconds or 0.0)
     if s >= AFFIDABILITA_ALTA_S:
         return "alta"
@@ -196,7 +196,7 @@ def affidabilita(speech_seconds: float) -> str:
 
 
 def secondi_netti(intervalli) -> float:
-    """Lunghezza dell'unione di intervalli [(t0, t1)]: le finestre si sovrappongono a metà."""
+    """Length of the union of intervals [(t0, t1)]: the windows overlap by half."""
     tot, fine = 0.0, None
     for a, b in sorted((float(a), float(b)) for a, b in intervalli):
         if fine is None or a > fine:
@@ -214,11 +214,11 @@ def etichetta(label: int) -> str:
 
 def centroidi_per_parlante(embs: np.ndarray, labels, windows, min_speech: float = MIN_SPEECH_S,
                            min_windows: int = MIN_WINDOWS) -> dict:
-    """Per ogni parlante: centroide L2 delle sue finestre, o None con il motivo.
+    """For every speaker: L2 centroid of their windows, or None with the reason.
 
-    Ritorna {"PARLANTE k": {"centroid", "n_windows", "speech_seconds", "ok", "why",
-    "affidabilita"}}. Il centroide è la media delle finestre normalizzata: lo stesso
-    calcolo di `diarize._centroids`, che finora viveva e moriva dentro il clustering."""
+    Returns {"PARLANTE k": {"centroid", "n_windows", "speech_seconds", "ok", "why",
+    "affidabilita"}}. The centroid is the normalised mean of the windows: the same
+    computation as `diarize._centroids`, which until now lived and died inside the clustering."""
     labels = np.asarray(labels)
     out = {}
     for lab in sorted(set(int(x) for x in labels.tolist())):
@@ -243,8 +243,8 @@ def centroidi_per_parlante(embs: np.ndarray, labels, windows, min_speech: float 
 
 
 def impronte_da_turni(audio: np.ndarray, turni: list, session, cancel=None, log=print):
-    """Embedding per i turni di un altro diarizzatore (pyannote), con le stesse finestre
-    della pipeline leggera. Ritorna (embs, windows, labels, speakers)."""
+    """Embeddings for the turns of another diarizer (pyannote), with the same windows
+    as the lightweight pipeline. Returns (embs, windows, labels, speakers)."""
     from .diarize import embed_windows, window_plan
     speakers = sorted({t["speaker"] for t in turni})
     indice = {s: i for i, s in enumerate(speakers)}
@@ -260,7 +260,7 @@ def impronte_da_turni(audio: np.ndarray, turni: list, session, cancel=None, log=
 
 
 def riepilogo_impronte(impronte: dict, family: str, model: str, diarizer: str) -> dict:
-    """La chiave `voiceprints` di transcript.json: solo metadati, i vettori stanno nel npz."""
+    """The `voiceprints` key of transcript.json: metadata only, the vectors are in the npz."""
     return {"family": family, "model": model, "diarizer": diarizer, "file": NPZ,
             "min_speech": MIN_SPEECH_S,
             "speakers": {k: {"ok": v["ok"], "n_windows": v["n_windows"],
@@ -270,11 +270,11 @@ def riepilogo_impronte(impronte: dict, family: str, model: str, diarizer: str) -
 
 
 # ---------------------------------------------------------------------------
-# il file accanto al trascritto
+# the file next to the transcript
 # ---------------------------------------------------------------------------
 def scrivi_npz(output_dir, embs, windows, labels, speakers, impronte: dict,
                family: str, model: str, diarizer: str) -> Path:
-    """`voices.npz`: le finestre e i centroidi di una run, per ricalcoli senza ridecodificare."""
+    """`voices.npz`: the windows and centroids of a run, for recomputation without re-decoding."""
     dim = int(np.asarray(embs).shape[1]) if len(embs) else VOICE_MODELS.get(family, {}).get("dim", 1)
     cents = np.full((len(speakers), dim), np.nan, dtype=np.float32)
     for i, s in enumerate(speakers):
@@ -304,13 +304,13 @@ def leggi_npz(output_dir) -> dict | None:
 
 
 # ---------------------------------------------------------------------------
-# confronto
+# comparison
 # ---------------------------------------------------------------------------
 def punteggio(a: np.ndarray, b: np.ndarray, coorte: np.ndarray | None = None, top: int = 50) -> float:
-    """Coseno fra due centroidi. Con `coorte` [M, d] (altre voci della stessa famiglia,
-    escluse le due) applica AS-norm: il coseno grezzo meno la media dei migliori `top`
-    coseni di ciascuna voce contro la coorte, diviso per la loro deviazione. Riduce
-    l'effetto del canale; si attiva dopo una misura sul campione."""
+    """Cosine between two centroids. With `coorte` [M, d] (other voices of the same family,
+    the two excluded) it applies AS-norm: the raw cosine minus the mean of the best `top`
+    cosines of each voice against the cohort, divided by their deviation. It reduces
+    the channel effect; it is switched on after a measurement on the sample."""
     a = np.asarray(a, dtype=np.float32).ravel()
     b = np.asarray(b, dtype=np.float32).ravel()
     grezzo = float(a @ b)
@@ -336,11 +336,11 @@ def livello(score: float, t_probabile: float = T_VOICE_PROBABILE,
 
 def candidati_parlante(centroid, family: str, voci_note: list, t_probabile: float = T_VOICE_PROBABILE,
                        t_verifica: float = T_VOICE_VERIFICA) -> list:
-    """Le persone la cui voce assomiglia a `centroid`, dalla più simile in giù.
+    """The people whose voice resembles `centroid`, from the most similar down.
 
-    `voci_note`: [{"eid", "name", "centroid", "family", "speech_seconds"}], una riga per
-    impronta archiviata. Per ogni persona conta l'impronta migliore. Famiglie diverse non
-    si confrontano: un vettore identico sotto un'altra famiglia non è un candidato."""
+    `voci_note`: [{"eid", "name", "centroid", "family", "speech_seconds"}], one row per
+    stored voiceprint. For every person the best voiceprint counts. Different families are
+    not compared: an identical vector under another family is not a candidate."""
     if centroid is None:
         return []
     migliori = {}
@@ -362,28 +362,28 @@ def candidati_parlante(centroid, family: str, voci_note: list, t_probabile: floa
 
 
 # ---------------------------------------------------------------------------
-# gruppi di voci fra run
+# groups of voices across runs
 # ---------------------------------------------------------------------------
-BLOCCO_COPPIE = 512     # righe di M per ogni blocco di similarita' (512 x N float32)
+BLOCCO_COPPIE = 512     # rows of M per similarity block (512 x N float32)
 
 
 def coppie_sopra_soglia(M: np.ndarray, threshold: float, blocco: int = BLOCCO_COPPIE):
-    """Le coppie (i, j), i < j, con similarita' coseno >= `threshold`, dalla piu' simile.
+    """The pairs (i, j), i < j, with cosine similarity >= `threshold`, most similar first.
 
-    Ritorna tre array allineati: gli indici i, gli indici j e la similarita'. A parita'
-    di similarita' vale l'ordine (i, j). La matrice N x N non viene costruita: il
-    prodotto si calcola per blocchi di `blocco` righe, e di ogni blocco restano le sole
-    coppie sopra soglia. La memoria segue le coppie utili, non N al quadrato. Fino al
-    2026-09-13 `recluster` teneva la matrice intera con gli indici di tutte le coppie:
-    circa 450 MB per un caso da 5.000 sconosciuti, a ogni scarto o promozione."""
+    Returns three aligned arrays: the indices i, the indices j and the similarity. With equal
+    similarity the order (i, j) applies. The N x N matrix is not built: the
+    product is computed in blocks of `blocco` rows, and of every block only the
+    pairs above the threshold are kept. Memory follows the useful pairs, not N squared. Until
+    2026-09-13 `recluster` kept the whole matrix with the indices of all the pairs:
+    about 450 MB for a case with 5,000 unknowns, at every rejection or promotion."""
     M = np.asarray(M, dtype=np.float32)
     n = len(M)
     ii, jj, ss = [], [], []
     for a in range(0, n, max(1, int(blocco))):
         b = min(a + max(1, int(blocco)), n)
-        S = M[a:b] @ M[a:].T                      # righe a..b contro le colonne da a in poi
+        S = M[a:b] @ M[a:].T                      # rows a..b against the columns from a on
         tieni = S >= threshold
-        tieni[:, :b - a] &= np.triu(np.ones((b - a, b - a), dtype=bool), k=1)   # solo j > i
+        tieni[:, :b - a] &= np.triu(np.ones((b - a, b - a), dtype=bool), k=1)   # only j > i
         r, c = np.nonzero(tieni)
         ii.append(r + a)
         jj.append(c + a)
@@ -392,18 +392,18 @@ def coppie_sopra_soglia(M: np.ndarray, threshold: float, blocco: int = BLOCCO_CO
         vuoto = np.zeros(0, dtype=np.int64)
         return vuoto, vuoto.copy(), np.zeros(0, dtype=np.float32)
     ii, jj, ss = np.concatenate(ii), np.concatenate(jj), np.concatenate(ss)
-    ordine = np.lexsort((jj, ii, -ss))            # ultima chiave = principale
+    ordine = np.lexsort((jj, ii, -ss))            # last key = primary
     return ii[ordine], jj[ordine], ss[ordine]
 
 
 def raggruppa(M: np.ndarray, threshold: float = T_VOICE_CLUSTER) -> list[list[int]]:
-    """Gruppi di righe di `M` [n, d] (L2) per similarità coseno ≥ `threshold`.
+    """Groups of rows of `M` [n, d] (L2) by cosine similarity ≥ `threshold`.
 
-    Greedy sulle coppie più simili, con union-find e una verifica in più: due gruppi si
-    fondono solo se anche i loro centroidi correnti superano la soglia. Senza questa
-    verifica una catena A~B, B~C unirebbe A e C anche quando A e C non si somigliano.
-    È il criterio dei volti: dal 2026-09-13 `graphstore.recluster` chiama questa funzione
-    e non tiene piu' una copia propria. Le coppie arrivano da `coppie_sopra_soglia`."""
+    Greedy on the most similar pairs, with union-find and one extra check: two groups
+    merge only if their current centroids also exceed the threshold. Without this
+    check a chain A~B, B~C would join A and C even when A and C do not resemble each other.
+    It is the criterion of the faces: since 2026-09-13 `graphstore.recluster` calls this function
+    and no longer keeps a copy of its own. The pairs come from `coppie_sopra_soglia`."""
     n = len(M)
     if n == 0:
         return []

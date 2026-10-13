@@ -15,7 +15,7 @@ CUDA, COREML, CPU, AZURE = A.CUDA, A.COREML, A.CPU, "AzureExecutionProvider"
 @pytest.mark.parametrize("disponibili, atteso", [
     ([CUDA, CPU], "cuda"),
     ([CUDA, COREML, CPU], "cuda"),
-    ([COREML, AZURE, CPU], ""),                 # un Mac con onnxruntime 1.23
+    ([COREML, AZURE, CPU], ""),                 # a Mac with onnxruntime 1.23
     ([CPU], ""),
     ([], ""),
     (None, ""),
@@ -25,8 +25,8 @@ def test_acceleratore(disponibili, atteso):
 
 
 def test_coreml_si_riconosce_ma_non_si_sceglie():
-    """Misura del 2026-09-07: il rilevatore SCRFD non gira sotto CoreML e il
-    riconoscitore va a 17 ms contro 6,8 ms sulla CPU."""
+    """Measurement of 2026-09-07: the SCRFD detector does not run under CoreML and the
+    recogniser takes 17 ms against 6.8 ms on the CPU."""
     assert A.coreml_presente([COREML, AZURE, CPU]) is True
     assert A.coreml_presente([CPU]) is False
     assert A.scegli_provider(True, [COREML, AZURE, CPU]) == ([CPU], -1)

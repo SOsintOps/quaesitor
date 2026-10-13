@@ -13,29 +13,29 @@
 # any later version, with the additional terms in the file NOTICE.
 # See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
 
-"""Sbobinamento audio dei video (ROADMAP Fase 1): trascrizione con faster-whisper.
+"""Audio transcription of videos (ROADMAP Phase 1): transcription with faster-whisper.
 
-Il video entra così com'è: faster-whisper ne decodifica l'audio da sé (PyAV),
-senza ffmpeg di sistema. Tutto offline; su CPU si usano i modelli piccoli
-(tiny/base/small), CUDA accelera dove disponibile.
+The video goes in as it is: faster-whisper decodes its audio by itself (PyAV),
+without a system ffmpeg. Fully offline; on the CPU the small models are used
+(tiny/base/small), CUDA accelerates where available.
 
-Output nella cartella della run:
-- transcript.json   fonte di verità: lingua, durata, segmenti con tempi,
-                    parlante (Fase 2) e traduzioni (Fase 3);
-- transcript.txt    versione leggibile: [HH:MM:SS-HH:MM:SS] PARLANTE k (lingua) testo.
+Output in the run folder:
+- transcript.json   source of truth: language, duration, timed segments,
+                    speaker (Phase 2) and translations (Phase 3);
+- transcript.txt    readable version: [HH:MM:SS-HH:MM:SS] PARLANTE k (language) text.
 
-Diarizzazione (ROADMAP Fase 2, `diarize=True`): dopo la trascrizione il modulo
-`diarize` conta i parlanti (Silero VAD + WeSpeaker su onnxruntime) ed etichetta
-i segmenti `PARLANTE 1..N`. Se manca qualcosa (pacchetto audio, modelli, rete)
-la trascrizione esce comunque, senza parlanti, con un messaggio nel log.
+Diarization (ROADMAP Phase 2, `diarize=True`): after the transcription the module
+`diarize` counts the speakers (Silero VAD + WeSpeaker on onnxruntime) and labels
+the segments `PARLANTE 1..N`. If something is missing (audio package, models, network)
+the transcription is produced anyway, without speakers, with a message in the log.
 
-Traduzione (ROADMAP Fase 3, `translate=("en","it")`): il modulo `translate`
-aggiunge l'inglese (Whisper, seconda passata) e/o l'italiano (pacchetto Argos
-en_it via ctranslate2) e si scrivono `transcript_en.txt` / `transcript_it.txt`;
-anche qui, in caso di problemi, la trascrizione resta valida.
+Translation (ROADMAP Phase 3, `translate=("en","it")`): the `translate` module
+adds English (Whisper, second pass) and/or Italian (Argos package
+en_it via ctranslate2) and `transcript_en.txt` / `transcript_it.txt` are written;
+here too, on problems, the transcription stays valid.
 
-Le dipendenze audio sono OPZIONALI (requirements-audio.txt): senza, le funzioni
-sollevano RuntimeError con istruzioni chiare e il resto di Cognitor non cambia.
+The audio dependencies are OPTIONAL (requirements-audio.txt): without them, the functions
+raise RuntimeError with clear instructions and the rest of Cognitor does not change.
 """
 # «You have a grand gift for silence, Watson.»
 #   A. Conan Doyle, The Man with the Twisted Lip
@@ -53,7 +53,7 @@ def _fmt_ts(sec: float) -> str:
 
 
 def load_model(model_size: str = "small", device: str = "cpu"):
-    """Carica il modello faster-whisper (scaricato al primo uso, poi in cache)."""
+    """Loads the faster-whisper model (downloaded on first use, then cached)."""
     try:
         from faster_whisper import WhisperModel
     except ImportError:
@@ -67,9 +67,9 @@ def load_model(model_size: str = "small", device: str = "cpu"):
 
 
 def write_transcript(result: dict, output_dir, lang: str | None = None) -> str:
-    """Scrive transcript.txt (e transcript.json) dal dict `result`; ritorna il path del .txt.
-    Con `lang` ("en"/"it") scrive invece transcript_<lang>.txt con i testi tradotti
-    (segments[i]["tr"][lang]; se manca, il testo originale) e non tocca il .json."""
+    """Writes transcript.txt (and transcript.json) from the `result` dict; returns the .txt path.
+    With `lang` ("en"/"it") it writes transcript_<lang>.txt with the translated texts instead
+    (segments[i]["tr"][lang]; if missing, the original text) and does not touch the .json."""
     os.makedirs(output_dir, exist_ok=True)
     if lang is None:
         out_json = os.path.join(str(output_dir), "transcript.json")
@@ -106,23 +106,23 @@ def transcribe_video(video_path, output_dir, model_size: str = "small",
                      pyannote: bool = False, hf_token: str = "",
                      use_gpu: bool = False, translate=(), voice_model: str = "wr34",
                      log=print) -> dict:
-    """Trascrive l'audio di un video (o file audio) e salva transcript.json/.txt.
+    """Transcribes the audio of a video (or audio file) and saves transcript.json/.txt.
 
-    cancel:       callable opzionale, controllato tra un segmento e l'altro.
-    model:        istanza già caricata da riusare (o stub nei test); se None viene
-                  caricato secondo model_size/device.
-    pyannote:     se True usa pyannote.audio (più preciso, richiede PyTorch e un token
-                  Hugging Face dell'analista); se non è utilizzabile si ripiega da solo
-                  sulla diarizzazione leggera, dichiarandolo nel log.
-    diarize:      se True, dopo la trascrizione conta i parlanti ed etichetta i
-                  segmenti (Fase 2); in caso di problemi prosegue senza parlanti.
-    num_speakers: 0 = automatico, altrimenti forza il numero di parlanti.
-    use_gpu:      usa CUDA (se disponibile in onnxruntime) per l'embedding voce.
-    voice_model:  famiglia del modello voce (catalogo di voices.py): le impronte di ogni
-                  parlante finiscono in voices.npz accanto al trascritto.
-    translate:    lingue di destinazione tra "en" e "it" (Fase 3): scrive
-                  transcript_<lang>.txt; in caso di problemi prosegue senza.
-    Ritorna il dict del transcript (lo stesso contenuto di transcript.json).
+    cancel:       optional callable, checked between one segment and the next.
+    model:        already loaded instance to reuse (or a stub in the tests); if None it is
+                  loaded according to model_size/device.
+    pyannote:     if True uses pyannote.audio (more accurate, needs PyTorch and a Hugging
+                  Face token of the analyst); if it is not usable it falls back by itself
+                  to the lightweight diarization, stating so in the log.
+    diarize:      if True, after the transcription counts the speakers and labels the
+                  segments (Phase 2); on problems it goes on without speakers.
+    num_speakers: 0 = automatic, otherwise forces the number of speakers.
+    use_gpu:      uses CUDA (if available in onnxruntime) for the voice embedding.
+    voice_model:  family of the voice model (catalogue in voices.py): the voiceprints of
+                  every speaker end up in voices.npz next to the transcript.
+    translate:    target languages among "en" and "it" (Phase 3): writes
+                  transcript_<lang>.txt; on problems it goes on without them.
+    Returns the transcript dict (the same content as transcript.json).
     """
     os.makedirs(output_dir, exist_ok=True)
     if model is None:
@@ -157,7 +157,7 @@ def transcribe_video(video_path, output_dir, model_size: str = "small",
         "duration": round(total, 2), "languages": [lang] if lang else [],
         "speakers": None, "partial": stopped, "segments": segments,
     }
-    out_txt = write_transcript(result, output_dir)   # prima versione: già utile
+    out_txt = write_transcript(result, output_dir)   # first version: already useful
     log(f"[transcribe] completato: {len(segments)} segmenti -> {out_txt}")
 
     if diarize and segments and not stopped:
@@ -166,20 +166,20 @@ def transcribe_video(video_path, output_dir, model_size: str = "small",
             add_speakers_auto(video_path, result, use_gpu=use_gpu, num_speakers=num_speakers,
                               cancel=cancel, log=log, token=hf_token,
                               prefer_pyannote=bool(pyannote), voice_model=voice_model)
-            vettori = result.pop("_voices", None)      # chiave privata: i vettori non vanno nel JSON
+            vettori = result.pop("_voices", None)      # private key: the vectors do not go into the JSON
             if vettori:
                 try:
                     from .voices import scrivi_npz
                     scrivi_npz(output_dir, vettori["embeddings"], vettori["windows"], vettori["labels"],
                                vettori["speakers"], vettori["impronte"], vettori["family"],
                                vettori["model"], vettori["diarizer"])
-                except Exception as e:  # noqa: BLE001 — senza npz il trascritto vale lo stesso
+                except Exception as e:  # noqa: BLE001 — without the npz the transcript is valid anyway
                     result.pop("voiceprints", None)
                     log(f"[diarize] impronte vocali non salvate: {e}")
             write_transcript(result, output_dir)
             n = result["speakers"]
             log(f"[diarize] completato: {n} parlant{'e' if n == 1 else 'i'} -> {out_txt}")
-        except Exception as e:  # noqa: BLE001 — la trascrizione resta valida senza parlanti
+        except Exception as e:  # noqa: BLE001 — the transcription stays valid without speakers
             log(f"[diarize] saltato: {e}")
 
     targets = [t for t in (translate or ()) if t in ("en", "it")]
@@ -191,18 +191,18 @@ def transcribe_video(video_path, output_dir, model_size: str = "small",
             write_transcript(result, output_dir)
             for lang in result.get("translations") or []:
                 log(f"[translate] -> {write_transcript(result, output_dir, lang=lang)}")
-        except Exception as e:  # noqa: BLE001 — la trascrizione resta valida senza traduzioni
+        except Exception as e:  # noqa: BLE001 — the transcription stays valid without translations
             log(f"[translate] saltato: {e}")
     return result
 
 
 def write_named_transcript(output_dir, nomi: dict, lang=None) -> str | None:
-    """Scrive `transcript_nomi.txt`: il trascritto con i **nomi delle persone** al posto
-    delle etichette della diarizzazione (PARLANTE 1, 2, …).
+    """Writes `transcript_nomi.txt`: the transcript with the **names of the people** in place
+    of the diarization labels (PARLANTE 1, 2, …).
 
-    Il trascritto originale non si tocca: è il prodotto dell'elaborazione, e la
-    corrispondenza fra voce e persona è invece una conclusione dell'analista, che può
-    cambiare. Ritorna il percorso scritto, o None se non c'è nulla da scrivere.
+    The original transcript is not touched: it is the product of the processing, while the
+    match between voice and person is a conclusion of the analyst, which can
+    change. Returns the path written, or None if there is nothing to write.
     """
     import json as _json
     d = str(output_dir)
@@ -229,7 +229,7 @@ def write_named_transcript(output_dir, nomi: dict, lang=None) -> str | None:
             testo = s["text"]
             if lang is not None:
                 testo = (s.get("tr") or {}).get(lang) or testo
-            # le chiavi dei segmenti sono t0/t1 (vedi transcribe_video), non start/end
+            # the segment keys are t0/t1 (see transcribe_video), not start/end
             f.write(f"[{_fmt_ts(s['t0'])} → {_fmt_ts(s['t1'])}]{etichetta}  {testo.strip()}\n")
     print(f"[transcribe] trascritto con i nomi -> {out}")
     return out

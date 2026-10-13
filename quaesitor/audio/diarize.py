@@ -13,23 +13,23 @@
 # any later version, with the additional terms in the file NOTICE.
 # See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
 
-"""Diarizzazione leggera (ROADMAP Fase 2): quante persone parlano nel video.
+"""Lightweight diarization (ROADMAP Phase 2): how many people speak in the video.
 
-Pipeline interamente su onnxruntime (niente PyTorch), tutta offline:
-  1. Silero VAD (ONNX)            -> regioni di parlato;
-  2. finestre di 3 s (passo 1,5 s) dentro le regioni -> fbank 80 bande
-     (stile Kaldi, calcolato in numpy) -> embedding voce con un modello WeSpeaker
-     del catalogo di `voices.py` (ONNX, addestrato su VoxCeleb; ResNet34-LM predefinito);
-  3. clustering agglomerativo (distanza coseno, average linkage) -> PARLANTE 1..N;
-  4. ogni segmento del transcript riceve il parlante che lo copre di più;
-  5. per ogni parlante il centroide delle sue finestre diventa l'impronta vocale
-     (`voices.centroidi_per_parlante`), scritta in `voices.npz` accanto al trascritto.
+Pipeline entirely on onnxruntime (no PyTorch), fully offline:
+  1. Silero VAD (ONNX)            -> speech regions;
+  2. 3 s windows (1.5 s hop) inside the regions -> 80-band fbank
+     (Kaldi style, computed in numpy) -> voice embedding with a WeSpeaker model
+     from the catalogue in `voices.py` (ONNX, trained on VoxCeleb; ResNet34-LM by default);
+  3. agglomerative clustering (cosine distance, average linkage) -> PARLANTE 1..N;
+  4. each transcript segment gets the speaker who covers most of it;
+  5. for each speaker the centroid of their windows becomes the voiceprint
+     (`voices.centroidi_per_parlante`), written to `voices.npz` next to the transcript.
 
-Silero VAD (~2 MB) e il modello voce scelto vengono scaricati al primo uso in
-~/.quaesitor/models/diarize/ (override con la variabile QUAESITOR_MODELS_DIR).
-Senza il pacchetto audio (requirements-audio.txt) o senza modelli la funzione
-solleva RuntimeError con un messaggio chiaro: la trascrizione esce comunque,
-solo senza parlanti.
+Silero VAD (~2 MB) and the chosen voice model are downloaded on first use to
+~/.quaesitor/models/diarize/ (override with the QUAESITOR_MODELS_DIR variable).
+Without the audio package (requirements-audio.txt) or without models the function
+raises RuntimeError with a clear message: the transcription is produced anyway,
+just without speakers.
 """
 # «Nothing clears up a case so much as stating it to another person.»
 #   A. Conan Doyle, Silver Blaze
@@ -48,19 +48,19 @@ VAD_FILE = "silero_vad.onnx"
 VAD_URL = "https://github.com/snakers4/silero-vad/raw/master/src/silero_vad/data/silero_vad.onnx"
 VAD_SIZE_MB = 2
 
-# parametri della pipeline (valori di default, tarati su voci sintetiche e reali)
-WINDOW_SEC = 3.0          # finestra di embedding (più lunga = embedding più stabile su audio reale)
-HOP_SEC = 1.5             # passo tra finestre
-MIN_WINDOW_SEC = 0.6      # regioni più corte vengono ignorate
-CLUSTER_THRESHOLD = 0.70  # distanza coseno oltre la quale due gruppi restano separati
-MIN_CLUSTER_FRAC = 0.04   # gruppi sotto questa quota di finestre (min 2) vengono assorbiti dal più vicino
+# pipeline parameters (default values, tuned on synthetic and real voices)
+WINDOW_SEC = 3.0          # embedding window (longer = more stable embedding on real audio)
+HOP_SEC = 1.5             # hop between windows
+MIN_WINDOW_SEC = 0.6      # shorter regions are ignored
+CLUSTER_THRESHOLD = 0.70  # cosine distance beyond which two groups stay separate
+MIN_CLUSTER_FRAC = 0.04   # groups below this share of windows (min 2) are absorbed by the nearest
 
 
 # ---------------------------------------------------------------------------
-# modelli: cache e download
+# models: cache and download
 # ---------------------------------------------------------------------------
 def models_dir() -> Path:
-    """La cartella dei modelli di diarizzazione: Silero VAD e i modelli voce del catalogo."""
+    """The folder of the diarization models: Silero VAD and the voice models of the catalogue."""
     return voices.cartella_modelli()
 
 
@@ -69,12 +69,12 @@ def vad_cached() -> bool:
 
 
 def models_cached(voice: str = DEFAULT_VOICE) -> bool:
-    """VAD e il modello voce indicato sono entrambi in cache."""
+    """VAD and the given voice model are both in the cache."""
     return vad_cached() and voices.model_cached(voice)
 
 
 def download_models(progress=None, cancel=None, voice: str = DEFAULT_VOICE) -> Path:
-    """Scarica ciò che manca fra VAD e modello voce; progress(fatti, totale), cancel() -> bool."""
+    """Downloads what is missing among VAD and voice model; progress(done, total), cancel() -> bool."""
     d = models_dir()
     if not vad_cached():
         voices.scarica_file(VAD_URL, d / VAD_FILE, progress=progress, cancel=cancel)
@@ -96,7 +96,7 @@ def _session(path: Path, use_gpu: bool = False):
 # audio
 # ---------------------------------------------------------------------------
 def decode_audio(path) -> np.ndarray:
-    """Audio mono float32 a 16 kHz, decodificato dal video con PyAV (via faster-whisper)."""
+    """Mono float32 audio at 16 kHz, decoded from the video with PyAV (via faster-whisper)."""
     try:
         from faster_whisper.audio import decode_audio as _dec
     except ImportError:
@@ -112,7 +112,7 @@ def decode_audio(path) -> np.ndarray:
 def vad_regions(audio: np.ndarray, session, threshold: float = 0.5,
                 min_speech: float = 0.25, min_silence: float = 0.10,
                 pad: float = 0.03, cancel=None) -> list[tuple[float, float]]:
-    """Regioni di parlato [(t0, t1), ...] in secondi (logica di get_speech_timestamps)."""
+    """Speech regions [(t0, t1), ...] in seconds (logic of get_speech_timestamps)."""
     chunk, ctx = 512, 64
     n = len(audio)
     if n % chunk:
@@ -154,7 +154,7 @@ def vad_regions(audio: np.ndarray, session, threshold: float = 0.5,
 
 
 # ---------------------------------------------------------------------------
-# 2) fbank stile Kaldi (80 bande, 25/10 ms, hamming, pre-enfasi, log, CMN)
+# 2) Kaldi-style fbank (80 bands, 25/10 ms, hamming, pre-emphasis, log, CMN)
 # ---------------------------------------------------------------------------
 _MEL_CACHE: dict = {}
 
@@ -182,9 +182,9 @@ def _mel_banks(num_bins=80, n_fft=512, sr=SAMPLE_RATE, low=20.0, high=0.0):
 
 
 def fbank(wave: np.ndarray, num_bins: int = 80) -> np.ndarray:
-    """Log-mel filterbank [T, num_bins] di un'onda float32 (-1..1) a 16 kHz,
-    compatibile con kaldi.fbank(dither=0, window='hamming') usato da WeSpeaker."""
-    x = np.asarray(wave, dtype=np.float32) * 32768.0      # scala int16 come Kaldi
+    """Log-mel filterbank [T, num_bins] of a float32 wave (-1..1) at 16 kHz,
+    compatible with kaldi.fbank(dither=0, window='hamming') as used by WeSpeaker."""
+    x = np.asarray(wave, dtype=np.float32) * 32768.0      # int16 scale, as in Kaldi
     win, hop, n_fft = 400, 160, 512
     if len(x) < win:
         x = np.concatenate([x, np.zeros(win - len(x), dtype=np.float32)])
@@ -192,7 +192,7 @@ def fbank(wave: np.ndarray, num_bins: int = 80) -> np.ndarray:
     idx = np.arange(win)[None, :] + hop * np.arange(n_frames)[:, None]
     frames = x[idx]
     frames = frames - frames.mean(axis=1, keepdims=True)          # remove_dc_offset
-    pre = np.empty_like(frames)                                    # pre-enfasi 0.97
+    pre = np.empty_like(frames)                                    # pre-emphasis 0.97
     pre[:, 1:] = frames[:, 1:] - 0.97 * frames[:, :-1]
     pre[:, 0] = frames[:, 0] - 0.97 * frames[:, 0]
     window = (0.54 - 0.46 * np.cos(2 * np.pi * np.arange(win) / (win - 1))).astype(np.float32)
@@ -204,10 +204,10 @@ def fbank(wave: np.ndarray, num_bins: int = 80) -> np.ndarray:
 
 
 # ---------------------------------------------------------------------------
-# 3) embedding per finestra + clustering
+# 3) per-window embedding + clustering
 # ---------------------------------------------------------------------------
 def window_plan(regions, window=WINDOW_SEC, hop=HOP_SEC, min_len=MIN_WINDOW_SEC):
-    """Finestre [(t0, t1)] che coprono le regioni di parlato."""
+    """Windows [(t0, t1)] that cover the speech regions."""
     wins = []
     for a, b in regions:
         if b - a < min_len:
@@ -219,16 +219,16 @@ def window_plan(regions, window=WINDOW_SEC, hop=HOP_SEC, min_len=MIN_WINDOW_SEC)
         while t + window <= b + 1e-6:
             wins.append((t, t + window))
             t += hop
-        if wins[-1][1] < b - hop / 2:       # coda residua
+        if wins[-1][1] < b - hop / 2:       # leftover tail
             wins.append((b - window, b))
     return wins
 
 
 def embed_windows(audio: np.ndarray, wins, session, cancel=None, log=print,
                   batch: int = 16) -> np.ndarray:
-    """Embedding L2-normalizzati [N, 256] delle finestre (batch a lunghezza uguale)."""
+    """L2-normalised embeddings [N, 256] of the windows (equal-length batches)."""
     name = session.get_inputs()[0].name
-    embs = None                                       # allocato alla prima uscita (dim del modello)
+    embs = None                                       # allocated at the first output (model dim)
     feats = []
     for (a, b) in wins:
         seg = audio[int(a * SAMPLE_RATE):int(b * SAMPLE_RATE)]
@@ -236,7 +236,7 @@ def embed_windows(audio: np.ndarray, wins, session, cancel=None, log=print,
     order = sorted(range(len(wins)), key=lambda i: feats[i].shape[0])
     done = 0
     i = 0
-    last_log, every = 0, max(1, len(wins) // 20)     # al massimo ~20 righe di progresso
+    last_log, every = 0, max(1, len(wins) // 20)     # at most ~20 progress lines
     while i < len(order):
         T = feats[order[i]].shape[0]
         grp = [order[i]]
@@ -268,11 +268,11 @@ def _centroids(embs: np.ndarray, labels: np.ndarray, ids) -> np.ndarray:
 
 def cluster_embeddings(embs: np.ndarray, threshold: float = CLUSTER_THRESHOLD,
                        num_speakers: int = 0, min_size: int = 0) -> np.ndarray:
-    """Etichette intere (0..K-1) per finestra: clustering agglomerativo a distanza coseno
-    (average linkage), poi i gruppi minuscoli vengono assorbiti e ogni finestra viene
-    ri-assegnata al centroide più vicino (pulisce i bordi dei turni).
-    num_speakers > 0 forza il numero di gruppi; 0 = automatico (soglia).
-    min_size: finestre minime perché un gruppo sia un parlante (0 = MIN_CLUSTER_FRAC)."""
+    """Integer labels (0..K-1) per window: agglomerative clustering on cosine distance
+    (average linkage), then tiny groups are absorbed and every window is
+    reassigned to the nearest centroid (cleans the edges of the turns).
+    num_speakers > 0 forces the number of groups; 0 = automatic (threshold).
+    min_size: minimum windows for a group to be a speaker (0 = MIN_CLUSTER_FRAC)."""
     n = len(embs)
     if n == 0:
         return np.zeros(0, dtype=int)
@@ -286,7 +286,7 @@ def cluster_embeddings(embs: np.ndarray, threshold: float = CLUSTER_THRESHOLD,
         labels = fcluster(Z, t=threshold, criterion="distance")
     labels = labels - 1
     if not num_speakers:
-        # gruppi minuscoli -> assorbiti dal centroide più vicino tra quelli "veri"
+        # tiny groups -> absorbed by the nearest centroid among the "real" ones
         min_size = min_size or max(2, int(round(MIN_CLUSTER_FRAC * n)))
         ids, counts = np.unique(labels, return_counts=True)
         big = [i for i, c in zip(ids, counts) if c >= min_size]
@@ -296,12 +296,12 @@ def cluster_embeddings(embs: np.ndarray, threshold: float = CLUSTER_THRESHOLD,
                 if i not in big:
                     sims = embs[labels == i] @ cents.T
                     labels[labels == i] = np.array(big)[sims.argmax(axis=1)]
-    # ri-assegnazione finale al centroide più vicino (un passo di k-means)
+    # final reassignment to the nearest centroid (one k-means step)
     ids = np.unique(labels)
     if len(ids) > 1:
         cents = _centroids(embs, labels, ids)
         labels = ids[(embs @ cents.T).argmax(axis=1)]
-    # rinumera per ordine di prima comparsa
+    # renumber by order of first appearance
     remap, out = {}, np.zeros_like(labels)
     for k, lab in enumerate(labels):
         remap.setdefault(lab, len(remap))
@@ -310,10 +310,10 @@ def cluster_embeddings(embs: np.ndarray, threshold: float = CLUSTER_THRESHOLD,
 
 
 # ---------------------------------------------------------------------------
-# 4) pipeline completa e assegnazione ai segmenti
+# 4) full pipeline and assignment to the segments
 # ---------------------------------------------------------------------------
 def speaker_turns(wins, labels) -> list[dict]:
-    """Fonde finestre consecutive con la stessa etichetta in turni di parola."""
+    """Merges consecutive windows with the same label into speaking turns."""
     turns = []
     for (a, b), lab in sorted(zip(wins, labels), key=lambda w: w[0][0]):
         name = f"PARLANTE {int(lab) + 1}"
@@ -327,7 +327,7 @@ def speaker_turns(wins, labels) -> list[dict]:
 
 
 def assign_speakers(segments: list[dict], wins, labels) -> None:
-    """Scrive segment["speaker"] = "PARLANTE k" per copertura prevalente (in place)."""
+    """Writes segment["speaker"] = "PARLANTE k" by prevailing coverage (in place)."""
     if not wins:
         return
     w0 = np.array([w[0] for w in wins]); w1 = np.array([w[1] for w in wins])
@@ -340,7 +340,7 @@ def assign_speakers(segments: list[dict], wins, labels) -> None:
             for lab, o in zip(labels[ov > 0], ov[ov > 0]):
                 cover[int(lab)] = cover.get(int(lab), 0.0) + float(o)
             best = max(cover.items(), key=lambda kv: kv[1])[0]
-        else:                                     # nessuna finestra: la più vicina nel tempo
+        else:                                     # no window: the nearest in time
             mid = (a + b) / 2
             best = int(labels[np.argmin(np.abs((w0 + w1) / 2 - mid))])
         s["speaker"] = f"PARLANTE {best + 1}"
@@ -349,14 +349,14 @@ def assign_speakers(segments: list[dict], wins, labels) -> None:
 def diarize_audio(audio: np.ndarray, use_gpu: bool = False, num_speakers: int = 0,
                   threshold: float = CLUSTER_THRESHOLD, cancel=None, log=print,
                   voice_model: str = DEFAULT_VOICE) -> dict:
-    """Diarizza un'onda 16 kHz. Ritorna {"speakers": N, "windows": [...], "labels": [...],
-    "turns": [...], "speech": secondi di parlato, "embeddings": [N, d], "family", "model"}."""
+    """Diarizes a 16 kHz wave. Returns {"speakers": N, "windows": [...], "labels": [...],
+    "turns": [...], "speech": seconds of speech, "embeddings": [N, d], "family", "model"}."""
     if not models_cached(voice_model):
         peso = VAD_SIZE_MB + voices.VOICE_MODELS[voice_model]["size_mb"]
         log(f"[diarize] scarico i modelli (~{peso} MB) in {models_dir()}")
         download_models(cancel=cancel, voice=voice_model)
     d = models_dir()
-    vad = _session(d / VAD_FILE, use_gpu=False)      # piccolo: CPU basta
+    vad = _session(d / VAD_FILE, use_gpu=False)      # small: the CPU is enough
     regions = vad_regions(audio, vad, cancel=cancel)
     speech = sum(b - a for a, b in regions)
     log(f"[diarize] parlato: {speech:.0f}s in {len(regions)} regioni")
@@ -377,10 +377,10 @@ def diarize_audio(audio: np.ndarray, use_gpu: bool = False, num_speakers: int = 
 
 
 def _annota_impronte(transcript: dict, embs, wins, labels, speakers, family, model, diarizer, log=print):
-    """Scrive in `transcript` la chiave `voiceprints` (metadati) e `_voices` (i vettori,
-    chiave privata che transcribe.py toglie prima di scrivere il JSON)."""
+    """Writes into `transcript` the `voiceprints` key (metadata) and `_voices` (the vectors,
+    a private key that transcribe.py removes before writing the JSON)."""
     impronte = voices.centroidi_per_parlante(embs, labels, wins)
-    for s in speakers:                       # parlanti senza finestre (pyannote): assenti, con motivo
+    for s in speakers:                       # speakers without windows (pyannote): absent, with a reason
         impronte.setdefault(s, {"centroid": None, "n_windows": 0, "speech_seconds": 0.0, "ok": False,
                                 "why": "nessuna finestra di parlato", "affidabilita": "bassa"})
     transcript["voiceprints"] = voices.riepilogo_impronte(impronte, family, model, diarizer)
@@ -395,8 +395,8 @@ def _annota_impronte(transcript: dict, embs, wins, labels, speakers, family, mod
 def add_speakers(video_path, transcript: dict, use_gpu: bool = False, num_speakers: int = 0,
                  cancel=None, log=print, audio: np.ndarray | None = None,
                  voice_model: str = DEFAULT_VOICE) -> dict:
-    """Arricchisce un transcript (dict di transcribe_video) con i parlanti e le impronte, in place.
-    Ritorna il dict; in caso di problemi solleva RuntimeError (chiamante decide il fallback)."""
+    """Enriches a transcript (dict from transcribe_video) with speakers and voiceprints, in place.
+    Returns the dict; on problems raises RuntimeError (the caller decides the fallback)."""
     if audio is None:
         audio = decode_audio(video_path)
     res = diarize_audio(audio, use_gpu=use_gpu, num_speakers=num_speakers, cancel=cancel, log=log,
@@ -413,17 +413,17 @@ def add_speakers(video_path, transcript: dict, use_gpu: bool = False, num_speake
 
 
 # ---------------------------------------------------------------------------
-# pyannote.audio: diarizzazione avanzata, facoltativa (ROADMAP Fase 4)
+# pyannote.audio: advanced diarization, optional (ROADMAP Phase 4)
 # ---------------------------------------------------------------------------
 PYANNOTE_PIPELINE = "pyannote/speaker-diarization-3.1"
 
 
 def pyannote_status(token: str = "") -> dict:
-    """Che cosa manca per usare pyannote: {ready, torch, pyannote, token, why}.
+    """What is missing to use pyannote: {ready, torch, pyannote, token, why}.
 
-    Serve un ambiente più pesante (PyTorch) e un **token di Hugging Face personale**,
-    perché il modello va accettato sul sito prima di poterlo scaricare. Il token è
-    dell'analista: il programma non ne ha uno proprio e non lo chiede a nessuno.
+    It needs a heavier environment (PyTorch) and a **personal Hugging Face token**,
+    because the model must be accepted on the site before it can be downloaded. The token
+    belongs to the analyst: the program has none of its own and asks nobody for one.
     """
     stato = {"ready": False, "torch": False, "pyannote": False,
              "token": bool((token or "").strip()), "why": ""}
@@ -448,13 +448,13 @@ def pyannote_status(token: str = "") -> dict:
 def diarize_pyannote(video_path, transcript: dict, token: str, num_speakers: int = 0,
                      use_gpu: bool = False, log=print, voice_model: str | None = None,
                      audio: np.ndarray | None = None, cancel=None) -> dict:
-    """Diarizzazione con pyannote.audio. Solleva RuntimeError se non è utilizzabile:
-    il chiamante ripiega sulla diarizzazione leggera.
+    """Diarization with pyannote.audio. Raises RuntimeError if it is not usable:
+    the caller falls back to the lightweight diarization.
 
-    pyannote consegna turni, non impronte: con `voice_model` le impronte si calcolano sui
-    suoi turni con il modello WeSpeaker del catalogo, così una run pyannote entra negli
-    stessi confronti di una run leggera. Se il modello manca o fallisce, i parlanti restano
-    validi e il log lo dichiara."""
+    pyannote delivers turns, not voiceprints: with `voice_model` the voiceprints are
+    computed on its turns with the catalogue's WeSpeaker model, so a pyannote run enters the
+    same comparisons as a lightweight run. If the model is missing or fails, the speakers
+    stay valid and the log says so."""
     stato = pyannote_status(token)
     if not stato["ready"]:
         raise RuntimeError(stato["why"] or "pyannote non disponibile")
@@ -466,22 +466,22 @@ def diarize_pyannote(video_path, transcript: dict, token: str, num_speakers: int
             import torch
             if torch.cuda.is_available():
                 pipeline.to(torch.device("cuda"))
-        except Exception:  # noqa: BLE001 — resta su CPU
+        except Exception:  # noqa: BLE001 — stays on the CPU
             pass
     kwargs = {"num_speakers": int(num_speakers)} if num_speakers else {}
     annotazione = pipeline(str(video_path), **kwargs)
 
-    # stesse chiavi t0/t1 dei turni della diarizzazione leggera (speaker_turns) e dei
-    # segmenti di transcribe_video: un lettore solo per i due diarizzatori
+    # same t0/t1 keys as the turns of the lightweight diarization (speaker_turns) and the
+    # segments of transcribe_video: one reader for both diarizers
     turni = [{"speaker": f"PARLANTE {int(str(spk).split('_')[-1]) + 1}"
               if str(spk).upper().startswith("SPEAKER") else str(spk),
               "t0": round(float(seg.start), 2), "t1": round(float(seg.end), 2)}
              for seg, _track, spk in annotazione.itertracks(yield_label=True)]
     turni.sort(key=lambda t: t["t0"])
-    for s in transcript.get("segments", []):          # a ogni segmento il parlante che
-        centro = (float(s["t0"]) + float(s["t1"])) / 2          # copre il suo centro
+    for s in transcript.get("segments", []):          # each segment gets the speaker who
+        centro = (float(s["t0"]) + float(s["t1"])) / 2          # covers its centre
         scelto = next((t["speaker"] for t in turni if t["t0"] <= centro <= t["t1"]), None)
-        if scelto is None and turni:                  # nessuna sovrapposizione: il più vicino
+        if scelto is None and turni:                  # no overlap: the nearest one
             scelto = min(turni, key=lambda t: min(abs(t["t0"] - centro),
                                                   abs(t["t1"] - centro)))["speaker"]
         if scelto:
@@ -502,7 +502,7 @@ def diarize_pyannote(video_path, transcript: dict, token: str, num_speakers: int
             embs, wins, labels, speakers = voices.impronte_da_turni(audio, turni, sess, cancel=cancel, log=log)
             _annota_impronte(transcript, embs, wins, labels, speakers, voice_model,
                              voices.model_file(voice_model), "pyannote", log=log)
-        except Exception as e:  # noqa: BLE001 — i turni di pyannote valgono anche senza impronte
+        except Exception as e:  # noqa: BLE001 — pyannote's turns are valid even without voiceprints
             log(f"[diarize] impronte vocali non calcolate ({e})")
     return transcript
 
@@ -511,10 +511,10 @@ def add_speakers_auto(video_path, transcript: dict, use_gpu: bool = False,
                       num_speakers: int = 0, cancel=None, log=print,
                       audio=None, token: str = "", prefer_pyannote: bool = False,
                       voice_model: str = DEFAULT_VOICE) -> dict:
-    """Diarizzazione: pyannote se richiesto e utilizzabile, altrimenti quella leggera.
+    """Diarization: pyannote if requested and usable, otherwise the lightweight one.
 
-    Il ripiego è automatico e dichiarato nel log: chi lavora deve sapere quale dei due
-    ha prodotto le etichette, perché la qualità è diversa."""
+    The fallback is automatic and stated in the log: whoever works on it must know which
+    of the two produced the labels, because the quality differs."""
     if prefer_pyannote:
         try:
             return diarize_pyannote(video_path, transcript, token, num_speakers=num_speakers,

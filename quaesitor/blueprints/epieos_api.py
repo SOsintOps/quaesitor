@@ -35,12 +35,12 @@ EP_KEYS = ("enabled", "endpoint", "api_key", "pack", "timeout")
 
 
 # ============================== EPIEOS (API) ==============================
-# Ricerca inversa di email e telefoni su decine di servizi (api.epieos.com).
-# A PAGAMENTO: ogni ricerca consuma crediti, quindi non e' mai automatica e
-# l'interfaccia chiede conferma ogni volta. Spenta per impostazione predefinita;
-# accesa, l'UNICO dato che esce dal computer e' l'identificativo cercato.
-# La risposta viene salvata tale e quale nell'archivio del caso (come un
-# export JSON) e tradotta in nodi dall'adattatore epieos.py.
+# Reverse lookup of emails and phones across dozens of services (api.epieos.com).
+# PAID: every search consumes credits, so it is never automatic and the interface
+# asks for confirmation every time. Off by default; when on, the ONLY data that
+# leaves the computer is the searched identifier.
+# The response is saved as is in the case archive (like a JSON export) and
+# turned into nodes by the epieos.py adapter.
 EP_STATE = {"credits": None, "credits_at": "", "ratelimit": {}}
 EP_EXPLAIN = {
     400: "richiesta non valida",
@@ -76,7 +76,7 @@ def _ep_saved_packs():
 
 
 def _ep_note_headers(hdrs):
-    """Crediti residui e limiti di frequenza dagli header della risposta."""
+    """Remaining credits and rate limits from the response headers."""
     h = {str(k).lower(): v for k, v in (hdrs or {}).items()}
     if "x-remaining-credits" in h:
         try:
@@ -106,8 +106,8 @@ def _ep_call(path, payload=None):
 
 
 def _ep_packs_from_schema(spec):
-    """Dalla specifica OpenAPI su misura della chiave (GET /schema):
-    [{pack, kinds: {email: [moduli], phone: [moduli]}}]."""
+    """From the OpenAPI specification tailored to the key (GET /schema):
+    [{pack, kinds: {email: [modules], phone: [modules]}}]."""
     packs = {}
     for path, item in ((spec or {}).get("paths") or {}).items():
         m = re.match(r"^/v1/search/(email|phone)/([a-z0-9_\-]+)$", str(path))
@@ -146,8 +146,8 @@ def _ep_kind(query, kind=""):
 
 
 def _ep_anchor_node(anchor, query, kind):
-    """Nodo a cui agganciare la risposta: quello indicato, altrimenti il nodo
-    email/telefono dell'identificativo se gia' presente nel grafo."""
+    """Node to attach the response to: the one given, otherwise the email/phone
+    node of the identifier if already in the graph."""
     g = current_graph()
     if anchor:
         return next((n for n in g["nodes"] if n["id"] == anchor or anchor in (n.get("alias_ids") or [])), None)
@@ -156,8 +156,8 @@ def _ep_anchor_node(anchor, query, kind):
 
 
 def _ep_store(node, kind, query, content):
-    """Salva la risposta come import sul nodo (sostituendo una ricerca
-    precedente dello stesso identificativo sullo stesso nodo)."""
+    """Saves the response as an import on the node (replacing an earlier search
+    for the same identifier on the same node)."""
     filename = f"search_{query}.json"[:200]
     for old in store.list_imports(node["id"]):
         if old.get("filename") == filename:
@@ -206,8 +206,8 @@ def api_ep_config():
 
 @bp.route("/api/epieos/schema", methods=["POST"])
 def api_ep_schema():
-    """Legge la specifica su misura della chiave (GET /schema): pack e moduli
-    disponibili. Non consuma crediti. Salvata nei metadati globali."""
+    """Reads the specification tailored to the key (GET /schema): available packs
+    and modules. Consumes no credits. Saved in the global metadata."""
     spec, err, code = _ep_call("/schema")
     if err:
         return jsonify({"ok": False, "error": err}), 502
@@ -220,10 +220,10 @@ def api_ep_schema():
 @bp.route("/api/epieos/search", methods=["POST"])
 def api_ep_search():
     """{query, kind?, anchor?, pack?, modules?: [...], excluded_modules?: [...]}
-    -> ricerca a pagamento (una chiamata), risposta salvata sul nodo e grafo
-    ricostruito. 'anchor' e' il nodo email/telefono (o il target) a cui
-    agganciare i risultati: se manca si usa il nodo dell'identificativo, che
-    deve gia' esistere (l'interfaccia lo crea prima di chiedere conferma)."""
+    -> paid search (one call), response saved on the node and graph rebuilt.
+    'anchor' is the email/phone node (or the target) to attach the results to:
+    if missing, the identifier's node is used, which must already exist (the
+    interface creates it before asking for confirmation)."""
     data = request.get_json(silent=True) or {}
     if not store.current_case():
         return jsonify({"error": "nessun caso aperto"}), 400
@@ -258,9 +258,9 @@ def api_ep_search():
 
 @bp.route("/api/epieos/import", methods=["POST"])
 def api_ep_import():
-    """{anchor?, content, filename?}: una risposta Epieos salvata su file
-    (nuda {"result": ...} o con involucro) registrata come una ricerca.
-    Non chiama il servizio e non consuma crediti."""
+    """{anchor?, content, filename?}: an Epieos response saved to file
+    (bare {"result": ...} or wrapped) recorded as a search.
+    Does not call the service and consumes no credits."""
     data = request.get_json(silent=True) or {}
     if not store.current_case():
         return jsonify({"error": "nessun caso aperto"}), 400
@@ -273,7 +273,7 @@ def api_ep_import():
     meta, result = epieos.unwrap(obj)
     query, kind = _ep_kind(data.get("query") or meta.get("query"), data.get("kind") or meta.get("kind"))
     if not query or kind not in ("email", "phone"):
-        # risposta senza 'query' nei moduli: la si ricava dal nome del file
+        # response without 'query' in the modules: taken from the file name
         query, kind = _ep_kind(export_query(str(data.get("filename") or "")))
     if not query or kind not in ("email", "phone"):
         return jsonify({"error": "identificativo cercato non riconoscibile: indicalo (query)"}), 400
@@ -292,7 +292,7 @@ def api_ep_import():
 
 @bp.route("/api/epieos/searches")
 def api_ep_searches():
-    """Ricerche Epieos salvate nel caso: {anchor: [{id, filename, query, kind, fetched_at, modules}]}."""
+    """Epieos searches saved in the case: {anchor: [{id, filename, query, kind, fetched_at, modules}]}."""
     out = {}
     for imp in store.iter_imports():
         if not str(imp.get("filename") or "").startswith("search_"):

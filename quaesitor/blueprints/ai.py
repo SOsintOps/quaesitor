@@ -31,15 +31,15 @@ from ..bulk_import import _norm, _plan_json, commit_plan, plan_rows, SOCIAL_PLAT
 bp = Blueprint("ai", __name__)
 
 
-# ======================= AI: DAL TESTO LIBERO AI NODI =======================
-# L'utente incolla un testo libero; il chatbot ne estrae entita' e relazioni in
-# JSON. La risposta del modello e' un DATO, mai un comando: se ne prendono solo
-# i campi previsti, validati dalle stesse regole dell'importazione da file.
+# ======================= AI: FROM FREE TEXT TO NODES =======================
+# The user pastes free text; the chatbot extracts entities and relationships from
+# it as JSON. The model's response is DATA, never a command: only the expected
+# fields are taken, validated by the same rules as the import from file.
 
 AI_MAX_TEXT = 12000
 AI_MAX_NODES = 60
 AI_MAX_LINKS = 120
-AI_TIMEOUT_MIN = 90            # l'estrazione e' piu' lunga di una traslitterazione
+AI_TIMEOUT_MIN = 90            # extraction takes longer than a transliteration
 
 AI_NODES_PROMPT = """You extract entities for an OSINT link-analysis graph from the TEXT below.
 Reply with ONE JSON object only (no markdown, no comments), exactly in this shape:
@@ -110,7 +110,7 @@ _AI_DIR = {"forward": "->", "backward": "<-", "both": "<->", "none": ""}
 
 
 def ai_ready():
-    """L'AI e' utilizzabile: interruttore acceso ed endpoint impostato."""
+    """The AI is usable: switch on and endpoint set."""
     return chatbot_ready()
 
 
@@ -119,7 +119,7 @@ def _ai_str(v, n=300):
     return "".join(c for c in v if c.isprintable())[:n]
 
 
-# inizio tipico di un indirizzo (via, piazza, street...) o numero civico
+# typical start of an address (via, piazza, street...) or house number
 _STREET_RE = re.compile(
     r"^(via|viale|v\.le|piazza|p\.za|piazzale|corso|c\.so|largo|vicolo|strada|"
     r"contrada|localita|località|loc\.|frazione|borgo|lungomare|lungo\w+|"
@@ -142,18 +142,18 @@ def _norm_street(v):
 
 
 def _ai_merge_places(nodes, links):
-    """Citta' e indirizzo della stessa localita' devono stare in UN nodo luogo.
-    Se il modello li ha separati (un luogo 'Brescia' e un luogo 'Via Papa
-    Leone 13'), la via confluisce nella citta' collegata: a lei stessa, oppure
-    allo stesso nodo (es. la persona che ci abita). Ritorna i link aggiornati."""
+    """City and address of the same location must be in ONE place node.
+    If the model split them (a place 'Brescia' and a place 'Via Papa Leone 13'),
+    the street is merged into the linked city: linked to it directly, or to the
+    same node (e.g. the person who lives there). Returns the updated links."""
     luoghi = [k for k, n in nodes.items() if n["type"] == "luogo"]
-    nascita = set()                        # citta' di nascita: sempre un nodo a se'
+    nascita = set()                        # city of birth: always a node of its own
     for l in links:
         if _BIRTH_RE.search(_ai_str(l.get("label"), 120)):
             l["label"] = BIRTH_LABEL
             nascita.update(k for k in (_ai_str(l.get("from"), 40), _ai_str(l.get("to"), 40))
                            if k in luoghi)
-    for k in luoghi:                       # un luogo con solo la via nel valore
+    for k in luoghi:                       # a place with only the street in the value
         n = nodes[k]
         if not n["address"] and _is_street(n["value"]):
             n["address"], n["value"] = n["value"], ""
@@ -174,8 +174,8 @@ def _ai_merge_places(nodes, links):
     rinomina = {}
     for v in vie:
         nv = vicini(v)
-        # prima una citta' collegata direttamente, poi una che condivide un vicino,
-        # infine l'unica citta' del testo
+        # first a directly linked city, then one sharing a neighbour,
+        # finally the only city in the text
         cand = [c for c in citta if c in nv] or \
                [c for c in citta if vicini(c) & nv] or \
                (citta if len(citta) == 1 and len(vie) == 1 else [])
@@ -191,7 +191,7 @@ def _ai_merge_places(nodes, links):
         if k not in nodes:
             continue
         nodes[k]["address"] = _norm_street(nodes[k]["address"])
-        if not nodes[k]["value"]:          # via senza citta': resta la via come valore
+        if not nodes[k]["value"]:          # street without a city: the street stays as the value
             nodes[k]["value"], nodes[k]["address"] = nodes[k]["address"], ""
     if not rinomina:
         return links
@@ -201,17 +201,17 @@ def _ai_merge_places(nodes, links):
         b = rinomina.get(_ai_str(l.get("to"), 40), _ai_str(l.get("to"), 40))
         lab = _ai_str(l.get("label"), 120).casefold()
         if a == b or (a, b, lab) in visti or (b, a, lab) in visti:
-            continue                       # l'arco citta'-via o un doppione
+            continue                       # the city-street edge or a duplicate
         visti.add((a, b, lab))
         out.append(dict(l, **{"from": a, "to": b}))
     return out
 
 
 def _ai_vehicle(node, raw):
-    """Veicolo proposto dal modello: l'identificativo e' la TARGA; marca e
-    modello (se ci sono) vanno nell'etichetta, il colore nella nota.
-    'AB 123 CD' + Fiat Panda bianca -> 'AB123CD Fiat Panda', colore 'Bianco' (va
-    solo nella scheda, non nelle note)."""
+    """Vehicle proposed by the model: the identifier is the LICENCE PLATE; make and
+    model (if any) go in the label, the colour in the note.
+    'AB 123 CD' + white Fiat Panda -> 'AB123CD Fiat Panda', colour 'Bianco' (it goes
+    only in the card, not in the notes)."""
     targa = re.sub(r"[\s.-]+", "", node["value"]).upper()
     marca = _ai_str(raw.get("brand"), 60)
     modello = _ai_str(raw.get("model"), 60)
@@ -222,7 +222,7 @@ def _ai_vehicle(node, raw):
 
 
 def _safe_birth(v):
-    """Data di nascita proposta dal modello: se non e' valida si ignora."""
+    """Date of birth proposed by the model: ignored if it is not valid."""
     try:
         return parse_birth(_ai_str(v, 20))
     except NodeError:
@@ -230,8 +230,8 @@ def _safe_birth(v):
 
 
 def ai_rows_from_json(d, parent=None):
-    """JSON del modello -> righe per plan_rows(). Si tengono solo i campi
-    previsti, ripuliti e limitati: il resto della risposta si ignora."""
+    """The model's JSON -> rows for plan_rows(). Only the expected fields are kept,
+    cleaned and capped: the rest of the response is ignored."""
     raw_nodes = d.get("nodes") if isinstance(d.get("nodes"), list) else []
     raw_links = d.get("links") if isinstance(d.get("links"), list) else []
     nodes = {}
@@ -243,7 +243,7 @@ def ai_rows_from_json(d, parent=None):
         typ = _AI_TYPES.get(_ai_str(n.get("type"), 30).lower(), "")             or onto.type_of(_ai_str(n.get("type"), 30)) or ""
         raw_f = dict(n.get("fields") or {}) if isinstance(n.get("fields"), dict) else {}
         if typ in onto.TYPES:
-            # il modello a volte mette marca/modello nei campi dei veicoli
+            # the model sometimes puts make/model in the vehicle fields
             for k_ai, k_f in (("brand", "marca"), ("model", "modello")):
                 if n.get(k_ai) and not raw_f.get(k_f):
                     raw_f[k_f] = n.get(k_ai)
@@ -299,8 +299,8 @@ def ai_rows_from_json(d, parent=None):
             used.update((a, b))
     if parent and rows and not any(r.get("id1") == parent or r.get("id2") == parent
                                    for r in rows):
-        # dalla scheda di un nodo ma il modello non lo ha mai citato: il nodo
-        # principale del testo (quello con piu' collegamenti) si aggancia a lui
+        # from a node's card but the model never mentioned it: the main node of
+        # the text (the one with the most links) is attached to it
         deg = {}
         for l in raw_links[:AI_MAX_LINKS]:
             if isinstance(l, dict):
@@ -312,11 +312,11 @@ def ai_rows_from_json(d, parent=None):
         side("ROOT", "1", row)
         side(main, "2", row)
         rows.insert(0, row)
-    for key in nodes:                     # nodi rimasti senza collegamenti
+    for key in nodes:                     # nodes left without links
         if key in used:
             continue
         row = {}
-        if parent:                        # dalla scheda di un nodo: si collegano a lui
+        if parent:                        # from a node's card: they are linked to it
             side("ROOT", "1", row)
             side(key, "2", row)
         else:
@@ -329,8 +329,8 @@ def ai_rows_from_json(d, parent=None):
 
 @bp.route("/api/ai/nodes", methods=["POST"])
 def api_ai_nodes():
-    """Testo libero -> proposta di nodi e collegamenti (niente viene scritto:
-    l'utente conferma poi con /api/ai/commit)."""
+    """Free text -> proposed nodes and links (nothing is written: the user
+    then confirms with /api/ai/commit)."""
     data = request.get_json(silent=True) or {}
     text = str(data.get("text") or "").strip()
     parent = str(data.get("parent") or "").strip()
@@ -346,7 +346,7 @@ def api_ai_nodes():
             return jsonify({"error": "nodo di partenza non trovato"}), 404
         root = AI_ROOT_RULE.format(label=_ai_str(p.get("label"), 120).replace('"', "'"),
                                    ntype=p.get("ntype") or "")
-    ok, why = chatbot_probe()                  # sonda rapida: niente attese inutili
+    ok, why = chatbot_probe()                  # quick probe: no pointless waiting
     if not ok:
         return jsonify({"error": f"il chatbot non risponde ({CHATBOT['endpoint']}): {why}"}), 502
     prompt = AI_NODES_PROMPT.format(root=root, text=text, max_nodes=AI_MAX_NODES,
@@ -370,8 +370,8 @@ def api_ai_nodes():
 
 @bp.route("/api/ai/commit", methods=["POST"])
 def api_ai_commit():
-    """Crea i nodi e i collegamenti proposti dall'AI e confermati dall'utente.
-    Le righe passano di nuovo per le stesse validazioni dell'importazione."""
+    """Creates the nodes and links proposed by the AI and confirmed by the user.
+    The rows go through the same validations as the import again."""
     data = request.get_json(silent=True) or {}
     items = [r for r in (data.get("items") or []) if isinstance(r, dict)][:AI_MAX_NODES + AI_MAX_LINKS]
     rows = [{str(k): str(v)[:2000] for k, v in r.items()} for r in items]
@@ -384,7 +384,7 @@ def api_ai_commit():
     return jsonify(res)
 
 
-# ---------------- pannello di configurazione dell'AI (chatbot.conf) ----------------
+# ---------------- AI configuration panel (chatbot.conf) ----------------
 AI_CONF_KEYS = ("enabled", "endpoint", "api_key", "model", "api", "timeout",
                 "auth_header", "auth_prefix", "auto")
 
@@ -400,12 +400,12 @@ def _conf_public():
 
 
 def save_chatbot_conf(updates):
-    """Aggiorna chatbot.conf conservando commenti e ordine delle righe; le voci
-    che mancano si aggiungono in fondo."""
+    """Updates chatbot.conf preserving comments and the order of the lines; missing
+    entries are appended at the end."""
     eol = "\n"
     try:
-        # newline="": si legge il file com'e', per riscriverlo con le stesse
-        # fine riga (su Windows la modalita' testo le convertirebbe in CRLF)
+        # newline="": the file is read as it is, to write it back with the same
+        # line endings (on Windows text mode would convert them to CRLF)
         with open(CHATBOT_CONF, "r", encoding="utf-8-sig", newline="") as f:
             testo = f.read()
         if "\r\n" in testo:
@@ -435,8 +435,8 @@ def reload_chatbot_conf():
 
 @bp.route("/api/ai/config", methods=["GET", "POST"])
 def api_ai_config():
-    """Legge / salva la configurazione dell'AI. La chiave non viene mai
-    restituita per intero: si manda solo se la si vuole cambiare."""
+    """Reads / saves the AI configuration. The key is never returned in full:
+    it is sent only to change it."""
     if request.method == "GET":
         return jsonify(_conf_public())
     data = request.get_json(silent=True) or {}
@@ -450,7 +450,7 @@ def api_ai_config():
             continue
         v = re.sub(r"[\r\n]+", " ", str(v if v is not None else "")).strip()[:500]
         if k == "api_key" and not v and not data.get("clear_key"):
-            continue                              # vuota = lascia quella che c'e'
+            continue                              # empty = keep the current one
         if k == "endpoint" and v and not re.match(r"^https?://[^\s]+$", v, re.I):
             return jsonify({"error": "endpoint non valido (serve http:// o https://)"}), 400
         if k == "api" and v not in ("auto", "ollama", "openai"):
@@ -472,7 +472,7 @@ def api_ai_config():
 
 @bp.route("/api/ai/test", methods=["POST"])
 def api_ai_test():
-    """Prova di collegamento: una domanda banale al modello configurato."""
+    """Connection test: a trivial question to the configured model."""
     if not CHATBOT["endpoint"]:
         return jsonify({"ok": False, "error": "endpoint non impostato"})
     t0 = time.time()

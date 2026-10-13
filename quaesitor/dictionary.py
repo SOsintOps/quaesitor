@@ -30,8 +30,8 @@ from .records import photo_label
 
 
 def onto_fields(ntype, data):
-    """Campi di un elemento ontologico dalla richiesta: oggetto 'fields' (modulo,
-    AI) oppure il solo 'value', che va nel campo principale del tipo."""
+    """Fields of an ontology item from the request: a 'fields' object (form,
+    AI) or just 'value', which goes into the main field of the type."""
     fields = onto.clean_fields(ntype, _json_obj(data.get("fields")))
     main = onto.TYPES[ntype]["value"]
     value = re.sub(r"\s+", " ", str(data.get("value") or "")).strip()
@@ -41,10 +41,10 @@ def onto_fields(ntype, data):
 
 
 def _resolve_onto(ntype, data, value):
-    """Arma, stupefacente, assegno, documento... Con i campi identificativi
-    compilati (matricola, numero, IBAN...) l'oggetto e' univoco: reinserirlo
-    aggiunge una scheda allo stesso nodo. Senza, ogni inserimento e' un
-    reperto a se' (nodo nuovo)."""
+    """Weapon, drug, cheque, document... With the identifying fields filled in
+    (serial number, number, IBAN...) the object is unique: entering it again
+    adds a card to the same node. Without them, every entry is a separate
+    exhibit (new node)."""
     fields = onto_fields(ntype, data)
     if not fields:
         raise NodeError("compila almeno un campo")
@@ -56,16 +56,16 @@ def _resolve_onto(ntype, data, value):
 
 
 def resolve_node(data, parent=""):
-    """Da tipo + valore (+ campi facoltativi) ricava l'identita' del nodo con
-    le STESSE regole del grafo, cosi' un valore gia' presente non crea un
-    doppione. Ritorna (nid, label, platform, ntype, value); NodeError se il
-    valore non e' valido. 'parent' serve solo alle localita' generiche, che
-    restano legate al nodo da cui sono state aggiunte."""
+    """From type + value (+ optional fields) derive the node identity with
+    the SAME rules as the graph, so a value already present does not create
+    a duplicate. Returns (nid, label, platform, ntype, value); NodeError if
+    the value is not valid. 'parent' is used only by generic places, which
+    stay tied to the node they were added from."""
     ntype = str(data.get("ntype") or "").strip().lower()
     value = str(data.get("value") or "").strip()
     platform = str(data.get("platform") or "").strip().lower()
     if ntype in ("name", "target", "person"):
-        # persona: cognome e nome (o il nome intero in 'value') + nascita
+        # person: surname and first name (or the full name in 'value') + birth
         cognome = re.sub(r"\s+", " ", str(data.get("cognome") or "")).strip()
         nome = re.sub(r"\s+", " ", str(data.get("nome") or "")).strip()
         value = f"{cognome} {nome}".strip() or value
@@ -93,7 +93,7 @@ def resolve_node(data, parent=""):
         nascita = parse_birth(data.get("nascita"))
         nid, label, platform = person_id(value, nascita), person_label(value, nascita), "name"
     elif ntype == "place":
-        # località: città (obbligatoria) + via, civico e coordinate facoltativi
+        # place: city (required) + optional street, house number and coordinates
         citta = value
         street, civico = _via_civico(data)
         via = f"{street} {civico}".strip()
@@ -109,9 +109,9 @@ def resolve_node(data, parent=""):
         if lon and not (-180 <= float(lon) <= 180):
             raise NodeError("longitudine fuori intervallo (-180..180)")
         chiave = re.sub(r"\s+", " ", f"{citta} {via}".strip().casefold()).strip()
-        # come nel grafo: una citta' generica resta legata alla scheda di
-        # partenza, solo un recapito (indirizzo o coordinate) puo' essere
-        # condiviso fra schede diverse
+        # as in the graph: a generic city stays tied to the card it started
+        # from; only a location (address or coordinates) can be shared
+        # between different cards
         if not parent or place_is_address(f"{citta} {via}".strip(), lat, lon,
                                           "address" if via else ""):
             nid = "place:" + chiave
@@ -129,14 +129,14 @@ def resolve_node(data, parent=""):
         label = str(data.get("label") or "").strip() or value
         platform = "vehicle"
     elif ntype == "text":
-        # appunto libero: l'etichetta è il titolo, il corpo sta nella scheda
+        # free note: the label is the title, the body goes in the card
         titolo = str(data.get("label") or value).strip()
         if not titolo:
             raise NodeError("titolo mancante")
         nid = "text:" + re.sub(r"[^a-z0-9]+", "-", titolo.lower()).strip("-")[:60]
         label, platform, value = titolo, "text", value or titolo
     elif ntype == "photo":
-        # 'value' è il percorso relativo restituito da /api/upload
+        # 'value' is the relative path returned by /api/upload
         rel = value.replace("\\", "/").lstrip("/")
         if not rel.lower().startswith("media/") or not rel.lower().endswith(PHOTO_EXT):
             raise NodeError("immagine non valida")
@@ -146,7 +146,7 @@ def resolve_node(data, parent=""):
         label = str(data.get("label") or "").strip() or photo_label(os.path.basename(rel))
         platform = "photo"
     elif ntype == "link":
-        # collegamento generico: un URL qualsiasi con un'etichetta a scelta
+        # generic link: any URL with a label of choice
         if not re.match(r"^https?://\S+$", value, re.I):
             raise NodeError("indirizzo non valido (serve http:// o https://)")
         nid = "link:" + value.rstrip("/").lower()
@@ -163,37 +163,37 @@ def resolve_node(data, parent=""):
 
 
 def same_place_id(g, city, data):
-    """Id di un luogo gia' nel grafo con la stessa citta', via e civico
-    (confronto normalizzato), altrimenti None."""
+    """Id of a place already in the graph with the same city, street and house
+    number (normalised comparison), otherwise None."""
     street, civ = _via_civico(data)
     key = (norm_city(city), norm_street(street), norm_civico(civ))
     if not all(key):
         return None
     luoghi = [(n["id"], place_parts(n)) for n in g["nodes"] if n.get("ntype") == "place"]
     luoghi = [(i, p) for i, p in luoghi if p and p[0] and p[1]]
-    # stesse regole di merge_places: iniziali sciolte se la via completa e' unica
+    # same rules as merge_places: initials expanded if the full street is unique
     canon = canon_streets({(c, s) for _, (c, s, _v) in luoghi} | {key[:2]})
     ck = (key[0], canon[key[:2]], key[2])
     return next((i for i, (c, s, v) in luoghi if (c, canon[(c, s)], v) == ck), None)
 
 
 def maps_url(city, street="", civico=""):
-    """Ricerca Google Maps: 'Via Santo Stefano 55, Brescia'."""
+    """Google Maps search: 'Via Santo Stefano 55, Brescia'."""
     via = f"{street} {civico}".strip()
     q = ", ".join(p for p in (via, str(city or "").strip()) if p)
     return "https://www.google.com/maps/search/?api=1&query=" + quote(q)
 
 
 def _via_civico(data):
-    """(via, civico) di una richiesta: il civico dal suo campo o, se manca,
-    staccato dal fondo dell'indirizzo ('Via Roma 12' -> 'Via Roma', '12')."""
+    """(street, house number) of a request: the number from its own field or,
+    if missing, split off the end of the address ('Via Roma 12' -> 'Via Roma', '12')."""
     addr = re.sub(r"\s+", " ", str(data.get("address") or "")).strip(" ,")
     civ = re.sub(r"\s+", "", str(data.get("civico") or ""))
     civ = re.sub(r"^(?:n|nr|no|num|numero|civico)\.?", "", civ, flags=re.I)
     street, c2 = split_civico(addr)
     if civ and c2 and norm_civico(civ) != norm_civico(c2):
-        street = addr                       # il numero nell'indirizzo non e' il civico
-    # tipo di via scelto dalla tendina: si antepone, se il nome non ne ha gia' uno
+        street = addr                       # the number in the address is not the house number
+    # street type chosen from the drop-down: prepended if the name has none already
     tipo = re.sub(r"\s+", " ", str(data.get("toponimo") or "")).strip()
     if tipo and street and not _TYPE_HEAD.match(_fold(street)) \
             and _fold(tipo) in STREET_TYPES:
@@ -202,7 +202,7 @@ def _via_civico(data):
 
 
 def new_added_entry(nid, label, platform, ntype, value, data, parent, now):
-    """Voce di annotations.json per un nodo creato a mano."""
+    """annotations.json entry for a manually created node."""
     entry = {
         "id": nid, "label": str(data.get("label") or label)[:300], "ntype": ntype,
         "platform": platform, "parent": parent, "value": value,
@@ -216,13 +216,13 @@ def new_added_entry(nid, label, platform, ntype, value, data, parent, now):
     extra = {str(k).strip()[:120]: str(v).strip()[:20000] for k, v in extra.items()
              if str(k).strip() and str(v).strip()}
     if extra:
-        entry["extra"] = extra                     # colonne libere del file importato
+        entry["extra"] = extra                     # free columns of the imported file
     if ntype in onto.TYPES:
         entry["fields"] = onto_fields(ntype, data)
     if ntype == "vehicle":
         colore = re.sub(r"\s+", " ", str(data.get("colore") or "")).strip()[:40]
         if colore:
-            entry["colore"] = colore[:1].upper() + colore[1:]    # solo nella scheda
+            entry["colore"] = colore[:1].upper() + colore[1:]    # in the card only
     if ntype == "name":
         for k in ("cognome", "nome"):
             v = re.sub(r"\s+", " ", str(data.get(k) or "")).strip()[:120]
@@ -232,7 +232,7 @@ def new_added_entry(nid, label, platform, ntype, value, data, parent, now):
         if nascita:
             entry["nascita"] = nascita
         if _truthy(data.get("target")):
-            entry["target"] = True           # evidenziato come target
+            entry["target"] = True           # highlighted as target
     if ntype == "place":
         entry["citta"] = value
         street, civico = _via_civico(data)
@@ -243,7 +243,7 @@ def new_added_entry(nid, label, platform, ntype, value, data, parent, now):
         if data.get("lat") and data.get("lon"):
             entry["lat"] = str(data["lat"]).replace(",", ".")
             entry["lon"] = str(data["lon"]).replace(",", ".")
-            # con le coordinate il nodo si apre direttamente sulla mappa
+            # with coordinates the node opens directly on the map
             entry["url"] = ("https://www.google.com/maps/search/?api=1&query="
                             f"{entry['lat']},{entry['lon']}")
         elif not entry.get("url"):
@@ -252,12 +252,12 @@ def new_added_entry(nid, label, platform, ntype, value, data, parent, now):
 
 
 def _translit_new_labels(labels):
-    """Traslitterazione: se un'etichetta e' in alfabeto non latino il nodo avra'
-    il suo nodo latino (creato da apply_annotations). Con l'AI attiva si fanno
-    tradurre SUBITO le parole nuove, prima di rispondere al client: cosi' il
-    nodo latino nasce gia' con la forma dell'AI e non con quella del motore
-    locale (se l'AI non risponde si ripiega su quello). Ritorna il primo
-    alfabeto non latino trovato."""
+    """Transliteration: if a label is in a non-Latin alphabet the node will get
+    its Latin node (created by apply_annotations). With the AI enabled the new
+    words are translated RIGHT AWAY, before replying to the client: so the
+    Latin node is born with the AI's form and not the local engine's (if the
+    AI does not answer, it falls back to the local engine). Returns the first
+    non-Latin alphabet found."""
     labels = [str(l or "") for l in labels]
     scr = next((s for s in map(script_of, labels) if s), "") or ""
     if scr and chatbot_ready():

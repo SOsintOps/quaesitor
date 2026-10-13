@@ -23,7 +23,7 @@ def test_fbank_shape_and_cmn():
     assert f.shape == (1 + (len(wave) - 400) // 160, 80)   # 25 ms / 10 ms, snip_edges
     assert f.dtype == np.float32
     assert np.allclose(f.mean(axis=0), 0.0, atol=1e-3)       # CMN per utterance
-    # onde troppo corte vengono riempite: almeno un frame
+    # waves that are too short are padded: at least one frame
     assert D.fbank(np.zeros(100, dtype=np.float32)).shape[0] == 1
 
 
@@ -31,8 +31,8 @@ def test_window_plan_covers_regions():
     wins = D.window_plan([(0.0, 4.0), (10.0, 10.3), (20.0, 21.0)])
     assert wins[0] == (0.0, D.WINDOW_SEC)
     assert all(b - a <= D.WINDOW_SEC + 1e-6 for a, b in wins)
-    assert wins[-1] == (20.0, 21.0)                 # regione corta ma >= MIN_WINDOW_SEC
-    assert not any(a >= 10.0 and b <= 10.3 for a, b in wins)   # sotto il minimo: ignorata
+    assert wins[-1] == (20.0, 21.0)                 # short region but >= MIN_WINDOW_SEC
+    assert not any(a >= 10.0 and b <= 10.3 for a, b in wins)   # below the minimum: ignored
     assert max(b for a, b in wins if b <= 4.0) >= 4.0 - D.HOP_SEC / 2
 
 
@@ -52,7 +52,7 @@ def test_cluster_embeddings_auto_and_forced():
     embs, truth = _fake_embeddings()
     labels = D.cluster_embeddings(embs)
     assert labels.max() + 1 == 3
-    # etichette coerenti con la verità (a meno di permutazione) e numerate per prima comparsa
+    # labels consistent with the ground truth (up to permutation) and numbered by first appearance
     assert labels[0] == 0
     for c in range(3):
         assert len(set(labels[np.array(truth) == c])) == 1
@@ -68,7 +68,7 @@ def test_small_clusters_are_absorbed():
     outlier = rng.normal(size=256).astype(np.float32)
     embs = np.vstack([embs, (outlier / np.linalg.norm(outlier))[None]])
     labels = D.cluster_embeddings(embs)
-    assert labels.max() + 1 == 2                    # il singolo outlier non crea un parlante
+    assert labels.max() + 1 == 2                    # the single outlier does not create a speaker
 
 
 def test_assign_speakers_and_turns():
@@ -76,7 +76,7 @@ def test_assign_speakers_and_turns():
     labels = [0, 0, 1, 1]
     segs = [{"t0": 0.2, "t1": 2.0, "speaker": None, "text": "ciao"},
             {"t0": 3.1, "t1": 5.0, "speaker": None, "text": "salve"},
-            {"t0": 9.0, "t1": 9.5, "speaker": None, "text": "fuori"}]   # nessuna finestra: la più vicina
+            {"t0": 9.0, "t1": 9.5, "speaker": None, "text": "fuori"}]   # no window: the nearest
     D.assign_speakers(segs, wins, labels)
     assert [s["speaker"] for s in segs] == ["PARLANTE 1", "PARLANTE 2", "PARLANTE 2"]
     turns = D.speaker_turns(wins, labels)
@@ -112,7 +112,7 @@ class _StubModel:
 
 
 def test_transcribe_diarize_fallback_without_models(tmp_path, monkeypatch):
-    """Se la diarizzazione fallisce (qui: modelli non scaricabili) la trascrizione resta valida."""
+    """If the diarization fails (here: models that cannot be downloaded) the transcription stays valid."""
     monkeypatch.setenv("QUAESITOR_MODELS_DIR", str(tmp_path / "nomodels"))
 
     def boom(*a, **k):
@@ -127,7 +127,7 @@ def test_transcribe_diarize_fallback_without_models(tmp_path, monkeypatch):
 
 
 def test_transcribe_diarize_uses_fake_pipeline(tmp_path, monkeypatch):
-    """Con una diarizzazione finta i segmenti ricevono PARLANTE k e i file vengono riscritti."""
+    """With a fake diarization the segments get PARLANTE k and the files are rewritten."""
     def fake_diarize_audio(audio, **kw):
         wins, labels = [(0.0, 1.5), (3.5, 5.0)], [0, 1]
         return {"speakers": 2, "windows": wins, "labels": labels,
@@ -140,19 +140,19 @@ def test_transcribe_diarize_uses_fake_pipeline(tmp_path, monkeypatch):
     assert res["speaker_turns"][1]["speaker"] == "PARLANTE 2"
     body = (tmp_path / "transcript.txt").read_text(encoding="utf-8")
     assert "PARLANTE 2 (it) Seconda frase." in body
-    assert "voiceprints" not in res and "_voices" not in res     # senza embedding, niente impronte
+    assert "voiceprints" not in res and "_voices" not in res     # without embeddings, no voiceprints
 
 
 def test_le_impronte_finiscono_nel_npz_e_non_nel_json(tmp_path, monkeypatch):
-    """Una run con embedding scrive voices.npz e la chiave voiceprints (solo metadati):
-    il parlante con poco parlato ha l'impronta assente e il motivo scritto."""
+    """A run with embeddings writes voices.npz and the voiceprints key (metadata only):
+    the speaker with little speech has no voiceprint and the reason written."""
     import json
     from quaesitor.audio import voices as V
     embs, _ = _fake_embeddings(n_per=5, k=2)
     wins = [(t, t + 3.0) for t in np.arange(0.0, 7.5, 1.5)] + [(20.0, 23.0), (21.5, 24.5), (23.0, 26.0),
                                                                 (24.5, 27.5), (26.0, 29.0)]
     labels = [0] * 5 + [1] * 5
-    labels[9] = 2                                     # un terzo parlante con una finestra sola
+    labels[9] = 2                                     # a third speaker with a single window
     embs = np.vstack([embs, embs[-1:]])[:10]
 
     def fake_diarize_audio(audio, **kw):
@@ -177,9 +177,9 @@ def test_le_impronte_finiscono_nel_npz_e_non_nel_json(tmp_path, monkeypatch):
 
 @pytest.mark.skipif(not D.vad_cached(), reason="Silero VAD non in cache")
 def test_vad_on_silence_finds_nothing():
-    # i modelli non bastano: serve anche il runtime che li esegue. Sui runner della CI
-    # mancano entrambi e la guardia sopra basta, ma su una macchina con i modelli gia'
-    # in cache e senza onnxruntime questo test falliva invece di saltare.
+    # the models are not enough: the runtime that executes them is needed too. On the CI
+    # runners both are missing and the guard above is enough, but on a machine with the models
+    # already cached and without onnxruntime this test failed instead of skipping.
     pytest.importorskip("onnxruntime")
     sess = D._session(D.models_dir() / "silero_vad.onnx")
     assert D.vad_regions(np.zeros(D.SAMPLE_RATE * 2, dtype=np.float32), sess) == []

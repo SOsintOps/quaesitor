@@ -9,20 +9,20 @@
 # any later version, with the additional terms in the file NOTICE.
 # See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
 
-"""Indicizzazione di una cartella di fonti (documenti) e ricerca full-text.
+"""Indexing of a folder of sources (documents) and full-text search.
 
-Formati supportati per l'estrazione del testo:
-    .txt .md .csv .log    lettura diretta
+Supported formats for text extraction:
+    .txt .md .csv .log    read directly
     .docx                 python-docx
-    .doc                  best-effort (stringhe leggibili dal binario)
+    .doc                  best-effort (readable strings from the binary)
     .xlsx                 openpyxl
     .xls                  xlrd
-    .pdf                  pypdf (PDF testuali)
-    .png .jpg .jpeg ...   OCR con Tesseract, SOLO se installato
+    .pdf                  pypdf (text PDFs)
+    .png .jpg .jpeg ...   OCR with Tesseract, ONLY if installed
 
-L'indice lo salva il chiamante (nel database dell'app) così sopravvive ai riavvii.
-La ricerca è per sottostringa (parziale) o per parola intera (totale), senza
-distinzione di maiuscole/accenti, e restituisce anteprime di contesto.
+The caller saves the index (in the app database) so it survives restarts.
+Search is by substring (partial) or by whole word (total), case- and
+accent-insensitive, and returns context previews.
 """
 # "Mendacem memorem esse oportet." (Quintilian, Institutio Oratoria)
 # A liar needs a good memory.
@@ -45,13 +45,13 @@ PDF_EXT = {".pdf"}
 IMG_EXT = {".png", ".jpg", ".jpeg", ".webp", ".gif", ".bmp", ".tif", ".tiff"}
 SUPPORTED = TEXT_EXT | DOCX_EXT | DOC_EXT | XLSX_EXT | XLS_EXT | PDF_EXT | IMG_EXT
 
-MAX_TEXT = 800_000          # testo massimo tenuto per file (caratteri)
-MAX_FILE_MB = 60            # oltre questa dimensione il file viene saltato
+MAX_TEXT = 800_000          # maximum text kept per file (characters)
+MAX_FILE_MB = 60            # files larger than this are skipped
 
 
 # ---------------------------------------------------------------- OCR ------
-# Tesseract può stare in una cartella LOCALE (scaricata con setup_tesseract.py),
-# senza installarlo nel sistema. Si cerca lì prima che nel PATH.
+# Tesseract can live in a LOCAL folder (downloaded with setup_tesseract.py),
+# without installing it system-wide. It is looked for there before the PATH.
 def _local_tesseract_candidates(base_dir):
     exe = "tesseract.exe" if os.name == "nt" else "tesseract"
     dirs = []
@@ -62,21 +62,21 @@ def _local_tesseract_candidates(base_dir):
     out = []
     for d in dirs:
         out.append(os.path.join(d, exe))
-        out.append(os.path.join(d, "bin", exe))       # layout con sottocartella bin/
+        out.append(os.path.join(d, "bin", exe))       # layout with a bin/ subfolder
     return out
 
 
-TESSDATA_DIR = ""          # cartella tessdata locale, se trovata
+TESSDATA_DIR = ""          # local tessdata folder, if found
 
 
-OCR_REASON = ""     # perche' l'OCR manca: "module" (pytesseract), "binary" (tesseract) o ""
-OCR_LANG = ""       # lingue passate a Tesseract ("ita+eng", eng per ultimo): TESSERACT_LANG oppure tutte quelle installate
+OCR_REASON = ""     # why OCR is missing: "module" (pytesseract), "binary" (tesseract) or ""
+OCR_LANG = ""       # languages passed to Tesseract ("ita+eng", eng last): TESSERACT_LANG or all installed ones
 
 
 def _ocr_languages():
-    """Lingue da passare a Tesseract: la variabile TESSERACT_LANG se c'e',
-    altrimenti tutti i pacchetti lingua installati (meno 'osd'), uniti con '+'.
-    Senza pacchetti o in caso di errore si lascia decidere a Tesseract (eng)."""
+    """Languages to pass to Tesseract: the TESSERACT_LANG variable if set,
+    otherwise every installed language pack (except 'osd'), joined with '+'.
+    With no packs or on error, Tesseract decides (eng)."""
     env = os.environ.get("TESSERACT_LANG", "").strip()
     if env:
         return env
@@ -85,33 +85,33 @@ def _ocr_languages():
         langs = [l for l in pytesseract.get_languages(config="") if l and l != "osd"]
     except Exception:
         return ""
-    # la PRIMA lingua guida il riconoscimento: eng per ultimo, cosi' accenti e
-    # alfabeti delle altre lingue non vengono appiattiti sull'inglese
+    # the FIRST language drives recognition: eng last, so accents and
+    # alphabets of the other languages are not flattened into English
     langs.sort(key=lambda l: (l == "eng", l))
     return "+".join(langs)
 
 
 def configure_ocr(base_dir=None):
-    """Configura pytesseract usando un Tesseract locale se presente, altrimenti
-    quello di sistema. Aggiorna e ritorna OCR_AVAILABLE (e OCR_REASON)."""
+    """Configure pytesseract with a local Tesseract if present, otherwise the
+    system one. Updates and returns OCR_AVAILABLE (and OCR_REASON)."""
     global OCR_AVAILABLE, TESSDATA_DIR, OCR_REASON, OCR_LANG
     try:
         import pytesseract
     except Exception:
         OCR_AVAILABLE, OCR_REASON = False, "module"
         return False
-    # 1) binario locale (cartella tools/tesseract)
+    # 1) local binary (tools/tesseract folder)
     for cand in _local_tesseract_candidates(base_dir):
         if os.path.isfile(cand):
             pytesseract.pytesseract.tesseract_cmd = cand
-            # i dati lingua stanno accanto, in tessdata/. Tesseract 5.x vuole
-            # TESSDATA_PREFIX puntato DIRETTAMENTE a quella cartella.
+            # the language data sits alongside, in tessdata/. Tesseract 5.x wants
+            # TESSDATA_PREFIX pointing DIRECTLY at that folder.
             tdata = os.path.join(os.path.dirname(cand), "tessdata")
             if os.path.isdir(tdata):
                 TESSDATA_DIR = tdata
                 os.environ["TESSDATA_PREFIX"] = tdata
             break
-    # 2) verifica che funzioni (locale o di sistema)
+    # 2) check that it works (local or system)
     try:
         pytesseract.get_tesseract_version()
         OCR_AVAILABLE, OCR_REASON = True, ""
@@ -124,7 +124,7 @@ def configure_ocr(base_dir=None):
 OCR_AVAILABLE = configure_ocr()
 
 
-# --------------------------------------------------- estrattori di testo ---
+# -------------------------------------------------------- text extractors ---
 def _txt(path):
     for enc in ("utf-8-sig", "utf-8", "cp1252", "latin-1"):
         try:
@@ -139,21 +139,21 @@ def _docx(path):
     import docx
     d = docx.Document(path)
     parts = [p.text for p in d.paragraphs]
-    for tbl in d.tables:                        # anche il testo nelle tabelle
+    for tbl in d.tables:                        # text in tables too
         for row in tbl.rows:
             parts.append("\t".join(c.text for c in row.cells))
     return "\n".join(parts)
 
 
 def _doc(path):
-    """Vecchio formato .doc: estrae le sequenze di caratteri leggibili dal
-    binario. Grezzo ma cattura il testo visibile senza dipendenze esterne."""
+    """Old .doc format: extracts readable character runs from the binary.
+    Crude, but it captures the visible text without external dependencies."""
     try:
         raw = io.open(path, "rb").read()
     except Exception:
         return ""
     txt = raw.decode("latin-1", "ignore")
-    tokens = re.findall(r"[ -~ -ɏ]{4,}", txt)   # ASCII + latino esteso
+    tokens = re.findall(r"[ -~ -ɏ]{4,}", txt)   # ASCII + extended Latin
     return "\n".join(t.strip() for t in tokens if len(t.strip()) >= 4)
 
 
@@ -204,10 +204,10 @@ def _image(path):
     try:
         import pytesseract
         from PIL import Image
-        # la posizione dei dati lingua è data da TESSDATA_PREFIX (impostato in
-        # configure_ocr direttamente sulla cartella tessdata, come vuole Tesseract 5).
-        # lingue: tutte quelle installate (o TESSERACT_LANG), cosi' accenti e
-        # alfabeti non latini vengono letti; senza pacchetti lingua resta eng.
+        # the language data location comes from TESSDATA_PREFIX (set in
+        # configure_ocr directly on the tessdata folder, as Tesseract 5 wants).
+        # languages: all installed ones (or TESSERACT_LANG), so accents and
+        # non-Latin alphabets are read; without language packs it stays eng.
         return pytesseract.image_to_string(Image.open(path), lang=OCR_LANG or None)
     except Exception as e:
         logging.warning(f"OCR fallito su {path}: {e}")
@@ -235,19 +235,19 @@ def extract_text(path, ext):
     return ""
 
 
-# ---------------------------------------------------- normalizzazione ------
+# ---------------------------------------------------------- normalisation ---
 def _norm_char(c):
-    """Normalizza UN carattere restando 1:1 (un char -> un char): toglie
-    l'accento e mette in minuscolo, senza cambiare la lunghezza. Fondamentale
-    perché gli offset dei match combacino col testo originale (highlight)."""
+    """Normalise ONE character staying 1:1 (one char -> one char): strips the
+    accent and lowercases, without changing the length. Essential so that
+    match offsets line up with the original text (highlight)."""
     d = unicodedata.normalize("NFKD", c)
     d = "".join(ch for ch in d if not unicodedata.combining(ch))
     return (d[0] if d else c).lower()
 
 
 def norm(s):
-    """Minuscolo, accenti rimossi, MA con mappatura 1:1 dei caratteri, così la
-    posizione di ogni carattere è la stessa del testo originale."""
+    """Lowercase, accents removed, BUT with a 1:1 character mapping, so the
+    position of each character is the same as in the original text."""
     return "".join(_norm_char(c) for c in str(s or ""))
 
 
@@ -255,10 +255,10 @@ def file_id(path):
     return hashlib.md5(os.path.abspath(path).encode("utf-8")).hexdigest()[:16]
 
 
-# ------------------------------------------------------------- scansione ---
+# ------------------------------------------------------------------ scan ---
 def _list_candidates(folder):
-    """Elenco dei file supportati (path, name, ext, size), saltando i troppo
-    grandi. Serve a conoscere il TOTALE prima di iniziare a estrarre."""
+    """List of supported files (path, name, ext, size), skipping those too
+    large. Used to know the TOTAL before extraction starts."""
     out, skipped = [], 0
     for root, dirs, names in os.walk(folder):
         dirs[:] = [d for d in dirs if not d.startswith(".")]
@@ -279,25 +279,25 @@ def _list_candidates(folder):
 
 
 def _rel_to_base(folder, base_dir):
-    """Se 'folder' sta dentro base_dir, ritorna il percorso relativo (per la
-    PORTABILITÀ: spostando la cartella, l'indice resta valido). Altrimenti None."""
+    """If 'folder' is inside base_dir, return the relative path (for
+    PORTABILITY: moving the folder keeps the index valid). Otherwise None."""
     if not base_dir:
         return None
     try:
         base = os.path.abspath(base_dir)
         rel = os.path.relpath(folder, base)
-    except ValueError:                      # dischi diversi su Windows
+    except ValueError:                      # different drives on Windows
         return None
-    # dentro base_dir se il relativo non risale con '..' e non è assoluto
+    # inside base_dir if the relative path does not climb with '..' and is not absolute
     if rel == os.pardir or rel.startswith(os.pardir + os.sep) or os.path.isabs(rel):
         return None
     return rel.replace("\\", "/")
 
 
 def effective_folder(index, base_dir):
-    """Cartella fonti CORRENTE: se l'indice ha un percorso relativo (cartella
-    dentro/accanto all'eseguibile) lo risolve rispetto a base_dir ORA — così
-    tutto resta valido anche dopo aver spostato la cartella."""
+    """CURRENT sources folder: if the index has a relative path (folder
+    inside/next to the executable) it is resolved against base_dir NOW, so
+    everything stays valid even after the folder has been moved."""
     rel = index.get("folder_rel")
     if rel and base_dir:
         return os.path.abspath(os.path.join(base_dir, rel.replace("/", os.sep)))
@@ -309,9 +309,9 @@ LEGACY_FOLDER = "fonti"      # name of the folder up to 1.7.x
 
 
 def sources_folder(base_dir):
-    """Cartella dei documenti accanto al programma: 'sources'. Le installazioni
-    fatte prima della 1.8.0 hanno 'fonti': finché 'sources' non esiste e 'fonti'
-    sì, si continua a usare quella, così l'indice e i documenti restano validi."""
+    """Documents folder next to the program: 'sources'. Installations made
+    before 1.8.0 have 'fonti': as long as 'sources' does not exist and 'fonti'
+    does, the latter is still used, so the index and documents stay valid."""
     new = os.path.join(base_dir, SOURCES_FOLDER)
     old = os.path.join(base_dir, LEGACY_FOLDER)
     if not os.path.isdir(new) and os.path.isdir(old):
@@ -320,21 +320,22 @@ def sources_folder(base_dir):
 
 
 def folder_candidates(index, base_dir, default_folder=None):
-    """Cartelle dove cercare OGGI i documenti indicizzati, IN ORDINE.
+    """Folders in which to look for the indexed documents TODAY, IN ORDER.
 
-    Prima si guarda SEMPRE nella cartella 'fonti' accanto all'eseguibile: e'
-    quella la posizione ufficiale dei documenti e l'unica che resta valida
-    spostando il programma da un PC all'altro.
-      1) fonti/<nome della cartella scansionata>   (es. fonti/Tutti_dati_Lybia)
-      2) fonti/
-      3) il percorso registrato nell'indice (assoluto: vale solo sulla
-         macchina che ha fatto la scansione)
+    The 'sources' folder next to the executable (or 'fonti' before 1.8.0, see
+    sources_folder()) is ALWAYS checked first: it is the official location of
+    the documents and the only one that stays valid when the program is moved
+    from one PC to another.
+      1) sources/<name of the scanned folder>   (e.g. sources/Tutti_dati_Lybia)
+      2) sources/
+      3) the path recorded in the index (absolute: valid only on the
+         machine that did the scan)
 
-    Senza il punto 1-2 succedeva questo: l'indice conserva il percorso della
-    cartella scansionata e, se quella stava FUORI dalla directory del
-    programma, il percorso e' assoluto. Portando eseguibile + data/ + fonti/
-    su un altro PC la ricerca continuava a funzionare (il testo e' dentro
-    l'indice) ma l'apertura dei file rispondeva 404."""
+    Without points 1-2 this happened: the index keeps the path of the
+    scanned folder and, if that was OUTSIDE the program directory, the path
+    is absolute. Moving executable + data/ + sources/ to another PC, search
+    kept working (the text is inside the index) but opening files
+    returned 404."""
     out = []
 
     def aggiungi(p):
@@ -351,9 +352,9 @@ def folder_candidates(index, base_dir, default_folder=None):
         if nome:
             aggiungi(os.path.join(fonti, nome))
         aggiungi(fonti)
-        # ultimo tentativo dentro 'fonti': le sottocartelle di primo livello.
-        # Copre il caso in cui i documenti siano stati messi li' sotto un nome
-        # diverso da quello della cartella scansionata.
+        # last attempt inside the sources folder: the first-level subfolders.
+        # Covers the case where the documents were put there under a name
+        # different from that of the scanned folder.
         try:
             for voce in sorted(os.listdir(fonti))[:40]:
                 sotto = os.path.join(fonti, voce)
@@ -366,24 +367,24 @@ def folder_candidates(index, base_dir, default_folder=None):
 
 
 def locate_file(index, rel, base_dir, default_folder=None):
-    """Percorso reale di un file indicizzato, cercato fra le cartelle possibili.
-    Ritorna (percorso, cartella) oppure (None, None) se non si trova.
-    Il controllo di sicurezza resta: il file deve stare DENTRO la cartella."""
+    """Real path of an indexed file, looked up among the candidate folders.
+    Returns (path, folder) or (None, None) if not found.
+    The security check stays: the file must be INSIDE the folder."""
     rel = (rel or "").replace("/", os.sep)
     if not rel:
         return None, None
     for cartella in folder_candidates(index, base_dir, default_folder):
         percorso = os.path.abspath(os.path.join(cartella, rel))
         if not percorso.startswith(cartella + os.sep):
-            continue                      # rel che tenta di uscire: si scarta
+            continue                      # rel trying to escape: discarded
         if os.path.isfile(percorso):
             return percorso, cartella
     return None, None
 
 
 def resolved_folder(index, base_dir, default_folder=None):
-    """Cartella da cui si stanno leggendo DAVVERO i documenti: la prima
-    candidata che esiste e contiene almeno un file dell'indice."""
+    """Folder the documents are ACTUALLY being read from: the first
+    candidate that exists and contains at least one file of the index."""
     files = index.get("files") or []
     campione = [f.get("rel") for f in files[:25] if f.get("rel")]
     for cartella in folder_candidates(index, base_dir, default_folder):
@@ -398,11 +399,11 @@ def resolved_folder(index, base_dir, default_folder=None):
 
 
 def scan_folder_stream(folder, index_path, base_dir=None):
-    """Come scan_folder, ma è un GENERATORE che emette l'avanzamento a ogni
-    file elaborato: prima {'phase':'start','total':N}, poi per ciascun file
-    {'phase':'file','done':i,'total':N,'name':...}, infine {'phase':'done', ...}
-    con il riepilogo. Salva l'indice alla fine. Se la cartella sta dentro
-    base_dir, memorizza il percorso RELATIVO (portabilità)."""
+    """Like scan_folder, but a GENERATOR that emits progress for every
+    processed file: first {'phase':'start','total':N}, then for each file
+    {'phase':'file','done':i,'total':N,'name':...}, finally {'phase':'done', ...}
+    with the summary. Saves the index at the end. If the folder is inside
+    base_dir, stores the RELATIVE path (portability)."""
     folder = os.path.abspath(folder)
     if not os.path.isdir(folder):
         raise FileNotFoundError(folder)
@@ -417,7 +418,7 @@ def scan_folder_stream(folder, index_path, base_dir=None):
         yield {"phase": "file", "done": i, "total": total, "name": name}
         text = extract_text(path, ext)[:MAX_TEXT]
         files.append({
-            "id": file_id(os.path.relpath(path, folder)),   # id stabile allo spostamento
+            "id": file_id(os.path.relpath(path, folder)),   # id stable across moves
             "rel": os.path.relpath(path, folder).replace("\\", "/"),
             "name": name, "ext": ext,
             "size": size, "mtime": os.path.getmtime(path),
@@ -427,13 +428,13 @@ def scan_folder_stream(folder, index_path, base_dir=None):
         by_ext[ext] = by_ext.get(ext, 0) + 1
 
     index = {
-        "folder": folder,             # assoluto: solo per riferimento/display
-        "folder_rel": folder_rel,     # relativo a base_dir se portabile
+        "folder": folder,             # absolute: for reference/display only
+        "folder_rel": folder_rel,     # relative to base_dir if portable
         "scanned_at": time.strftime("%Y-%m-%d %H:%M:%S"),
         "count": len(files), "skipped": skipped, "by_ext": by_ext,
         "ocr_available": OCR_AVAILABLE, "files": files,
     }
-    if callable(index_path):          # salvataggio delegato (database)
+    if callable(index_path):          # delegated saving (database)
         index_path(index)
     else:
         tmp = index_path + ".tmp"
@@ -446,7 +447,7 @@ def scan_folder_stream(folder, index_path, base_dir=None):
 
 
 def scan_folder(folder, index_path, base_dir=None):
-    """Versione non-streaming: scandisce, salva e ritorna il riepilogo."""
+    """Non-streaming version: scans, saves and returns the summary."""
     summary = None
     for ev in scan_folder_stream(folder, index_path, base_dir):
         if ev.get("phase") == "done":
@@ -470,30 +471,30 @@ def load_index(index_path):
         return None
 
 
-# --------------------------------------------------------------- ricerca ---
-PHONE_QUERY = re.compile(r"^[\d\s.\-()+/]+$")   # query fatta solo di cifre e separatori
-_SEP = r"[\s.\-()/]*"                            # separatori ammessi tra le cifre
+# ---------------------------------------------------------------- search ---
+PHONE_QUERY = re.compile(r"^[\d\s.\-()+/]+$")   # query made only of digits and separators
+_SEP = r"[\s.\-()/]*"                            # separators allowed between digits
 
 
 _HAN = re.compile(r"[\u3400-\u4DBF\u4E00-\u9FFF\uF900-\uFAFF]")
 
 
 def _has_han(s):
-    """Ideogrammi cinesi/giapponesi: il testo non ha spazi fra le parole, quindi
-    il modo 'parola intera' non ha confini da cercare e si cerca la sequenza."""
+    """Chinese/Japanese ideographs: the text has no spaces between words, so
+    'whole word' mode has no boundaries to look for and the sequence is searched."""
     return bool(_HAN.search(str(s or "")))
 
 
 def build_matcher(nq, mode):
-    """Costruisce la regex di ricerca sul testo normalizzato (1:1 col testo
-    originale). Se la query è un NUMERO, le cifre possono essere separate da
-    spazi/trattini/punti: così '+23562798882' trova anche '+235 62 79 88 82'."""
+    """Build the search regex on the normalised text (1:1 with the original
+    text). If the query is a NUMBER, the digits may be separated by
+    spaces/hyphens/dots: so '+23562798882' also finds '+235 62 79 88 82'."""
     digits = re.sub(r"\D", "", nq)
     if len(digits) >= 5 and PHONE_QUERY.match(nq):
         core = _SEP.join(re.escape(d) for d in digits)
-        pat = r"(?:\+" + _SEP + r")?" + core             # + iniziale opzionale
+        pat = r"(?:\+" + _SEP + r")?" + core             # optional leading +
         if mode == "total":
-            pat = r"(?<!\d)" + pat + r"(?!\d)"           # confini di numero
+            pat = r"(?<!\d)" + pat + r"(?!\d)"           # number boundaries
         return re.compile(pat)
     esc = re.escape(nq)
     if mode == "total" and not _has_han(nq):
@@ -502,9 +503,9 @@ def build_matcher(nq, mode):
 
 
 def _snippets_from(text, matches, max_snips=3, radius=60):
-    """Estratti di contesto attorno ai match. Le sostituzioni sono 1:1
-    (newline/tab -> spazio) così gli offset restano validi; gli spazi multipli
-    li accorpa il browser in fase di rendering."""
+    """Context excerpts around the matches. Replacements are 1:1
+    (newline/tab -> space) so offsets stay valid; the browser collapses
+    multiple spaces when rendering."""
     out = []
     for m in matches[:max_snips]:
         i, j = m.start(), m.end()
@@ -514,15 +515,15 @@ def _snippets_from(text, matches, max_snips=3, radius=60):
         post = "…" if b < len(text) else ""
         snip = text[a:b].replace("\n", " ").replace("\r", " ").replace("\t", " ")
         out.append({"text": pre + snip + post,
-                    "at": i - a + len(pre),      # offset del match nello snippet
-                    "len": j - i})               # lunghezza REALE del match
+                    "at": i - a + len(pre),      # offset of the match in the snippet
+                    "len": j - i})               # REAL length of the match
     return out
 
 
 def search_index(index, query, mode="partial", max_files=60):
-    """Cerca 'query' nell'indice. mode: 'partial' (sottostringa) o 'total'
-    (parola intera). Ritorna i file che contengono il termine, con anteprime.
-    Per i numeri di telefono i separatori vengono ignorati."""
+    """Search 'query' in the index. mode: 'partial' (substring) or 'total'
+    (whole word). Returns the files containing the term, with previews.
+    For phone numbers separators are ignored."""
     nq = norm(query).strip()
     if not index or not nq:
         return {"query": query, "mode": mode, "count": 0, "results": []}
@@ -531,8 +532,8 @@ def search_index(index, query, mode="partial", max_files=60):
     results = []
     for f in index.get("files", []):
         text = f.get("text") or ""
-        # uso la normalizzata già salvata (veloce, allineata 1:1); la ricalcolo
-        # solo se manca del tutto (indici vecchi senza il campo 'ntext').
+        # use the already saved normalised text (fast, aligned 1:1); recompute it
+        # only if missing altogether (old indexes without the 'ntext' field).
         nt = f.get("ntext")
         if nt is None:
             nt = norm(text)
@@ -552,11 +553,11 @@ def search_index(index, query, mode="partial", max_files=60):
             "results": results[:max_files], "truncated": total > max_files}
 
 
-_WORDSEP = r"[\s.\-,/()]+"        # separatore tra parole di una frase
+_WORDSEP = r"[\s.\-,/()]+"        # separator between the words of a phrase
 
 
 def _term_core(w):
-    """Frammento regex per una parola: sep-tollerante se è un numero."""
+    """Regex fragment for one word: separator-tolerant if it is a number."""
     nw = norm(w)
     digits = re.sub(r"\D", "", nw)
     if len(digits) >= 5 and PHONE_QUERY.match(nw):
@@ -565,9 +566,9 @@ def _term_core(w):
 
 
 def _combo_regex(words, mode):
-    """Regex di una combinazione: le parole devono comparire consecutive
-    (separate da spazi/punteggiatura). Per una sola parola, in modo 'total'
-    aggiunge i confini di parola."""
+    """Regex of a combination: the words must appear consecutively
+    (separated by spaces/punctuation). For a single word, in 'total' mode
+    it adds word boundaries."""
     core = _WORDSEP.join(_term_core(w) for w in words)
     if mode == "total" and len(words) == 1 and not _has_han(words[0]):
         core = r"(?<!\w)" + core + r"(?!\w)"
@@ -575,12 +576,12 @@ def _combo_regex(words, mode):
 
 
 def search_multi(index, terms, mode="partial", max_files=80, max_words=4, max_combos=400):
-    """Cerca nelle fonti TUTTE le combinazioni delle parole della chiave scheda:
-    da 1 a max_words parole, in ogni ordine (permutazioni). Ritorna le
-    combinazioni che hanno prodotto risultati (per i chip) e i file che le
-    contengono. Un pre-filtro per parola tiene i tempi bassi anche su indici
-    grandi: una combinazione si cerca solo nei file che contengono tutte le
-    sue parole."""
+    """Search the sources for ALL combinations of the words of the card key:
+    from 1 to max_words words, in every order (permutations). Returns the
+    combinations that produced results (for the chips) and the files that
+    contain them. A per-word pre-filter keeps times low even on large
+    indexes: a combination is searched only in files that contain all of
+    its words."""
     seen, words = set(), []
     for t in terms:
         t = str(t or "").strip()
@@ -597,7 +598,7 @@ def search_multi(index, terms, mode="partial", max_files=80, max_words=4, max_co
         nt = f.get("ntext")
         nts.append(nt if nt is not None else norm(f.get("text") or ""))
 
-    # 1) pre-filtro: quali file contengono ciascuna parola
+    # 1) pre-filter: which files contain each word
     word_rx = {w: _combo_regex([w], "partial") for w in words}
     word_files = {w: set() for w in words}
     for i, nt in enumerate(nts):
@@ -607,7 +608,7 @@ def search_multi(index, terms, mode="partial", max_files=80, max_words=4, max_co
             if word_rx[w].search(nt):
                 word_files[w].add(i)
 
-    # 2) genera le combinazioni (permutazioni) di 1..max_words parole
+    # 2) generate the combinations (permutations) of 1..max_words words
     combos, seen_c = [], set()
     for r in range(1, min(max_words, len(words)) + 1):
         for perm in itertools.permutations(words, r):
@@ -621,7 +622,7 @@ def search_multi(index, terms, mode="partial", max_files=80, max_words=4, max_co
         if len(combos) >= max_combos:
             break
 
-    # 3) cerca ogni combinazione come FRASE, solo nei file candidati
+    # 3) search each combination as a PHRASE, only in the candidate files
     combo_count = {}
     file_data = {}
     for perm in combos:
@@ -645,7 +646,7 @@ def search_multi(index, terms, mode="partial", max_files=80, max_words=4, max_co
         if cnt:
             combo_count[label] = cnt
 
-    # chip: le combinazioni con più parole in alto, poi per conteggio
+    # chips: combinations with more words at the top, then by count
     terms_sorted = sorted(
         ({"term": l, "count": c, "words": l.count(" ") + 1}
          for l, c in combo_count.items()),
@@ -654,7 +655,7 @@ def search_multi(index, terms, mode="partial", max_files=80, max_words=4, max_co
     results = []
     for i, fd in file_data.items():
         f = files[i]
-        # snippet: prima le combinazioni più lunghe (più specifiche)
+        # snippets: longest (most specific) combinations first
         fd["snippets"].sort(key=lambda s: -(s["term"].count(" ") + 1))
         results.append({
             "id": f["id"], "name": f["name"], "rel": f["rel"], "ext": f["ext"],

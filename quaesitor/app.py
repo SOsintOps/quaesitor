@@ -32,10 +32,10 @@ from .blueprints import (ai, cases, documents, epieos_api, ftm_io, graph, import
 from .core import DATA_DIR
 from .paths import FROZEN, RES_DIR
 
-# RES_DIR: le RISORSE dell'app (templates, static), nel package o, nell'eseguibile
-# PyInstaller, estratte in sys._MEIPASS/quaesitor. BASE_DIR: la cartella del
-# programma, dove stanno i DATI dell'utente (data/, sources/, chatbot.conf...),
-# esterni, modificabili e persistenti. Vedi paths.py.
+# RES_DIR: the app's RESOURCES (templates, static), in the package or, in the
+# PyInstaller executable, extracted to sys._MEIPASS/quaesitor. BASE_DIR: the program
+# folder, where the user's DATA live (data/, sources/, chatbot.conf...), external,
+# editable and persistent. See paths.py.
 
 app = Flask(
     __name__,
@@ -49,17 +49,17 @@ for _bp in (pages, cases, graph, translit, imports, ftm_io, transcription, opens
 
 @app.errorhandler(store.NoCaseError)
 def _no_case(e):
-    """Qualsiasi operazione sul database del caso senza un caso aperto."""
+    """Any operation on the case database with no case open."""
     return jsonify({"error": str(e), "no_case": True}), 409
 
 
 def main():
-    """Avvia il server (app.py nella radice; l'eseguibile PyInstaller parte da lì)."""
+    """Starts the server (app.py in the root; the PyInstaller executable starts from there)."""
     port = int(os.environ.get("PORT", "5000"))
     frozen = FROZEN
     if frozen:
-        # eseguibile finito: apre il browser da solo e non usa il reloader
-        # (che rilancerebbe un secondo processo)
+        # built executable: opens the browser by itself and does not use the reloader
+        # (which would launch a second process)
         import threading
         import webbrowser
         threading.Timer(1.5, lambda: webbrowser.open(f"http://127.0.0.1:{port}")).start()

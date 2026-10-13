@@ -1,5 +1,5 @@
 /*
- * OSInt Graph - esplorazione grafica di dati OSINT per casi investigativi
+ * OSInt Graph - graphical exploration of OSINT data for investigative cases
  * Copyright (C) 2025-2026 Andrea Cumini <andrea@osintinfo.net> - www.osintinfo.net
  * SPDX-License-Identifier: GPL-3.0-or-later
  *
@@ -11,29 +11,29 @@
  */
 // "Fallaces sunt rerum species." (Seneca, De Beneficiis)
 // The appearances of things are deceptive.
-/* ================= HELPERS DOM ================= */
+/* ================= DOM HELPERS ================= */
 const $ = s => document.querySelector(s);
 const on = (sel, evt, fn) => {
   const el = typeof sel === 'string' ? $(sel) : sel;
   if (el) el.addEventListener(evt, fn);
 };
 
-/* ================= ONTOLOGIA ICONE & COLORI ================= */
+/* ================= ICON & COLOUR ONTOLOGY ================= */
 const BRAND = {
   instagram: 'E4405F', snapchat: 'FFC400', facebook: '0866FF', google: '4285F4',
   discord: '5865F2', apple: '333333', amazon: 'FF9900', x: '111111', tiktok: '111111',
   threads: '111111', linkedin: '0A66C2', github: '111111', vk: '0077FF', airbnb: 'FF5A5F',
   zynga: 'D6291E', yahoo: '8A2FF2', microsoft: '00A4EF', telegram: '26A5E4',
   whatsapp: '25D366', spotify: '1DB954',
-  // messaggistica e servizi aggiuntivi (se il CDN non ha l'icona resta il badge)
+  // messaging and additional services (if the CDN lacks the icon, the badge stays)
   viber: '7360F2', signal: '3A76F0', skype: '00AFF0', line: '00C300',
   wechat: '07C160', youtube: 'FF0000', botim: '00A5E3', imo: '15C0F5',
   zangi: 'E9401A', tango: 'FF4B4B', icq: '21A9F1', threema: '3FE669',
   kakaotalk: 'FFCD00'
 };
 
-// NB: il rosso (#dc2626) è RISERVATO al bordo dei "dati di partenza" (seed).
-// Nessun colore-tipo deve avvicinarcisi, o si confonderebbe con quel bordo.
+// NB: red (#dc2626) is RESERVED for the border of the "starting data" (seed).
+// No type colour may come close to it, or it would be confused with that border.
 const TYPE_COLOR = {
   target: '#d97706', account: '#2563eb', phone: '#059669', email: '#db2777',
   username: '#7c3aed', domain: '#ea580c', breach: '#9333ea', generic: '#4b5563',
@@ -42,8 +42,8 @@ const TYPE_COLOR = {
 };
 Object.entries(window.ONTOLOGY || {}).forEach(([k, v]) => { TYPE_COLOR[k] = v.color; });
 
-/* ================= APERTURA PROFILI SOCIAL (Alt+Click) ================= */
-/* Piattaforme conosciute -> come costruire l'URL del profilo dall'handle. */
+/* ================= OPENING SOCIAL PROFILES (Alt+Click) ================= */
+/* Known platforms -> how to build the profile URL from the handle. */
 const SOCIAL_URL = {
   instagram: h => `https://www.instagram.com/${h}/`,
   tiktok:    h => `https://www.tiktok.com/@${h}`,
@@ -52,14 +52,14 @@ const SOCIAL_URL = {
   twitter:   h => `https://x.com/${h}`,
   threads:   h => `https://www.threads.net/@${h}`,
   telegram:  h => `https://t.me/${h}`,
-  // VK: il profilo è vk.com/id<numero>; un numero puro va prefissato con "id"
+  // VK: the profile is vk.com/id<number>; a bare number gets the "id" prefix
   vk:        h => `https://vk.com/${/^\d+$/.test(h) ? 'id' + h : h}`,
   snapchat:  h => `https://www.snapchat.com/add/${h}`,
   linkedin:  h => `https://www.linkedin.com/in/${h}`,
   github:    h => `https://github.com/${h}`,
   youtube:   h => /^UC[A-Za-z0-9_-]{20,}$/.test(h)
-                    ? `https://www.youtube.com/channel/${h}`   // ID canale (case-sensitive)
-                    : `https://www.youtube.com/@${h}`,          // handle personalizzato
+                    ? `https://www.youtube.com/channel/${h}`   // channel ID (case-sensitive)
+                    : `https://www.youtube.com/@${h}`,          // custom handle
   spotify:   h => `https://open.spotify.com/user/${h}`,
   pinterest: h => `https://www.pinterest.com/${h}/`,
   reddit:    h => `https://www.reddit.com/user/${h}`,
@@ -67,7 +67,7 @@ const SOCIAL_URL = {
   vkontakte: h => `https://vk.com/${/^\d+$/.test(h) ? 'id' + h : h}`
 };
 
-/* ---- Riconoscimento di un URL social: host -> piattaforma, path -> handle ---- */
+/* ---- Recognising a social URL: host -> platform, path -> handle ---- */
 const SOCIAL_HOSTS = {
   'instagram.com': 'instagram', 'tiktok.com': 'tiktok',
   'facebook.com': 'facebook', 'fb.com': 'facebook', 'fb.me': 'facebook',
@@ -81,7 +81,7 @@ const SOCIAL_HOSTS = {
   'reddit.com': 'reddit', 'wa.me': 'whatsapp', 'whatsapp.com': 'whatsapp'
 };
 
-/* Da un URL di profilo ricava {platform, handle}. null se non riconosciuto. */
+/* From a profile URL derive {platform, handle}. null if not recognised. */
 function parseSocialUrl(raw) {
   let u;
   try {
@@ -117,15 +117,15 @@ function parseSocialUrl(raw) {
   return h ? { platform, handle: h } : null;
 }
 
-/* Piattaforme in cui un handle "generico" non è affidabile: un username preso
-   da una scheda qualsiasi non è detto sia il nome del profilo su quel social.
-   VK: sono validi solo gli identificativi id<numero> (o il numero puro). */
+/* Platforms where a "generic" handle is not reliable: a username taken
+   from any card is not necessarily the profile name on that social network.
+   VK: only id<number> identifiers (or the bare number) are valid. */
 const HANDLE_STRICT = {
   vk: h => /^(id)?\d+$/i.test(h)
 };
 
-/* Estrattori per id "sporchi": alcuni nodi hanno come identificativo un testo
-   descrittivo del dossier o un id con separatore diverso. */
+/* Extractors for "dirty" ids: some nodes have as identifier a descriptive
+   text from the dossier or an id with a different separator. */
 const HANDLE_EXTRACT = {
   whatsapp: s => { const d = String(s).replace(/\D/g, ''); return d.length >= 8 ? d : ''; },
   telegram: s => { const m = String(s).match(/\b(\d{6,})\b/); return m ? m[1] : ''; },
@@ -138,10 +138,10 @@ const HANDLE_EXTRACT = {
              return m ? 'id' + m[1] : ''; }
 };
 
-/* Handle ricavato dalle schede del nodo: campi username/screen_name o un URL
-   del profilo presente nei dati. Serve ai nodi il cui id è un hash opaco.
-   Un URL della piattaforma è sempre attendibile; un campo username generico
-   viene accettato solo se supera l'eventuale controllo stretto. */
+/* Handle derived from the node's cards: username/screen_name fields or a
+   profile URL present in the data. Needed for nodes whose id is an opaque hash.
+   A URL of the platform is always reliable; a generic username field
+   is accepted only if it passes the strict check, where there is one. */
 function handleFromRecords(d) {
   const HANDLE = /^[A-Za-z0-9._-]{2,}$/;
   const strict = HANDLE_STRICT[d.platform];
@@ -150,7 +150,7 @@ function handleFromRecords(d) {
     try { rows = flatten(r.raw); } catch (_) { continue; }
     for (const [k, v] of rows) {
       const s = String(v || '').trim();
-      if (/^https?:\/\//i.test(s)) {                    // un URL nei dati
+      if (/^https?:\/\//i.test(s)) {                    // a URL in the data
         const p = parseSocialUrl(s);
         if (p && p.platform === d.platform && p.handle) return p.handle;
       }
@@ -163,8 +163,8 @@ function handleFromRecords(d) {
   return '';
 }
 
-/* Handle da usare nell'URL: si prova il valore dell'id (acct:svc:VALORE), poi
-   l'etichetta, poi gli alias; si preferisce un handle testuale a uno numerico. */
+/* Handle to use in the URL: try the id value (acct:svc:VALUE), then
+   the label, then the aliases; a text handle is preferred to a numeric one. */
 function socialHandle(d) {
   const HANDLE = /^[A-Za-z0-9._-]{2,}$/;
   const parts = String(d.id || '').split(':');
@@ -174,50 +174,50 @@ function socialHandle(d) {
   const labels = [d.label, ...(d.aliases || [])]
     .map(c => String(c || '').trim().replace(/^@+/, ''))
     .filter(c => HANDLE.test(c));
-  // 1) etichetta che è lo stesso handle dell'id ma con la capitalizzazione giusta
+  // 1) label that is the same handle as the id but with the right capitalisation
   if (idVal) {
     const m = labels.find(c => c.toLowerCase() === idVal.toLowerCase());
     if (m) return m;
   }
-  // 2) l'id canonico, se testuale (non un id numerico opaco)
+  // 2) the canonical id, if textual (not an opaque numeric id)
   if (idVal && HANDLE.test(idVal) && !/^\d+$/.test(idVal)) return idVal;
-  // 3) un'etichetta testuale non numerica
+  // 3) a textual, non-numeric label
   const nonNum = labels.find(c => !/^\d+$/.test(c));
   if (nonNum) return nonNum;
-  // 4) ripiego: id numerico (facebook/vk lo accettano) o prima etichetta
+  // 4) fallback: numeric id (facebook/vk accept it) or first label
   const fallback = (idVal && HANDLE.test(idVal) ? idVal : '') || labels[0] || '';
   if (fallback) return fallback;
-  // 5) estrattore specifico della piattaforma: recupera l'identificativo anche
-  //    da id "sporchi" (acct:whatsapp-39..., profile.php?id=..., testo libero)
+  // 5) platform-specific extractor: recovers the identifier even
+  //    from "dirty" ids (acct:whatsapp-39..., profile.php?id=..., free text)
   const ex = HANDLE_EXTRACT[d.platform];
   if (ex) { for (const s of raw) { const h = ex(s); if (h) return h; } }
-  // 6) ultima risorsa: cercare un username o un URL dentro le schede
+  // 6) last resort: look for a username or a URL inside the cards
   return handleFromRecords(d);
 }
 
-/* Apre un URL in una NUOVA SCHEDA IN BACKGROUND, senza spostare il focus dal
-   grafo. window.open apre in primo piano: si simula invece un Ctrl+Click (Cmd su
-   Mac) su un link target=_blank, che i browser aprono in secondo piano. */
-/* Apre il profilo in una FINESTRA SEPARATA invece che in una scheda.
-   Motivo: una scheda nuova copre il grafo e Chrome, se decide di attivarla, non
-   può essere contraddetto via JS. Una finestra distinta lascia invece la
-   finestra del grafo dov'è, sempre visibile; poi si prova a ridarle il focus.
-   La finestra si apre affiancata (metà destra dello schermo) e viene riusata. */
+/* Opens a URL in a NEW BACKGROUND TAB, without moving the focus away from the
+   graph. window.open opens in the foreground: instead a Ctrl+Click (Cmd on
+   Mac) is simulated on a target=_blank link, which browsers open in the background. */
+/* Opens the profile in a SEPARATE WINDOW instead of a tab.
+   Reason: a new tab covers the graph and Chrome, if it decides to activate it,
+   cannot be overridden via JS. A separate window instead leaves the
+   graph window where it is, always visible; then we try to give it the focus back.
+   The window opens side by side (right half of the screen) and is reused. */
 function openSocialWindow(url) {
   const sw = window.screen.availWidth || 1280;
   const sh = window.screen.availHeight || 800;
   const w = Math.max(720, Math.floor(sw * 0.46));
   const h = Math.max(600, sh - 80);
-  const left = sw - w;                       // affiancata a destra
+  const left = sw - w;                       // side by side, on the right
   const feats = `popup=yes,width=${w},height=${h},left=${left},top=20,` +
                 'menubar=no,toolbar=no,location=yes,status=no,resizable=yes,scrollbars=yes';
   let win = null;
   try {
-    // niente 'noopener': serve l'handle per provare a togliere il focus
+    // no 'noopener': the handle is needed to try to take the focus away
     win = window.open(url, 'social_profile', feats);
   } catch (_) { win = null; }
-  if (!win) return false;                    // bloccata dal popup-blocker
-  // riporta subito il focus al grafo (più tentativi: Chrome a volte lo ignora)
+  if (!win) return false;                    // blocked by the popup blocker
+  // give the focus back to the graph at once (several attempts: Chrome sometimes ignores it)
   const refocus = () => { try { win.blur(); } catch (_) {} try { window.focus(); } catch (_) {} };
   refocus();
   setTimeout(refocus, 0);
@@ -225,8 +225,8 @@ function openSocialWindow(url) {
   return true;
 }
 
-/* Apertura in scheda di sfondo (Ctrl/Cmd+Click simulato). Usata solo se
-   l'utente sceglie la modalità "scheda". */
+/* Opening in a background tab (simulated Ctrl/Cmd+Click). Used only if
+   the user chooses the "tab" mode. */
 function openBackgroundTab(url) {
   const isMac = /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent || '');
   const a = document.createElement('a');
@@ -243,7 +243,7 @@ function openBackgroundTab(url) {
   a.remove();
 }
 
-/* Copia negli appunti: ripiego sempre disponibile, non sposta mai il focus. */
+/* Copy to clipboard: fallback always available, never moves the focus. */
 function copyToClipboard(text) {
   try {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -264,10 +264,10 @@ function copyToClipboard(text) {
   } catch (_) { return false; }
 }
 
-/* Modalità di apertura scelta dall'utente (ricordata nel browser):
-   'window' = finestra affiancata (default: il grafo resta sempre visibile)
-   'tab'    = scheda di sfondo
-   'copy'   = copia solo il link */
+/* Opening mode chosen by the user (remembered in the browser):
+   'window' = side-by-side window (default: the graph always stays visible)
+   'tab'    = background tab
+   'copy'   = only copies the link */
 let openMode = (() => {
   try { return localStorage.getItem('socialOpenMode') || 'window'; } catch (_) { return 'window'; }
 })();
@@ -276,12 +276,12 @@ function setOpenMode(m) {
   try { localStorage.setItem('socialOpenMode', m); } catch (_) {}
 }
 
-/* Apre il profilo social del nodo secondo la modalità scelta. */
+/* Opens the node's social profile according to the chosen mode. */
 function openSocial(node) {
   const d = node.data();
-  // un nodo con URL proprio (link generico aggiunto a mano) si apre direttamente
+  // a node with its own URL (generic link added by hand) opens directly
   let url = /^https?:\/\//i.test(d.url || '') ? d.url : '';
-  if (!url && d.ntype === 'place') {         // luogo senza link: ricerca su Google Maps
+  if (!url && d.ntype === 'place') {         // place without a link: search on Google Maps
     const q = d.lat && d.lon ? `${d.lat},${d.lon}`
             : String(d.label || '').split(/\s+[—–]\s+/).reverse().join(', ');
     if (q) url = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q);
@@ -302,7 +302,7 @@ function openSocial(node) {
     return { ok: true, url, mode: 'tab' };
   }
   const opened = openSocialWindow(url);      // 'window' (default)
-  if (!opened) {                             // popup bloccato: ripiega su scheda
+  if (!opened) {                             // popup blocked: fall back to a tab
     openBackgroundTab(url);
     return { ok: true, url, mode: 'tab-fallback' };
   }
@@ -311,10 +311,10 @@ function openSocial(node) {
 
 const IDENT_TYPES = ['phone', 'email', 'username', 'vehicle'];
 
-/* ================= CATEGORIE (filtri mostra/nascondi) =================
-   Ogni nodo appartiene a UNA categoria (prima corrispondenza).
-   L'ultima ('altro') fa da rete: cattura tutto il resto. */
-/* L'etichetta è una chiave di traduzione: si risolve al momento del disegno. */
+/* ================= CATEGORIES (show/hide filters) =================
+   Each node belongs to ONE category (first match).
+   The last one ('altro') is the safety net: it catches everything else. */
+/* The label is a translation key: it is resolved at drawing time. */
 const CATEGORIES = [
   { key: 'target',   color: TYPE_COLOR.target,   match: n => n.ntype === 'target' },
   { key: 'social',   color: TYPE_COLOR.account,  match: n => n.ntype === 'account' },
@@ -330,7 +330,7 @@ const CATEGORIES = [
   { key: 'breach',   color: TYPE_COLOR.breach,   match: n => n.ntype === 'breach' },
   { key: 'foto',     color: TYPE_COLOR.photo,    match: n => n.ntype === 'photo' },
   { key: 'translit', color: TYPE_COLOR.latin,    match: n => n.ntype === 'latin' },
-  // una categoria per gruppo di elementi investigativi (armi, stupefacenti...)
+  // one category per group of investigative items (weapons, drugs...)
   ...[...new Set(Object.values(window.ONTOLOGY || {}).sort((a, b) => a.order - b.order)
         .map(o => o.group))].map(g => ({
     key: 'onto_' + g, group: g,
@@ -339,8 +339,8 @@ const CATEGORIES = [
   })),
   { key: 'altro',    color: TYPE_COLOR.generic,  match: () => true }
 ];
-/* Testi dei tipi investigativi nella lingua scelta (ontology_i18n.py). Il
-   valore salvato resta quello italiano: si traduce solo cio' che si mostra. */
+/* Texts of the investigative types in the chosen language (ontology_i18n.py). The
+   saved value stays the Italian one: only what is shown is translated. */
 const ot = s => (LANG === 'it' || !s) ? s : ((((window.ONTO_I18N || {})[LANG]) || {})[s] || s);
 const ONTO_GROUP_IT = { Soggetti: 'Organizzazioni', Fatti: 'Eventi / reati', Beni: 'Immobili' };
 const catLabel = key => key.startsWith('onto_')
@@ -349,9 +349,9 @@ const catLabel = key => key.startsWith('onto_')
 const CAT_BY_KEY = Object.fromEntries(CATEGORIES.map(c => [c.key, c]));
 const categoryOf = n => (CATEGORIES.find(c => c.match(n)) || CAT_BY_KEY.altro).key;
 
-/* Tutte le icone sono SVG 64x64 con viewBox esplicito:
-   senza dimensioni intrinseche il canvas di Cytoscape ancora l'immagine
-   in alto a sinistra invece di centrarla (bug icone social in zoom out). */
+/* All icons are 64x64 SVGs with an explicit viewBox:
+   without intrinsic dimensions the Cytoscape canvas anchors the image
+   at the top left instead of centring it (social icons bug when zoomed out). */
 const wrapSvg = inner =>
   'data:image/svg+xml;utf8,' + encodeURIComponent(
     '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24">' + inner + '</svg>'
@@ -361,9 +361,9 @@ const strokeSvg = i => wrapSvg(
   '<g fill="none" stroke="#1e293b" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">' + i + '</g>'
 );
 
-/* Icone Font Awesome Free (static/vendor/fa, inserite nella pagina da app.py).
-   L'SVG originale ha un viewBox rettangolare: lo si rende quadrato e con un
-   margine, cosi' l'icona resta centrata e della stessa grandezza nel cerchio. */
+/* Font Awesome Free icons (static/vendor/fa, inserted into the page by app.py).
+   The original SVG has a rectangular viewBox: it is made square and with a
+   margin, so the icon stays centred and the same size in the circle. */
 const _faCache = {};
 function faIcon(name, color = '#1e293b') {
   const k = name + color;
@@ -379,12 +379,12 @@ function faIcon(name, color = '#1e293b') {
   return (_faCache[k] = 'data:image/svg+xml;utf8,' + encodeURIComponent(svg));
 }
 
-// icona per tipo di nodo (persona, telefono, email...): tabella di ontology.py
+// icon per node type (person, phone, email...): table in ontology.py
 const SVG = Object.fromEntries(Object.entries(window.BASE_ICONS || {}).map(([k, v]) => [k, faIcon(v)]));
 SVG.generic = SVG.generic || faIcon('circle-question');
 
-// Badge con iniziale: usato subito per le piattaforme, poi sostituito
-// dall'icona brand vera (scaricata e ri-dimensionata) quando disponibile.
+// Badge with initial: used at once for the platforms, then replaced
+// by the real brand icon (downloaded and resized) when available.
 const letterIcon = (name, hex) => {
   const ch = (String(name || '?').trim()[0] || '?').toUpperCase();
   return wrapSvg(
@@ -393,8 +393,8 @@ const letterIcon = (name, hex) => {
   );
 };
 
-/* Icone brand già scaricate: così un nodo aggiunto DOPO il caricamento riceve
-   subito la stessa icona di quelli importati, senza aspettare un ricaricamento. */
+/* Brand icons already downloaded: so a node added AFTER loading gets
+   the same icon as the imported ones at once, without waiting for a reload. */
 const BRAND_ICON = {};
 
 const ONTO = window.ONTOLOGY || {};
@@ -402,14 +402,14 @@ const ONTO = window.ONTOLOGY || {};
 // they come before the Font Awesome glyphs, which stay as fallback
 const ENT_ICON = Object.fromEntries((window.ENTITY_ICONS || []).map(k => [k, `/static/icons/entities/${k}.png`]));
 const iconFor = n => {
-  if (n.ntype === 'photo' && n.image) return n.image;   // miniatura della foto
+  if (n.ntype === 'photo' && n.image) return n.image;   // photo thumbnail
   if (n.pic && n.image) return n.image;                 // person pictured by an imported photo
   const brand = n.ntype === 'account' && (BRAND_ICON[n.platform] || BRAND[n.platform]);
   if (!brand) {                                         // a social profile keeps its platform logo
     if (n.ficon && ENT_ICON[n.ficon]) return ENT_ICON[n.ficon];
     if (ENT_ICON[n.ntype]) return ENT_ICON[n.ntype];
   }
-  if (n.ficon) return faIcon(n.ficon);                  // es. cannabis, siringa, passaporto
+  if (n.ficon) return faIcon(n.ficon);                  // e.g. cannabis, syringe, passport
   if (ONTO[n.ntype]) return faIcon(ONTO[n.ntype].icon);
   if (SVG[n.ntype]) return SVG[n.ntype];
   if (BRAND_ICON[n.platform]) return BRAND_ICON[n.platform];
@@ -417,18 +417,18 @@ const iconFor = n => {
   return SVG.generic;
 };
 
-/* Carica le icone dei marchi da static/vendor/icons/ (NON da internet: l'app
-   deve funzionare su macchine senza collegamento) e forza width/height, così
-   restano perfettamente centrate a qualsiasi livello di zoom.
-   Se un'icona non c'e' resta il badge con l'iniziale, come sempre. */
+/* Loads the brand icons from static/vendor/icons/ (NOT from the internet: the app
+   must work on machines without a connection) and forces width/height, so
+   they stay perfectly centred at any zoom level.
+   If an icon is missing, the badge with the initial stays, as always. */
 async function upgradeBrandIcons() {
-  // elenco delle icone davvero presenti: evita richieste a vuoto (404 inutili
-  // in console, che finirebbero per nascondere gli errori veri)
+  // list of the icons actually present: avoids pointless requests (useless 404s
+  // in the console, which would end up hiding the real errors)
   let disponibili = null;
   try {
     const r = await fetch('/api/brand-icons');
     if (r.ok) disponibili = new Set(await r.json());
-  } catch (_) { /* si prova comunque, al massimo resta il badge */ }
+  } catch (_) { /* try anyway, at worst the badge stays */ }
   const slugs = [...new Set(cy.nodes().map(n => n.data('platform')))]
     .filter(p => BRAND[p] && (!disponibili || disponibili.has(p)));
   await Promise.all(slugs.map(async slug => {
@@ -443,13 +443,13 @@ async function upgradeBrandIcons() {
         return `<svg${a} width="64" height="64">`;
       });
       const uri = 'data:image/svg+xml;utf8,' + encodeURIComponent(t);
-      BRAND_ICON[slug] = uri;                 // memorizzata per i nodi futuri
+      BRAND_ICON[slug] = uri;                 // stored for future nodes
       cy.batch(() => {
         cy.nodes().forEach(n => {
           if (n.data('platform') === slug && !SVG[n.data('ntype')]) n.data('icon', uri);
         });
       });
-    } catch (_) { /* icona assente: resta il badge con l'iniziale */ }
+    } catch (_) { /* icon missing: the badge with the initial stays */ }
   }));
 }
 
@@ -471,16 +471,16 @@ function flatten(o, p = '', out = []) {
       flatten(o[k], p ? `${p}.${k}` : k, out);
     }
   } else if (o !== null && o !== '' && o !== false) {
-    // I testi lunghi NON vengono scartati: verrebbero trovati dalla ricerca ma
-    // non sarebbero visibili nella scheda. Si mostrano accorciati, espandibili.
+    // Long texts are NOT discarded: they would be found by the search but
+    // would not be visible in the card. They are shown shortened, expandable.
     const v = String(o);
     if (v.length <= MAX_VAL) out.push([p, v]);
     else out.push([p, v.slice(0, MAX_VAL) + '…']);
   }
   return out;
 }
-const MAX_VAL = 10000;        // tetto di sicurezza per valori abnormi
-const CLAMP_VAL = 400;        // oltre questa lunghezza il valore parte accorciato
+const MAX_VAL = 10000;        // safety cap for abnormal values
+const CLAMP_VAL = 400;        // beyond this length the value starts shortened
 
 const IMG_URL = /^https?:\/\/[^\s]+\.(jpg|jpeg|png|webp|gif|bmp)(\?|#|$)/i;
 const linkify = v => {
@@ -489,29 +489,29 @@ const linkify = v => {
   return `<a href="${v}" target="_blank" rel="noopener">${esc(short(v))}</a>`;
 };
 
-/* Valore di una scheda: i testi lunghi si mostrano accorciati con "mostra tutto". */
+/* Value of a card: long texts are shown shortened with "show all". */
 const renderVal = v => {
   if (/^https?:\/\//.test(v) || v.length <= CLAMP_VAL) return linkify(v);
   return `<span class="lv">${esc(v)}</span>` +
          `<button type="button" class="lv-more">${esc(t('card.showMore'))}</button>`;
 };
 
-/* ================= PROPRIETÀ DEI COLLEGAMENTI =================
-   Lo stesso blocco di controlli (nome, frecce, forma, snodo, tipo di linea,
-   colore, spessore) compare in tre finestre: aggiunta di un nodo ('add'),
-   collegamento di nodi selezionati ('link') e modifica di un collegamento
-   ('edg'). Viene generato qui una sola volta per finestra, con id "<prefisso>-…". */
+/* ================= LINK PROPERTIES =================
+   The same block of controls (name, arrows, shape, bend point, line type,
+   colour, width) appears in three windows: adding a node ('add'),
+   linking selected nodes ('link') and editing a link
+   ('edg'). It is generated here once per window, with ids "<prefix>-…". */
 const EDGE_DEFAULT_COLOR = '#94a3b8';
 const EDGE_PALETTE = ['#94a3b8', '#0f172a', '#dc2626', '#ea580c', '#d97706', '#16a34a',
                       '#0891b2', '#2563eb', '#7c3aed', '#db2777'];
 const EDGE_DEFAULT_BEND = 40;
 const EDGE_DEFAULTS = { label: '', arrow: 'none', curve: 'bezier', lstyle: '', color: '',
                         width: 0, bend: EDGE_DEFAULT_BEND };
-/* Tutte le forme di Cytoscape adatte a un collegamento con frecce
-   ('haystack' resta fuori: non disegna le frecce). */
+/* All Cytoscape shapes suitable for a link with arrows
+   ('haystack' is left out: it does not draw arrows). */
 const EDGE_CURVES = ['bezier', 'straight', 'unbundled-bezier', 'segments', 'round-segments',
                      'taxi', 'round-taxi', 'straight-triangle'];
-const BEND_CURVES = ['unbundled-bezier', 'segments', 'round-segments'];   // con snodo regolabile
+const BEND_CURVES = ['unbundled-bezier', 'segments', 'round-segments'];   // with adjustable bend point
 
 function buildEdgeProps(box) {
   const p = box.dataset.prefix;
@@ -579,10 +579,10 @@ function buildEdgeProps(box) {
     $(`#${p}-edge-label`).placeholder = e.target.value ? ftmEdgeVerb(e.target.value) + ' (…)' : t('add.edgeNamePh');
   });
 
-  // Anteprima interattiva: è l'unico comando per le frecce. Un clic sulla metà
-  // del nodo di partenza mette o toglie la punta verso quel nodo (freccia
-  // all'indietro), un clic sulla metà del nodo di arrivo fa lo stesso con la
-  // freccia in avanti. Funziona anche da tastiera (Tab, Invio o Spazio).
+  // Interactive preview: it is the only control for the arrows. A click on the half
+  // of the source node adds or removes the head towards that node (backward
+  // arrow), a click on the half of the target node does the same with the
+  // forward arrow. It also works from the keyboard (Tab, Enter or Space).
   const prev = box.querySelector(`#${p}-arrow-preview`);
   const toggleHead = (side, refocus) => {
     const { fwd, bwd } = arrowHeads(p);
@@ -613,7 +613,7 @@ function buildEdgeProps(box) {
     upd();
   });
 }
-/* ---- relazioni Follow the Money sui collegamenti (window.FTM_EDGES) ---- */
+/* ---- Follow the Money relations on the links (window.FTM_EDGES) ---- */
 const FTM_EDGES = window.FTM_EDGES || {};
 const ftmLabelIn = (labels, fallback) => (labels && labels[LANG]) || fallback;
 const ftmEdgeLabel = k => FTM_EDGES[k] ? ftmLabelIn(FTM_EDGES[k].labels, FTM_EDGES[k].label) : k;
@@ -643,8 +643,8 @@ function readFtmEdgeProps(p) {
 }
 document.querySelectorAll('.edge-props').forEach(buildEdgeProps);
 
-/* Stato delle frecce di una finestra: vive sull'anteprima (data-arrow), che è
-   anche il comando con cui si cambia. Valori: none | target | source | both. */
+/* Arrow state of a window: it lives on the preview (data-arrow), which is
+   also the control used to change it. Values: none | target | source | both. */
 const EDGE_ARROWS = ['none', 'target', 'source', 'both'];
 const arrowHeads = p => {
   const a = $(`#${p}-arrow-preview`).dataset.arrow || 'none';
@@ -679,7 +679,7 @@ function writeEdgeProps(p, props) {
   $(`#${p}-edge-lstyle`).value = v.lstyle || '';
   const w = $(`#${p}-edge-width`);
   w.value = String(v.width || 0);
-  if (w.value === '' && v.width) {                 // spessore non in elenco
+  if (w.value === '' && v.width) {                 // width not in the list
     w.insertAdjacentHTML('beforeend', `<option value="${v.width}">${v.width}</option>`);
     w.value = String(v.width);
   }
@@ -694,7 +694,7 @@ function writeEdgeProps(p, props) {
   updateEdgePreview(p);
 }
 
-/* Proprietà correnti di un arco del grafo (quelle non impostate = predefinite). */
+/* Current properties of a graph link (those not set = defaults). */
 const edgePropsOf = e => ({
   label: e.data('label') || '', arrow: e.data('arrow') || 'none',
   curve: e.data('curve') || 'bezier', lstyle: e.data('lstyle') || '',
@@ -703,8 +703,8 @@ const edgePropsOf = e => ({
   ftm: e.data('ftm') || '', ftm_props: e.data('ftm_props') || {}
 });
 
-/* Applica le proprietà a un arco del grafo: le chiavi vuote si tolgono, così
-   torna a valere lo stile predefinito (o quello del tipo di relazione). */
+/* Applies the properties to a graph link: empty keys are removed, so
+   the default style (or that of the relation type) applies again. */
 function setEdgeProps(e, props) {
   const v = Object.assign({}, EDGE_DEFAULTS, props || {});
   const want = {
@@ -719,8 +719,8 @@ function setEdgeProps(e, props) {
   else e.removeData('bend');
 }
 
-/* ---- Anteprima: i due nodi VERI (icona, colore, nome) e la linea come
-   apparirà nel grafo. Ogni finestra registra i suoi due nodi. ---- */
+/* ---- Preview: the two REAL nodes (icon, colour, name) and the line as it
+   will appear in the graph. Each window registers its two nodes. ---- */
 const previewNodes = {};
 const nodeView = n => n && n.length
   ? { icon: n.data('icon'), label: n.data('label'), color: n.data('color'), ntype: n.data('ntype') }
@@ -742,7 +742,7 @@ function previewNodeSvg(n, x, y, r, id) {
   const shape = photo
     ? `<rect x="${x - r}" y="${y - r}" width="${2 * r}" height="${2 * r}" rx="5" fill="${bg}" stroke="${col}" stroke-width="2.5"/>`
     : `<circle cx="${x}" cy="${y}" r="${r}" fill="${bg}" stroke="${col}" stroke-width="2.5"/>`;
-  const s = photo ? 2 * r : r * 1.24;                // come nel grafo: icona al 62%
+  const s = photo ? 2 * r : r * 1.24;                // as in the graph: icon at 62%
   const img = n && n.icon
     ? `<image href="${esc(n.icon)}" x="${x - s / 2}" y="${y - s / 2}" width="${s}" height="${s}" ` +
       `preserveAspectRatio="${photo ? 'xMidYMid slice' : 'xMidYMid meet'}" clip-path="url(#${id})"/>`
@@ -767,21 +767,21 @@ function updateEdgePreview(p) {
   const col = v.color || EDGE_DEFAULT_COLOR;
   const w = v.width || (v.curve === 'straight-triangle' ? 8 : 2);
   const R = 17;
-  const A = { x: 52, y: 62 }, B = { x: 308, y: 86 };  // un po' sfalsati, come in un grafo vero
+  const A = { x: 52, y: 62 }, B = { x: 308, y: 86 };  // slightly staggered, as in a real graph
   const dx = B.x - A.x, dy = B.y - A.y, len = Math.hypot(dx, dy);
-  const nx = dy / len, ny = -dx / len;                 // normale (verso "sopra" la linea)
-  const bend = (v.bend ?? EDGE_DEFAULT_BEND) * 0.26;   // scala ridotta: sta nel riquadro
+  const nx = dy / len, ny = -dx / len;                 // normal (towards "above" the line)
+  const bend = (v.bend ?? EDGE_DEFAULT_BEND) * 0.26;   // reduced scale: fits in the box
   const M = { x: (A.x + B.x) / 2, y: (A.y + B.y) / 2 };
-  const K = { x: M.x + nx * bend, y: M.y + ny * bend };   // snodo / punto di controllo
+  const K = { x: M.x + nx * bend, y: M.y + ny * bend };   // bend point / control point
 
-  // punti di partenza e arrivo sul BORDO dei nodi, lungo la direzione di uscita
+  // start and end points on the BORDER of the nodes, along the exit direction
   const edgeAt = (P, Q) => { const l = Math.hypot(Q.x - P.x, Q.y - P.y) || 1;
     return { x: P.x + (Q.x - P.x) / l * R, y: P.y + (Q.y - P.y) / l * R }; };
   let d = '', firstDir = B, lastDir = A, labelAt = M;
   const f = n => n.toFixed(1);
   switch (v.curve) {
     case 'unbundled-bezier': {
-      const C = { x: 2 * K.x - M.x, y: 2 * K.y - M.y };   // la curva passa per K
+      const C = { x: 2 * K.x - M.x, y: 2 * K.y - M.y };   // the curve passes through K
       const s = edgeAt(A, C), e = edgeAt(B, C);
       d = `M${f(s.x)} ${f(s.y)} Q${f(C.x)} ${f(C.y)} ${f(e.x)} ${f(e.y)}`;
       firstDir = C; lastDir = C; labelAt = K; break;
@@ -790,7 +790,7 @@ function updateEdgePreview(p) {
       const s = edgeAt(A, K), e = edgeAt(B, K);
       if (v.curve === 'segments') d = `M${f(s.x)} ${f(s.y)} L${f(K.x)} ${f(K.y)} L${f(e.x)} ${f(e.y)}`;
       else {
-        const r = 16, a1 = edgeAt(K, A), b1 = edgeAt(K, B);   // raccordo arrotondato
+        const r = 16, a1 = edgeAt(K, A), b1 = edgeAt(K, B);   // rounded joint
         const k1 = { x: K.x + (a1.x - K.x) * r / R, y: K.y + (a1.y - K.y) * r / R };
         const k2 = { x: K.x + (b1.x - K.x) * r / R, y: K.y + (b1.y - K.y) * r / R };
         d = `M${f(s.x)} ${f(s.y)} L${f(k1.x)} ${f(k1.y)} Q${f(K.x)} ${f(K.y)} ${f(k2.x)} ${f(k2.y)} L${f(e.x)} ${f(e.y)}`;
@@ -813,7 +813,7 @@ function updateEdgePreview(p) {
       d = `M${f(s.x + nx * h)} ${f(s.y + ny * h)} L${f(e.x)} ${f(e.y)} L${f(s.x - nx * h)} ${f(s.y - ny * h)} Z`;
       break;
     }
-    default: {                                           // bezier (auto) e retta
+    default: {                                           // bezier (auto) and straight
       const s = edgeAt(A, B), e = edgeAt(B, A);
       d = `M${f(s.x)} ${f(s.y)} L${f(e.x)} ${f(e.y)}`;
     }
@@ -821,9 +821,9 @@ function updateEdgePreview(p) {
   const tri = v.curve === 'straight-triangle';
   const dash = tri ? '' : v.lstyle === 'dashed' ? `stroke-dasharray="${w * 3} ${w * 2}"`
              : v.lstyle === 'dotted' ? `stroke-dasharray="0.1 ${w * 2}" stroke-linecap="round"` : '';
-  // punta di freccia: triangolo appoggiato al bordo del nodo. Quella "fantasma"
-  // (tratteggiata, semitrasparente) compare al passaggio del mouse dove la
-  // punta non c'è ancora, per far capire che un clic la aggiunge.
+  // arrowhead: triangle resting on the node border. The "ghost" one
+  // (dashed, semi-transparent) appears on mouse hover where the
+  // head is not there yet, to show that a click adds it.
   const head = (P, from, ghost) => {
     const l = Math.hypot(P.x - from.x, P.y - from.y) || 1;
     const ux = (P.x - from.x) / l, uy = (P.y - from.y) / l;
@@ -837,8 +837,8 @@ function updateEdgePreview(p) {
   };
   const fwd = v.arrow === 'target' || v.arrow === 'both';
   const bwd = v.arrow === 'source' || v.arrow === 'both';
-  // zone cliccabili: la metà del nodo di partenza e la metà del nodo di
-  // arrivo dell'anteprima; ciascuna mette/toglie la propria punta
+  // clickable zones: the half of the source node and the half of the
+  // target node of the preview; each adds/removes its own head
   const W = 360, H = 132;
   const side = (key, P, from, active, name) => {
     const tip = t(active ? 'edge.headRemove' : 'edge.headAdd', { n: name });
@@ -865,12 +865,12 @@ function updateEdgePreview(p) {
     `</svg>`;
 }
 
-/* ================= MENU CONTESTUALE DEL GRAFO ================= */
+/* ================= GRAPH CONTEXT MENU ================= */
 function showCtxMenu(x, y) {
   const m = $('#ctxmenu');
   if (!m) return;
   m.hidden = false;
-  // resta dentro la finestra anche vicino ai bordi
+  // stays inside the window even near the edges
   const r = m.getBoundingClientRect();
   m.style.left = Math.max(0, Math.min(x, window.innerWidth - r.width - 4)) + 'px';
   m.style.top = Math.max(0, Math.min(y, window.innerHeight - r.height - 4)) + 'px';
@@ -880,36 +880,36 @@ function hideCtxMenu() {
   if (m) m.hidden = true;
 }
 
-/* ================= STATO GLOBALE ================= */
+/* ================= GLOBAL STATE ================= */
 let cy = null;
-let hasCase = false;             // c'e' un caso aperto? (senza, niente nodi)
+let hasCase = false;             // is a case open? (without one, no nodes)
 let showIds = true;
 let pathOnly = false;
 let degFilter = 0;
-const hiddenCats = new Set();    // categorie attualmente spente (stato dei pulsanti)
-const catHidden = new Set();     // nodi tolti dalla vista perché la loro categoria è spenta
+const hiddenCats = new Set();    // categories currently switched off (state of the buttons)
+const catHidden = new Set();     // nodes removed from the view because their category is switched off
 let curLayout = 'fcose';
 let searchTimer = null;
-const MIN_SEARCH = 3;            // caratteri minimi per mostrare i risultati
-let INDEX = [];                  // indice di ricerca precalcolato
-const VOCAB = new Map();         // parola -> id dei nodi che la contengono
+const MIN_SEARCH = 3;            // minimum characters to show the results
+let INDEX = [];                  // precomputed search index
+const VOCAB = new Map();         // word -> ids of the nodes that contain it
 const TOKEN_RE = /[\p{L}\p{N}][\p{L}\p{N}._]*/gu;
-const expanded = new Set();      // nodi espansi
-const selected = new Set();      // nodi selezionati (ctrl+click)
-const visibleNodes = new Set();  // nodi aggiunti a mano (ricerca/modale)
-const pinned = new Set();        // nodi del percorso evidenziato
-const placed = new Set();        // nodi che hanno già una posizione stabile
+const expanded = new Set();      // expanded nodes
+const selected = new Set();      // selected nodes (ctrl+click)
+const visibleNodes = new Set();  // nodes added by hand (search/modal)
+const pinned = new Set();        // nodes of the highlighted path
+const placed = new Set();        // nodes that already have a stable position
 
 const depthVal = () => parseInt(($('#depth') && $('#depth').value) || '1', 10) || 1;
 
-/* ================= EVIDENZIA COLLEGAMENTI (H+Click) =================
-   Tenendo premuto H e cliccando un nodo, quel nodo e i suoi collegamenti
-   DIRETTI visibili restano in evidenza; tutto il resto viene attenuato.
-   Un click normale (o H+Click sullo stesso nodo) ripristina la vista. */
+/* ================= HIGHLIGHT LINKS (H+Click) =================
+   Holding H down and clicking a node, that node and its visible DIRECT
+   links stay highlighted; everything else is dimmed.
+   A normal click (or H+Click on the same node) restores the view. */
 let focusId = null;
 let hDown = false;
 let nDown = false;
-const hiddenNodes = new Set();   // nodi nascosti a mano con N+Click (solo in sessione)
+const hiddenNodes = new Set();   // nodes hidden by hand with N+Click (this session only)
 
 const typingInField = () => {
   const el = document.activeElement;
@@ -927,8 +927,8 @@ document.addEventListener('keyup', e => {
 });
 window.addEventListener('blur', () => { hDown = false; nDown = false; });
 
-/* N+Click: toglie il nodo dalla vista (con i suoi archi). Non tocca i dati:
-   è una scelta di sola visualizzazione, valida per questa sessione. */
+/* N+Click: removes the node from the view (with its links). Does not touch the data:
+   it is a display-only choice, valid for this session. */
 function hideNode(node) {
   const id = node.id();
   hiddenNodes.add(id);
@@ -949,7 +949,7 @@ function showHiddenNodes() {
   $('#stat').textContent = t('stat.hiddenRestored', { n });
 }
 
-/* Il pulsante di ripristino compare solo se c'è qualcosa di nascosto. */
+/* The restore button appears only if something is hidden. */
 function syncHiddenBtn() {
   const b = $('#showHidden');
   if (!b) return;
@@ -964,22 +964,22 @@ function clearFocus(silent) {
   if (!silent && cy) refreshStat();
 }
 
-/* Applica l'evidenziazione in base a focusId (richiamata anche dopo refresh,
-   perché cambiando i nodi visibili cambia anche cosa va attenuato). */
+/* Applies the highlighting based on focusId (also called after refresh,
+   because changing the visible nodes also changes what must be dimmed). */
 function applyFocus() {
   if (!cy || !focusId) return;
   const node = cy.getElementById(focusId);
   if (!node.length || node.hasClass('hidden')) { clearFocus(true); return; }
 
   const visible = cy.elements().not('.hidden');
-  const keep = node.closedNeighborhood().not('.hidden');   // nodo + vicini + archi
+  const keep = node.closedNeighborhood().not('.hidden');   // node + neighbours + links
   cy.batch(() => {
     cy.elements().removeClass('dim foc foc-src');
     visible.difference(keep).addClass('dim');
     keep.addClass('foc');
     node.removeClass('foc').addClass('foc-src');
   });
-  return keep.nodes().length - 1;                          // quanti collegamenti diretti
+  return keep.nodes().length - 1;                          // how many direct links
 }
 
 function toggleFocus(node) {
@@ -989,12 +989,12 @@ function toggleFocus(node) {
   $('#stat').textContent = t('stat.focusOn', { label: node.data('label'), n: n || 0 });
 }
 
-/* ================= CARICAMENTO ================= */
-/* Senza Cytoscape non nasce il grafo e TUTTO tace: ricerca, filtri, esporta.
-   Era il caso dell'eseguibile portato su una macchina senza collegamento,
-   quando le librerie arrivavano da internet. Ora stanno in static/vendor/, ma
-   se per qualunque motivo non si caricassero l'utente deve VEDERLO, non
-   restare davanti a una ricerca che non risponde. */
+/* ================= LOADING ================= */
+/* Without Cytoscape the graph is not created and EVERYTHING goes silent: search, filters, export.
+   That was the case of the executable taken to a machine without a connection,
+   when the libraries came from the internet. Now they live in static/vendor/, but
+   if for any reason they failed to load the user must SEE it, not
+   be left facing a search that does not respond. */
 function graphLibReady() {
   if (typeof cytoscape !== 'undefined') return true;
   const box = $('#stat');
@@ -1017,8 +1017,8 @@ async function load() {
     $('#stat').textContent = t('stat.loadError', { e: err.message });
     return;
   }
-  // senza dati il grafo nasce comunque (vuoto): si possono creare nodi a mano,
-  // importare un file o usare l'AI anche su un'installazione nuova
+  // without data the graph is created anyway (empty): nodes can be created by hand,
+  // a file imported or the AI used even on a fresh installation
   const empty = !g || !g.nodes || !g.nodes.length;
   if (empty) g = { nodes: [], edges: [], no_case: !!(g && g.no_case) };
 
@@ -1037,7 +1037,7 @@ async function load() {
     n.size = n.ntype === 'target' ? 50 : n.ntype === 'photo' ? 46
            : n.ntype === 'account' ? 32 : (n.bridge ? 26 : 22);
 
-    indexNode(n);      // indice di ricerca (etichetta, alias, note E schede)
+    indexNode(n);      // search index (label, aliases, notes AND cards)
 
     els.push({ data: { ...n, icon: iconFor(n), color: TYPE_COLOR[n.ntype] || TYPE_COLOR.generic, disp: dispOf(n) } });
   }
@@ -1048,12 +1048,12 @@ async function load() {
   else if (empty) $('#stat').textContent = t('stat.noData');
 }
 
-/* ================= RICARICA DATI (senza riavviare l'app) =================
-   Rilegge le cartelle dei target e allinea il grafo VIVO: aggiunge i nodi
-   nuovi, toglie quelli spariti, aggiorna quelli cambiati. La vista corrente
-   (nodi aperti, posizioni, zoom) resta intatta. */
-/* Etichetta disegnata sul nodo: con la traslitterazione come attributo
-   (translit_mode = 'attribute') la forma latina sta sotto il nome. */
+/* ================= RELOAD DATA (without restarting the app) =================
+   Rereads the target folders and aligns the LIVE graph: adds the new
+   nodes, removes those that disappeared, updates those that changed. The current view
+   (open nodes, positions, zoom) stays intact. */
+/* Label drawn on the node: with transliteration as an attribute
+   (translit_mode = 'attribute') the Latin form sits under the name. */
 let TRANSLIT_MODE = 'attribute';
 function dispOf(n) {
   const r = n.roman;
@@ -1093,9 +1093,9 @@ function rebuildIndex() {
   cy.nodes().forEach(n => indexNode(n.data()));
 }
 
-/* Allinea il grafo VIVO a un grafo appena arrivato dal server: aggiunge i nodi
-   nuovi, toglie quelli spariti (anche quelli confluiti in un'altra scheda dopo
-   una rinomina) e aggiorna quelli cambiati. La vista corrente resta intatta. */
+/* Aligns the LIVE graph to a graph just received from the server: adds the new
+   nodes, removes those that disappeared (including those merged into another card after
+   a rename) and updates those that changed. The current view stays intact. */
 function applyGraphData(g) {
   if (g.translit_mode) TRANSLIT_MODE = g.translit_mode;
   {
@@ -1107,7 +1107,7 @@ function applyGraphData(g) {
     let added = 0, removed = 0, updated = 0;
 
     cy.batch(() => {
-      // 1) via i nodi che non esistono più nei dati
+      // 1) drop the nodes that no longer exist in the data
       cy.nodes().forEach(n => {
         const id = n.id();
         if (newIds.has(id)) return;
@@ -1117,7 +1117,7 @@ function applyGraphData(g) {
         n.remove();
         removed++;
       });
-      // 2) aggiunge i nuovi e aggiorna gli esistenti
+      // 2) add the new ones and update the existing ones
       g.nodes.forEach(d => {
         d.deg = deg[d.id] || 0;
         d.ident = IDENT_TYPES.includes(d.ntype);
@@ -1127,9 +1127,9 @@ function applyGraphData(g) {
                : d.ntype === 'account' ? 32 : (d.bridge ? 26 : 22);
         const ex = cy.getElementById(d.id);
         if (!ex.length) { addNodeToCy(d); added++; return; }
-        Object.keys(d).forEach(k => ex.data(k, d[k]));   // schede, note, etichetta…
+        Object.keys(d).forEach(k => ex.data(k, d[k]));   // cards, notes, label…
         ['url', 'edited', 'note'].forEach(k => { if (!(k in d)) ex.removeData(k); });
-        ex.data('renamed', !!d.renamed);                // ripristinata: torna false
+        ex.data('renamed', !!d.renamed);                // restored: goes back to false
         ex.data('label_orig', d.label_orig || '');
         ex.data('disp', dispOf(d));
         ex.data('icon', iconFor(d));
@@ -1137,8 +1137,8 @@ function applyGraphData(g) {
         ex.toggleClass('noted', !!d.note);
         updated++;
       });
-      // 3) archi: toglie i superati, aggiunge i nuovi, aggiorna nome e stile
-      //    di quelli rimasti (modificati col tasto destro)
+      // 3) links: remove the outdated ones, add the new ones, update name and style
+      //    of the remaining ones (edited with right-click)
       cy.edges().forEach(e => { if (!newEdgeIds.has(e.id())) e.remove(); });
       g.edges.forEach(e => {
         const ex = cy.getElementById(e.id);
@@ -1148,7 +1148,7 @@ function applyGraphData(g) {
               ex.move({ source: e.source, target: e.target });
             }
           }
-          setEdgeProps(cy.getElementById(e.id), e);   // move() ricrea l'arco
+          setEdgeProps(cy.getElementById(e.id), e);   // move() recreates the link
           return;
         }
         if (cy.getElementById(e.source).length && cy.getElementById(e.target).length) {
@@ -1169,8 +1169,8 @@ function applyGraphData(g) {
   }
 }
 
-/* Rilegge il grafo dal server SENZA rileggere i file dei target: serve dopo
-   una modifica alle annotazioni (nota, etichetta, collegamento). */
+/* Rereads the graph from the server WITHOUT rereading the target files: needed after
+   a change to the annotations (note, label, link). */
 async function syncGraph() {
   const r = await fetch('/api/graph');
   if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -1193,10 +1193,10 @@ async function reloadData() {
 }
 on('#reloadData', 'click', reloadData);
 
-/* ================= TRASLITTERAZIONE CON IL CHATBOT =================
-   Il pulsante compare solo se in chatbot.conf c'e' un endpoint. Se il chatbot
-   non risponde non succede nulla: si continua con il dizionario compilato a
-   mano e la traslitterazione automatica di sempre. */
+/* ================= TRANSLITERATION WITH THE CHATBOT =================
+   The button appears only if chatbot.conf has an endpoint. If the chatbot
+   does not respond nothing happens: work continues with the hand-compiled
+   dictionary and the usual automatic transliteration. */
 async function refreshTranslitBtn() {
   const b = $('#aiTranslit');
   if (!b) return;
@@ -1222,7 +1222,7 @@ on('#aiTranslit', 'click', async () => {
   try {
     const j = await apiPost('/api/translit/ai', {});
     if (j.tradotte) {
-      await reloadData();                 // le etichette latine vanno rifatte
+      await reloadData();                 // the Latin labels must be redone
       $('#stat').textContent = t('stat.aiDone', { n: j.tradotte, rest: j.restano });
     } else {
       $('#stat').textContent = t('stat.aiNothing');
@@ -1236,7 +1236,7 @@ on('#aiTranslit', 'click', async () => {
   }
 });
 
-/* ================= GRAFO ================= */
+/* ================= GRAPH ================= */
 function render(els) {
   cy = cytoscape({
     container: $('#graph'),
@@ -1244,12 +1244,12 @@ function render(els) {
     wheelSensitivity: 0.25,
     minZoom: 0.05,
     maxZoom: 3,
-    zoom: 1,                 // niente fit automatico all'avvio (partiva a zoom 3)
+    zoom: 1,                 // no automatic fit at startup (it started at zoom 3)
     pan: { x: 0, y: 0 },
     motionBlur: false,
     layout: { name: 'preset', fit: false },
-    // Ctrl (o Shift) + trascinamento sullo sfondo = riquadro di selezione:
-    // con il pan attivo Cytoscape lo avvia solo se si tiene premuto un modificatore
+    // Ctrl (or Shift) + drag on the background = selection box:
+    // with panning active Cytoscape starts it only if a modifier is held down
     boxSelectionEnabled: true,
     selectionType: 'additive',
     style: [
@@ -1286,8 +1286,8 @@ function render(els) {
         'font-size': 14, 'font-weight': 'bold', 'color': '#b45309',
         'border-width': 4, 'background-color': '#fef3c7'
       } },
-      // dati di partenza (dal file iniziale del target): bordo rosso.
-      // Il target è escluso: ha già il suo stile dorato distintivo.
+      // starting data (from the target's initial file): red border.
+      // The target is excluded: it already has its own distinctive gold style.
       { selector: 'node[?seed][ntype != "target"]', style: {
         'border-color': '#dc2626', 'border-width': 4
       } },
@@ -1298,7 +1298,7 @@ function render(els) {
         'target-arrow-color': '#94a3b8', 'source-arrow-color': '#94a3b8',
         'arrow-scale': 1.25
       } },
-      // Frecce direzionali
+      // Directional arrows
       { selector: 'edge[arrow = "target"]', style: {
         'target-arrow-shape': 'triangle', 'source-arrow-shape': 'none'
       } },
@@ -1311,7 +1311,7 @@ function render(els) {
       { selector: 'edge[arrow = "none"]', style: {
         'target-arrow-shape': 'none', 'source-arrow-shape': 'none'
       } },
-      // Forme del collegamento (curva, retta, segmenti)
+      // Link shapes (curve, straight, segments)
       { selector: 'edge[curve = "straight"]', style: {
         'curve-style': 'straight'
       } },
@@ -1338,7 +1338,7 @@ function render(els) {
       { selector: 'edge[curve = "straight-triangle"]', style: {
         'curve-style': 'straight-triangle', 'width': 8
       } },
-      // Etichette dei collegamenti
+      // Link labels
       { selector: 'edge[?label]', style: {
         'label': 'data(label)',
         'text-rotation': 'autorotate',
@@ -1396,8 +1396,8 @@ function render(els) {
       { selector: 'edge[evid = "appears"]', style: {
         'line-color': '#0f766e', 'target-arrow-color': '#0f766e', 'line-style': 'dotted', 'width': 2.5
       } },
-      // Stile scelto dall'utente per il singolo collegamento: vince su quello
-      // del tipo di relazione (ma non sugli evidenziamenti qui sotto)
+      // Style chosen by the user for the single link: it wins over that
+      // of the relation type (but not over the highlights below)
       { selector: 'edge[?color]', style: {
         'line-color': 'data(color)', 'target-arrow-color': 'data(color)',
         'source-arrow-color': 'data(color)', 'opacity': 1
@@ -1406,9 +1406,9 @@ function render(els) {
       { selector: 'edge[lstyle = "dashed"]', style: { 'line-style': 'dashed', 'line-dash-pattern': [8, 5] } },
       { selector: 'edge[lstyle = "dotted"]', style: { 'line-style': 'dotted' } },
       { selector: 'edge[?width]', style: { 'width': 'data(width)' } },
-      // Stile scelto per TUTTI i collegamenti dal pannello di sinistra: sta in
-      // fondo, quindi vince sugli stili del singolo collegamento (si torna
-      // indietro scegliendo «come impostati»)
+      // Style chosen for ALL links from the left panel: it sits at the
+      // bottom, so it wins over the styles of the single link (to go
+      // back, choose «as set»)
       { selector: 'edge.gs-bezier', style: { 'curve-style': 'bezier' } },
       { selector: 'edge.gs-straight', style: { 'curve-style': 'straight' } },
       { selector: 'edge.gs-unbundled-bezier', style: {
@@ -1444,8 +1444,8 @@ function render(els) {
         'background-color': '#fef3c7', 'z-index': 120
       } },
       { selector: 'node.fresh', style: { 'border-color': '#2563eb', 'border-width': 5 } },
-      // H+Click: il nodo e i suoi collegamenti diretti restano in evidenza,
-      // tutto il resto viene attenuato
+      // H+Click: the node and its direct links stay highlighted,
+      // everything else is dimmed
       { selector: 'node.dim', style: { 'opacity': 0.13, 'text-opacity': 0.13 } },
       { selector: 'edge.dim', style: { 'opacity': 0.05 } },
       { selector: 'node.foc', style: {
@@ -1459,8 +1459,8 @@ function render(els) {
         'line-color': '#7c3aed', 'target-arrow-color': '#7c3aed', 'source-arrow-color': '#7c3aed',
         'width': 4, 'opacity': 1, 'z-index': 140
       } },
-      // i nodi con nota NON cambiano più aspetto (niente contorno giallo):
-      // la nota resta nel tooltip, nella scheda e nella ricerca.
+      // nodes with a note NO longer change appearance (no yellow outline):
+      // the note stays in the tooltip, in the card and in the search.
       { selector: 'node.path', style: { 'border-color': '#10b981', 'border-width': 5, 'z-index': 110 } },
       { selector: 'edge.path', style: {
         'line-color': '#10b981', 'target-arrow-color': '#10b981', 'source-arrow-color': '#10b981',
@@ -1479,17 +1479,17 @@ function render(els) {
   buildDegFilter();
   buildCatFilters();
   buildLegend();
-  if ($('#openMode')) $('#openMode').value = openMode;   // ripristina la scelta salvata
+  if ($('#openMode')) $('#openMode').value = openMode;   // restore the saved choice
   syncHiddenBtn();
   syncDegOnlyBtn();
-  refresh(false);            // all'avvio: grafo vuoto
+  refresh(false);            // at startup: empty graph
   upgradeBrandIcons();
-  refreshViews();            // popola la tendina delle viste salvate
-  loadSrcStatus();           // stato dell'indice delle fonti documentali
+  refreshViews();            // fill the drop-down of saved views
+  loadSrcStatus();           // state of the document sources index
 
   cy.on('tap', 'node', e => {
     const oe = e.originalEvent;
-    if (oe && oe.altKey) {                       // Alt+Click = apri profilo social
+    if (oe && oe.altKey) {                       // Alt+Click = open social profile
       const r = openSocial(e.target);
       const s = $('#stat');
       if (r.ok && r.mode === 'copy') s.textContent = t('stat.linkCopied', { url: r.url });
@@ -1498,15 +1498,15 @@ function render(els) {
       else s.textContent = t('stat.notSocial');
       return;
     }
-    if (nDown) { hideNode(e.target); return; }      // N+Click = nascondi il nodo
-    if (hDown) { toggleFocus(e.target); return; }   // H+Click = evidenzia i collegamenti
-    clearFocus(true);                                // click normale: vista piena
+    if (nDown) { hideNode(e.target); return; }      // N+Click = hide the node
+    if (hDown) { toggleFocus(e.target); return; }   // H+Click = highlight the links
+    clearFocus(true);                                // normal click: full view
     if (oe && (oe.ctrlKey || oe.metaKey || oe.shiftKey)) toggleSel(e.target);
     else toggleExpand(e.target);
   });
   cy.on('cxttap', 'node', e => { hideTip(); openModal(e.target); });
-  // riquadro di selezione: i nodi racchiusi si AGGIUNGONO alla selezione
-  // dell'app (la stessa di Ctrl+Click, usata da percorsi e "Collega")
+  // selection box: the enclosed nodes are ADDED to the app's
+  // selection (the same as Ctrl+Click, used by paths and "Link")
   let boxed = [];
   cy.on('boxselect', 'node', e => { boxed.push(e.target); });
   cy.on('boxend', () => setTimeout(() => {
@@ -1516,15 +1516,15 @@ function render(els) {
       selected.add(node.id()); node.addClass('sel'); n++;
     });
     boxed = [];
-    cy.elements().unselect();              // la selezione "vera" è quella dell'app
+    cy.elements().unselect();              // the "real" selection is the app's
     if (n) {
       renderSel(); refresh(false);
       $('#stat').textContent = t('stat.boxSelected', { n, tot: selected.size });
     }
   }, 0));
-  // trascinando un nodo selezionato si spostano con lui tutti gli altri
-  // selezionati (la selezione dell'app non e' quella di Cytoscape, che
-  // altrimenti lo farebbe da solo)
+  // dragging a selected node moves all the other selected ones
+  // with it (the app's selection is not Cytoscape's, which
+  // would otherwise do it by itself)
   let group = null;                        // { grabbed, last: {x,y}, others }
   cy.on('grab', 'node', e => {
     const n = e.target;
@@ -1551,7 +1551,7 @@ function render(els) {
     if (group) group.others.forEach(m => placed.add(m.id()));
     group = null;
   });
-  // tasto destro su un collegamento: nome, frecce, colore, linea…
+  // right-click on a link: name, arrows, colour, line…
   cy.on('cxttap', 'edge', e => { hideTip(); openEdgeModal(e.target); });
   cy.on('mouseover', 'edge', e => showEdgeTip(e.target));
   cy.on('mousemove', 'edge', e => moveTip(e));
@@ -1559,10 +1559,10 @@ function render(els) {
   cy.on('tap', e => {
     if (e.target === cy) {
       cy.elements().removeClass('path-hi');
-      clearFocus();                                  // click sullo sfondo: vista piena
+      clearFocus();                                  // click on the background: full view
       hideResults();
-      // click sullo sfondo SENZA Ctrl/Cmd/Shift: si perde tutta la selezione
-      // (con il modificatore premuto la selezione resta, come nel riquadro)
+      // click on the background WITHOUT Ctrl/Cmd/Shift: the whole selection is lost
+      // (with the modifier held down the selection stays, as in the box)
       const oe = e.originalEvent;
       if (selected.size && !(oe && (oe.ctrlKey || oe.metaKey || oe.shiftKey))) clearSel();
     }
@@ -1571,7 +1571,7 @@ function render(els) {
   cy.on('mousemove', 'node', e => moveTip(e));
   cy.on('mouseout', 'node', hideTip);
   cy.on('drag zoom pan', () => { hideTip(); hideCtxMenu(); });
-  // tasto destro sullo sfondo: menu con «Nuovo nodo»
+  // right-click on the background: menu with «New node»
   cy.on('cxttap', e => {
     if (e.target !== cy) return;
     hideTip();
@@ -1582,11 +1582,11 @@ function render(els) {
   $('#stat').textContent = t('stat.ready', { n: cy.nodes().length });
 }
 
-/* ================= RICERCA ================= */
+/* ================= SEARCH ================= */
 let lastMatches = [];
 let DIST = new Map();
 
-/* Distanza di Levenshtein limitata: restituisce max+1 se supera la soglia */
+/* Bounded Levenshtein distance: returns max+1 if it exceeds the threshold */
 function lev(a, b, max) {
   if (a === b) return 0;
   const la = a.length, lb = b.length;
@@ -1611,13 +1611,13 @@ function lev(a, b, max) {
   return prev[lb];
 }
 
-/* Nodi che contengono una parola entro distanza max dal termine.
-   Scorre il vocabolario globale (parole uniche del grafo), non i nodi:
-   il costo non dipende dal numero di nodi ma da quello delle parole distinte. */
+/* Nodes containing a word within distance max of the term.
+   Scans the global vocabulary (unique words of the graph), not the nodes:
+   the cost depends not on the number of nodes but on the number of distinct words. */
 function termHits(term, max) {
   const hit = new Map();
-  for (const it of INDEX) if (it.hay.includes(term)) hit.set(it.id, 0);   // esatti
-  // il vocabolario è tokenizzato: confronta senza punteggiatura ai bordi (+39, "mario,"...)
+  for (const it of INDEX) if (it.hay.includes(term)) hit.set(it.id, 0);   // exact
+  // the vocabulary is tokenised: compare without punctuation at the edges (+39, "mario,"...)
   const t = term.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, '') || term;
   for (const [w, ids] of VOCAB) {
     if (Math.abs(w.length - t.length) > max) continue;
@@ -1631,7 +1631,7 @@ function termHits(term, max) {
   return hit;
 }
 
-/* Intersezione dei termini: un nodo è valido solo se li soddisfa tutti */
+/* Intersection of the terms: a node is valid only if it satisfies them all */
 function fuzzySearch(terms, max) {
   let acc = null;
   for (const t of terms) {
@@ -1650,8 +1650,8 @@ function fuzzySearch(terms, max) {
   return [...(acc || new Map())].sort((a, b) => a[1] - b[1] || a[0].localeCompare(b[0]));
 }
 
-/* Riallinea l'indice di ricerca di un nodo (usato dopo aver salvato una nota,
-   così il testo della nota è cercabile senza ricaricare la pagina). */
+/* Realigns the search index of a node (used after saving a note,
+   so the text of the note is searchable without reloading the page). */
 function reindexNode(node) {
   const d = node.data();
   const it = INDEX.find(x => x.id === d.id);
@@ -1659,12 +1659,12 @@ function reindexNode(node) {
   const base = `${d.label} ${d.id} ${d.platform} ${d.ntype} ${d.roman || ''} ` +
                `${d.script || ''} ${(d.aliases || []).join(' ')} ${(d.alias_ids || []).join(' ')} ` +
                `${d.note || ''}`;
-  // conserva la parte "schede" già indicizzata, sostituendo solo l'intestazione
+  // keeps the "cards" part already indexed, replacing only the header
   const tail = it.hay.slice(it.headLen || 0);
   const head = base.toLowerCase();
   it.headLen = head.length;
   it.hay = (head + tail).slice(0, 20000);
-  // vocabolario: aggiunge le parole della nota per la ricerca approssimata
+  // vocabulary: adds the words of the note for the approximate search
   const toks = String(d.note || '').toLowerCase().match(TOKEN_RE);
   if (toks) {
     for (const w of new Set(toks)) {
@@ -1681,8 +1681,8 @@ function searchNodes(q) {
   if (!list) return;
   const query = q.trim();
   if (!cy || !query) { list.innerHTML = ''; DIST = new Map(); hideResults(); return; }
-  // servono almeno 3 caratteri: con 1-2 i risultati sarebbero migliaia
-  // con gli ideogrammi bastano due caratteri (i nomi cinesi ne hanno spesso due)
+  // at least 3 characters are needed: with 1-2 the results would be thousands
+  // with ideograms two characters are enough (Chinese names often have two)
   const minChars = /[\u3400-\u9FFF\uF900-\uFAFF]/.test(query) ? 2 : MIN_SEARCH;
   if (query.length < minChars) {
     DIST = new Map(); lastMatches = [];
@@ -1708,8 +1708,8 @@ function searchNodes(q) {
     scored.forEach(([id]) => ids.push(id));
   }
 
-  // ordina i risultati per nome (crescente). Con la ricerca approssimata
-  // i più simili restano in cima (distanza), a parità di distanza è alfabetico.
+  // sort the results by name (ascending). With the approximate search
+  // the most similar stay at the top (distance); at equal distance it is alphabetical.
   const labelOf = id => {
     const n = cy.getElementById(id);
     return n.length ? String(n.data('label') || '') : '';
@@ -1749,7 +1749,7 @@ function searchNodes(q) {
   list.style.display = 'block';
 }
 
-// Delegation: i risultati restano cliccabili anche dopo nuove ricerche
+// Delegation: the results stay clickable even after new searches
 on('#search-results', 'click', e => {
   e.stopPropagation();
   if (e.target.closest('li.res-foot')) { showAllMatches(); return; }
@@ -1764,12 +1764,12 @@ function hideResults() {
   if (l) l.style.display = 'none';
 }
 
-/* Aggiunge nodi al grafo SENZA rimuovere quelli già presenti */
+/* Adds nodes to the graph WITHOUT removing those already present */
 function addToGraph(ids, focus) {
   if (!cy || !ids || !ids.length) return;
   const fresh = ids.filter(id => !visibleNodes.has(id) && cy.getElementById(id).length);
   ids.forEach(id => { if (cy.getElementById(id).length) visibleNodes.add(id); });
-  unhide(ids);                       // aggiungere a mano vince su un nascondimento
+  unhide(ids);                       // adding by hand wins over a hiding
   refresh(true);
 
   const want = new Set(ids);
@@ -1785,14 +1785,14 @@ function addToGraph(ids, focus) {
   if (s && !fresh.length) s.textContent += t('stat.alreadyThere');
 }
 
-/* Limita lo zoom dopo un fit automatico (evita nodi giganteschi) */
+/* Limits the zoom after an automatic fit (avoids gigantic nodes) */
 function capZoom(max = 1.5) {
   try {
     if (cy.zoom() > max) cy.zoom({ level: max, renderedPosition: { x: cy.width() / 2, y: cy.height() / 2 } });
   } catch (_) {}
 }
 
-/* Porta i nodi nella vista muovendo la camera il meno possibile */
+/* Brings the nodes into view moving the camera as little as possible */
 function bringIntoView(eles) {
   const bb = eles.boundingBox();
   const ext = cy.extent();
@@ -1811,7 +1811,7 @@ function showAllMatches() {
   if (l) l.querySelectorAll('li[data-id]').forEach(li => li.classList.add('added'));
 }
 
-/* ================= VISIBILITÀ & ESPANSIONE ================= */
+/* ================= VISIBILITY & EXPANSION ================= */
 function nbhd(node, depth) {
   let set = cy.collection().union(node);
   for (let i = 0; i < depth; i++) set = set.union(set.neighborhood('node'));
@@ -1829,17 +1829,17 @@ function visibleSet() {
   });
   selected.forEach(id => vis.add(id));
   pinned.forEach(id => vis.add(id));
-  // Filtro "Collegamenti": rivela i nodi con ESATTAMENTE N collegamenti,
-  // insieme ai nodi a cui sono collegati (altrimenti apparirebbero isolati)
+  // "Links" filter: reveals the nodes with EXACTLY N links,
+  // together with the nodes they are linked to (otherwise they would appear isolated)
   computeDegReveal();
   degReveal.forEach(id => vis.add(id));
   return vis;
 }
 
-/* Insieme dei nodi mostrati dal filtro sul numero di collegamenti:
-   quelli con grado esatto + i loro vicini diretti. */
+/* Set of the nodes shown by the filter on the number of links:
+   those with the exact degree + their direct neighbours. */
 let degReveal = new Set();
-let degOnly = false;          // true = solo i nodi con quel grado, senza i vicini
+let degOnly = false;          // true = only the nodes with that degree, without the neighbours
 function computeDegReveal() {
   degReveal = new Set();
   if (!cy || !degFilter) return;
@@ -1850,7 +1850,7 @@ function computeDegReveal() {
   });
 }
 
-/* Il pulsante "nascondi/mostra gli altri" ha senso solo a filtro attivo. */
+/* The "hide/show the others" button makes sense only with the filter active. */
 function syncDegOnlyBtn() {
   const b = $('#degOnly');
   if (!b) return;
@@ -1861,16 +1861,16 @@ function syncDegOnlyBtn() {
 
 function allowed(n) {
   const id = n.id();
-  if (hiddenNodes.has(id)) return false;      // nascosto a mano (N+Click)
-  if (catHidden.has(id)) return false;        // categoria spenta dai pulsanti
+  if (hiddenNodes.has(id)) return false;      // hidden by hand (N+Click)
+  if (catHidden.has(id)) return false;        // category switched off by the buttons
   if (pathOnly && pinned.size) return pinned.has(id) || selected.has(id);
-  // filtro "Collegamenti" attivo: decide SOLO lui, anche sui nodi gia' nella
-  // vista (altrimenti il filtro aggiungerebbe nodi senza mai toglierne, e
-  // "Nascondi gli altri" non avrebbe effetto)
+  // "Links" filter active: it alone decides, even for nodes already in the
+  // view (otherwise the filter would add nodes without ever removing any, and
+  // "Hide the others" would have no effect)
   if (degFilter > 0) return degReveal.has(id);
-  // NB: le categorie NON sono un filtro permanente: si applicano su richiesta
-  // al grafo visibile (pulsante "Applica"). Così espandere un nodo mostra
-  // sempre tutti i suoi collegamenti, senza vincoli di categoria.
+  // NB: categories are NOT a permanent filter: they are applied on request
+  // to the visible graph ("Apply" button). So expanding a node always shows
+  // all its links, without category constraints.
   if (visibleNodes.has(id) || selected.has(id) || pinned.has(id)) return true;
   if (!showIds && n.data('ident')) return false;
   return true;
@@ -1896,43 +1896,43 @@ function refresh(doLayout = false) {
     });
   });
 
-  applyGStyle();          // stile scelto per tutti i collegamenti
-  // NB: nessun layout globale e nessun movimento di camera: espandendo un nodo
-  // si posizionano soltanto i nuovi nodi, tutto il resto resta dov'è
+  applyGStyle();          // style chosen for all links
+  // NB: no global layout and no camera movement: expanding a node
+  // positions only the new nodes, everything else stays where it is
   if (doLayout && freshIds.length) placeFresh(freshIds);
 
-  if (focusId) applyFocus();     // l'evidenziazione segue i nodi ora visibili
+  if (focusId) applyFocus();     // the highlighting follows the nodes now visible
   refreshStat();
 }
 
-/* Riga di stato con il conteggio dei nodi visibili. */
+/* Status line with the count of the visible nodes. */
 function refreshStat() {
   if (!cy) return;
   const c = cy.nodes().not('.hidden').length;
   $('#stat').textContent = t('stat.visible', { v: c, t: cy.nodes().length, e: expanded.size });
 }
 
-/* Un'azione esplicita dell'utente (espansione, aggiunta) ha la precedenza sui
-   nascondimenti fatti prima: i nodi coinvolti tornano visibili. Così i filtri
-   per categoria non vincolano le operazioni successive. */
+/* An explicit user action (expansion, addition) takes precedence over the
+   hidings done before: the nodes involved become visible again. So the
+   category filters do not constrain later operations. */
 function unhide(ids) {
   let n = 0;
   ids.forEach(id => {
     if (hiddenNodes.delete(id)) n++;
-    catHidden.delete(id);            // un'azione esplicita vince anche sulle categorie spente
+    catHidden.delete(id);            // an explicit action also wins over switched-off categories
   });
   if (n) syncHiddenBtn();
 }
 
-/* Clic su un nodo: il primo espande (mostra i suoi collegamenti), il secondo
-   contrae. Contrarre nasconde i vicini che si vedevano per via di questa
-   espansione, anche se erano stati aggiunti in altro modo (ricerca, importazione);
-   restano quelli espansi a loro volta, quelli vicini a un altro nodo espanso,
-   quelli selezionati e il nodo al centro dell'evidenziazione. */
+/* Click on a node: the first expands it (shows its links), the second
+   collapses it. Collapsing hides the neighbours that were visible because of this
+   expansion, even if they had been added in another way (search, import);
+   those expanded in turn stay, as do those neighbouring another expanded node,
+   the selected ones and the node at the centre of the highlighting. */
 function toggleExpand(node) {
   if (!cy || !node) return;
   const id = node.id();
-  visibleNodes.add(id);              // il nodo resta sul grafo anche dopo il collasso
+  visibleNodes.add(id);              // the node stays on the graph even after collapsing
   if (expanded.has(id)) {
     expanded.delete(id);
     const keep = new Set([id]);
@@ -1944,21 +1944,21 @@ function toggleExpand(node) {
       const mid = m.id();
       if (keep.has(mid) || selected.has(mid) || mid === focusId) return;
       visibleNodes.delete(mid);
-      placed.delete(mid);            // alla prossima espansione si ridispone attorno al nodo
+      placed.delete(mid);            // at the next expansion it is rearranged around the node
     });
   } else {
     expanded.add(id);
-    // espandere significa "voglio vedere i suoi collegamenti", tutti
+    // expanding means "I want to see its links", all of them
     unhide([id, ...nbhd(node, depthVal()).map(m => m.id())]);
   }
   refresh(true);
 }
 
 /* ================= LAYOUT ================= */
-/* Posiziona SOLO i nodi nuovi, in corona attorno al nodo da cui nascono.
-   Nessun layout globale, nessun movimento dei nodi esistenti, camera ferma. */
+/* Positions ONLY the new nodes, in a ring around the node they come from.
+   No global layout, no movement of existing nodes, camera still. */
 function placeFresh(freshIds) {
-  // ingombri già occupati dai nodi visibili e posizionati
+  // footprints already taken by visible, positioned nodes
   const busy = [];
   cy.nodes().not('.hidden').forEach(n => {
     if (placed.has(n.id())) {
@@ -1975,7 +1975,7 @@ function placeFresh(freshIds) {
     placed.add(id);
   };
 
-  // raggruppa i nuovi nodi per nodo di origine (l'ancora già posizionata)
+  // group the new nodes by origin node (the anchor already positioned)
   const groups = new Map();
   const orphans = [];
   freshIds.forEach(id => {
@@ -2011,12 +2011,12 @@ function placeFresh(freshIds) {
     });
   }
 
-  // nodi senza collegamenti già sul grafo: al centro della vista corrente
+  // nodes without links already on the graph: at the centre of the current view
   if (orphans.length) {
     const ext = cy.extent();
     const cx = (ext.x1 + ext.x2) / 2, cy0 = (ext.y1 + ext.y2) / 2;
     orphans.forEach((id, i) => {
-      const ang = 2.399 * i;                 // angolo aureo: distribuzione uniforme
+      const ang = 2.399 * i;                 // golden angle: uniform distribution
       let rad = i ? 100 + 26 * i : 0, t = 0;
       let x = cx + Math.cos(ang) * rad, y = cy0 + Math.sin(ang) * rad;
       while (!free(x, y, 26) && t < 60) {
@@ -2064,13 +2064,13 @@ function runLayout(extra = {}) {
   eles.nodes().forEach(n => placed.add(n.id()));
 }
 
-/* ================= RIDUCI INCROCI =================
-   fcose (come "Organico") non minimizza gli incroci: ripetendo la disposizione
-   con semi diversi e tenendo quella con meno archi che si intersecano si ottiene
-   un grafo molto più leggibile e in modo stabile. */
+/* ================= REDUCE CROSSINGS =================
+   fcose (like "Organic") does not minimise crossings: repeating the layout
+   with different seeds and keeping the one with fewest intersecting links gives
+   a much more readable graph, and stably so. */
 let untangling = false;
 
-/* Segmenti degli archi visibili (in coordinate del modello). */
+/* Segments of the visible links (in model coordinates). */
 function edgeSegs() {
   const segs = [];
   cy.edges().not('.hidden').forEach(e => {
@@ -2082,7 +2082,7 @@ function edgeSegs() {
   return segs;
 }
 
-/* Due segmenti si incrociano? Gli archi che condividono un nodo non contano. */
+/* Do two segments cross? Links that share a node do not count. */
 function crosses(p, q) {
   if (p.s === q.s || p.s === q.t || p.t === q.s || p.t === q.t) return false;
   const sgn = (ax, ay, bx, by, cx, cy) => Math.sign((bx - ax) * (cy - ay) - (by - ay) * (cx - ax));
@@ -2102,16 +2102,16 @@ function countCrossings() {
   return c;
 }
 
-/* Un singolo passaggio fcose ad alta qualità, senza animazione: la Promise si
-   risolve a layout finito così si possono confrontare più tentativi. */
+/* A single high-quality fcose pass, without animation: the Promise
+   resolves when the layout is done, so several attempts can be compared. */
 function fcoseOnce(extra = {}) {
   return new Promise(resolve => {
     let done = false;
     const finish = () => { if (!done) { done = true; resolve(); } };
     const eles = cy.elements().not('.hidden');
-    // Parametri "puliti": fcose non minimizza gli incroci, quindi conta poco
-    // strapazzarlo (packing/tiling peggiorano); il guadagno vero è tenere il
-    // migliore di molti tentativi randomizzati.
+    // "Clean" parameters: fcose does not minimise crossings, so there is little
+    // point in pushing it (packing/tiling make it worse); the real gain is keeping the
+    // best of many randomised attempts.
     const lay = eles.layout(Object.assign({
       name: 'fcose',
       animate: false,
@@ -2125,7 +2125,7 @@ function fcoseOnce(extra = {}) {
     }, extra));
     lay.one('layoutstop', finish);
     lay.run();
-    setTimeout(finish, 6000);            // rete di sicurezza: mai bloccarsi
+    setTimeout(finish, 6000);            // safety net: never get stuck
   });
 }
 
@@ -2149,20 +2149,20 @@ async function untangle() {
   const label = btn ? btn.textContent : '';
   if (btn) { btn.disabled = true; btn.textContent = '✂ …'; }
   curLayout = 'fcose';
-  await new Promise(r => setTimeout(r, 0));    // fa dipingere lo stato "in corso" prima del calcolo
+  await new Promise(r => setTimeout(r, 0));    // lets the "in progress" state paint before the computation
 
   try {
     cy.stop();
-    // Un passaggio fcose blocca il thread (è sincrono): su centinaia di nodi
-    // la qualità 'default' impiega qualche secondo, quindi oltre una soglia si
-    // passa a 'draft' (rapida) per non congelare la UI. Ogni passaggio è molto
-    // variabile: si ripete finché resta tempo e si tiene quello con meno incroci.
-    const quality = nN > 1200 ? 'draft' : 'default';   // oltre ~1200 nodi 'default' rischia lunghi blocchi
+    // An fcose pass blocks the thread (it is synchronous): on hundreds of nodes
+    // 'default' quality takes a few seconds, so above a threshold it
+    // switches to 'draft' (fast) so as not to freeze the UI. Each pass is very
+    // variable: it repeats while time remains and keeps the one with fewest crossings.
+    const quality = nN > 1200 ? 'draft' : 'default';   // beyond ~1200 nodes 'default' risks long freezes
     const numIter = nN > 1200 ? 1000 : 2500;
-    const measure = nE <= 5000;                  // il conteggio O(E²) resta a buon mercato
-    // Ogni tentativo blocca il thread: sui grafi grandi dura ~3s, quindi il
-    // budget basso li limita a pochi passaggi (lì la varianza è bassa e non
-    // servono); su quelli piccoli (~250ms/tentativo) ne restano comunque tanti.
+    const measure = nE <= 5000;                  // the O(E²) count stays cheap
+    // Each attempt blocks the thread: on large graphs it lasts ~3s, so the
+    // low budget limits them to a few passes (there the variance is low and they are
+    // not needed); on small ones (~250ms/attempt) plenty remain anyway.
     const budgetMs = 4000;
     const maxRuns = 16;
     let best = null, bestC = Infinity, k = 0;
@@ -2173,8 +2173,8 @@ async function untangle() {
       k++;
       const c = measure ? countCrossings() : 0;
       if (c < bestC) { bestC = c; best = snapshotPos(); }
-      if (!measure || bestC === 0) break;        // grafo enorme (niente misura) o già perfetto
-      await new Promise(r => setTimeout(r));      // cede il thread alla UI tra un tentativo e l'altro
+      if (!measure || bestC === 0) break;        // huge graph (no measurement) or already perfect
+      await new Promise(r => setTimeout(r));      // yields the thread to the UI between one attempt and the next
     } while (k < maxRuns && performance.now() - start < budgetMs);
 
     if (best) restorePos(best);
@@ -2211,7 +2211,7 @@ function showTip(n) {
   const openable = /^https?:\/\//i.test(d.url || '') ||
                    (SOCIAL_URL[d.platform] && socialHandle(d));
   const hint = openable ? `<u>${esc(t('tip.altclick'))}</u>` : '';
-  // la nota del nodo, se presente, compare in evidenza nel tooltip
+  // the node's note, if present, appears prominently in the tooltip
   const note = d.note
     ? `<div class="tip-note"><b>${esc(t('card.note'))}</b>${esc(d.note)}</div>` : '';
   box.innerHTML = `<small>${esc(d.ntype)} · ${esc(d.platform)}</small><b>${esc(d.label)}</b>` +
@@ -2241,7 +2241,7 @@ function moveTip(e) {
 }
 const hideTip = () => { const box = $('#tip'); if (box) box.style.display = 'none'; };
 
-/* ================= SELEZIONE ================= */
+/* ================= SELECTION ================= */
 function toggleSel(node) {
   const id = node.id();
   if (selected.has(id)) { selected.delete(id); node.removeClass('sel'); }
@@ -2285,11 +2285,11 @@ function clearHl() {
   refresh(false);
 }
 
-/* ================= PERCORSI (TUTTI) ================= */
-const MAX_PATHS_PAIR = 400;   // limite percorsi per coppia
-const MAX_STEPS = 400000;     // limite passi DFS (anti-freeze)
+/* ================= PATHS (ALL) ================= */
+const MAX_PATHS_PAIR = 400;   // limit of paths per pair
+const MAX_STEPS = 400000;     // limit of DFS steps (anti-freeze)
 
-// Adiacenza precalcolata: enumerare i percorsi con l'API di Cytoscape è troppo lento
+// Precomputed adjacency: enumerating paths with the Cytoscape API is too slow
 let ADJ = null;
 function buildAdj() {
   ADJ = new Map();
@@ -2302,13 +2302,13 @@ function buildAdj() {
   });
 }
 
-/* Tutti i percorsi semplici src→dst entro maxHops archi.
-   Pruning bidirezionale: si esplora solo chi può ancora arrivare a dst. */
+/* All simple paths src→dst within maxHops links.
+   Bidirectional pruning: only what can still reach dst is explored. */
 function allSimplePaths(srcId, dstId, maxHops) {
   if (!ADJ) buildAdj();
   if (srcId === dstId || !ADJ.has(srcId) || !ADJ.has(dstId)) return [];
 
-  // distanza BFS da dst (limitata a maxHops)
+  // BFS distance from dst (limited to maxHops)
   const dist = new Map([[dstId, 0]]);
   let frontier = [dstId];
   for (let d = 1; d <= maxHops && frontier.length; d++) {
@@ -2336,7 +2336,7 @@ function allSimplePaths(srcId, dstId, maxHops) {
       if (paths.length >= MAX_PATHS_PAIR || ++steps > MAX_STEPS) return;
       if (onPath.has(nid)) continue;
       const d = dist.get(nid);
-      if (d === undefined || d > hopsLeft - 1) continue;   // non arriverebbe mai a dst
+      if (d === undefined || d > hopsLeft - 1) continue;   // would never reach dst
       onPath.add(nid); stack.push(nid);
       dfs(nid, hopsLeft - 1);
       stack.pop(); onPath.delete(nid);
@@ -2369,7 +2369,7 @@ function findPath() {
     return;
   }
 
-  // Evidenzia TUTTI i percorsi trovati (unione di nodi e archi)
+  // Highlights ALL the paths found (union of nodes and links)
   const nodeIds = new Set();
   const edgeIds = new Set();
   all.forEach(p => {
@@ -2404,7 +2404,7 @@ function findPath() {
       ? `<div class="p-more">${esc(t('path.more', { n: all.length - 25 }))}</div>` : ''}</div>`;
 }
 
-// Passaggio del mouse su un percorso dell'elenco: lo mette in risalto sul grafo
+// Mouse hover on a path in the list: highlights it on the graph
 on('#pathinfo', 'mouseover', e => {
   const row = e.target.closest('.p-row');
   if (!row || !cy) return;
@@ -2421,7 +2421,7 @@ on('#pathinfo', 'mouseout', e => {
   if (e.target.closest('.p-row') && cy) cy.elements().removeClass('path-hi');
 });
 
-/* ================= MODALE ================= */
+/* ================= MODAL ================= */
 let modalNode = null;
 
 function openModal(node) {
@@ -2432,7 +2432,7 @@ function openModal(node) {
   $('#modal-ic').src = d.icon;
   const ttl = $('#modal-title');
   ttl.textContent = d.label;
-  ttl.className = 'cp';                       // anche il titolo si copia
+  ttl.className = 'cp';                       // the title can be copied too
   ttl.dataset.cp = d.label;
   ttl.title = t('cp.hint');
   $('#modal-sub').textContent =
@@ -2455,11 +2455,11 @@ function openModal(node) {
 }
 function closeModal() { $('#modal').hidden = true; modalNode = null; }
 
-/* ---- Nodi collegati, per il riepilogo della scheda ----
-   Un target va esplorato a 2 salti (i telefoni non pendono da lui ma
-   dall'account); ogni altro nodo si ferma ai collegamenti DIRETTI.
-   In ogni caso un nodo target incontrato lungo il cammino non viene mai
-   espanso: è un confine, altrimenti si tirerebbe dentro mezzo grafo. */
+/* ---- Linked nodes, for the card summary ----
+   A target is explored to 2 hops (the phones hang not from it but
+   from the account); any other node stops at the DIRECT links.
+   In any case a target node met along the way is never
+   expanded: it is a boundary, otherwise half the graph would be pulled in. */
 function collectAround(node, hops = 1) {
   const seen = new Set([node.id()]);
   let frontier = [node];
@@ -2471,7 +2471,7 @@ function collectAround(node, hops = 1) {
         if (seen.has(m.id())) return;
         seen.add(m.id());
         found.push(m);
-        if (m.data('ntype') !== 'target') next.push(m);   // i target non si attraversano
+        if (m.data('ntype') !== 'target') next.push(m);   // targets are not traversed
       });
     });
     frontier = next;
@@ -2480,31 +2480,31 @@ function collectAround(node, hops = 1) {
   return found;
 }
 
-/* Titolo tradotto di un gruppo di identificativi (per ntype). */
+/* Translated title of a group of identifiers (by ntype). */
 const GROUP_KEYS = ['target', 'phone', 'email', 'username', 'vehicle',
                     'photo', 'latin', 'domain', 'breach', 'link', 'text',
                     'name', 'place', 'generic'];
 const groupTitle = nt => nt === 'account' ? t('card.social')
                        : GROUP_KEYS.includes(nt) ? t('grp.' + nt) : nt;
 
-/* Riepilogo raggruppato: prima i social per piattaforma, poi gli altri tipi. */
+/* Grouped summary: first the social accounts by platform, then the other types. */
 function groupedSummary(node) {
-  // target: 2 salti (telefoni/email pendono dagli account). Altri nodi: solo
-  // i collegamenti diretti, altrimenti comparirebbe tutto il vicinato dei target.
+  // target: 2 hops (phones/emails hang from the accounts). Other nodes: only
+  // the direct links, otherwise the whole neighbourhood of the targets would appear.
   const around = collectAround(node, node.data('ntype') === 'target' ? 2 : 1);
   if (!around.length) return '';
 
   const isTarget = node.data('ntype') === 'target';
-  const socials = {};      // piattaforma -> nodi account
-  const others = {};       // ntype -> nodi
+  const socials = {};      // platform -> account nodes
+  const others = {};       // ntype -> nodes
   around.forEach(m => {
     const nt = m.data('ntype');
     if (nt === 'account') {
       const p = m.data('platform') || 'generic';
       (socials[p] = socials[p] || []).push(m);
     } else if (nt === 'target') {
-      // per un nodo qualsiasi, i target a cui appartiene sono l'informazione
-      // più utile; nella scheda di un target, invece, non servono
+      // for any node, the targets it belongs to are the most useful
+      // information; in a target's card, instead, they are not needed
       if (!isTarget) (others[nt] = others[nt] || []).push(m);
     } else {
       (others[nt] = others[nt] || []).push(m);
@@ -2513,20 +2513,20 @@ function groupedSummary(node) {
 
   const row = m => {
     const dd = m.data();
-    // il nome si copia con un click; la freccia (visibile al passaggio del
-    // mouse) porta al nodo nel grafo
+    // the name is copied with a click; the arrow (visible on mouse
+    // hover) leads to the node in the graph
     const name = `<span class="g-name cp" data-cp="${esc(dd.label)}" ` +
                  `title="${esc(t('cp.hint'))}">${esc(dd.label)}</span>` +
                  `<button class="g-go" data-goto="${esc(m.id())}" ` +
                  `title="${esc(t('cp.goto'))}">↗</button>`;
 
-    // foto: miniatura visibile (click = ingrandimento)
+    // photo: visible thumbnail (click = enlargement)
     if (dd.ntype === 'photo' && dd.image) {
       return `<li class="g-photo"><img class="g-thumb" src="${esc(dd.image)}" ` +
              `loading="lazy" alt="" onerror="this.remove()">${name}</li>`;
     }
 
-    // traslitterazione: termine originale -> forma latina
+    // transliteration: original term -> Latin form
     if (dd.ntype === 'latin') {
       const orig = m.connectedEdges('[rel="translit"]').connectedNodes()
                     .filter(x => x.id() !== m.id());
@@ -2540,7 +2540,7 @@ function groupedSummary(node) {
              (scr ? `<em class="g-scr">${esc(scr)}</em>` : '') + '</li>';
     }
 
-    // URL proprio del nodo (link generico) oppure ricostruito dalla piattaforma
+    // the node's own URL (generic link) or rebuilt from the platform
     const mk = SOCIAL_URL[dd.platform];
     const hnd = mk ? socialHandle(dd) : '';
     const url = /^https?:\/\//i.test(dd.url || '') ? dd.url : (mk && hnd ? mk(hnd) : '');
@@ -2559,8 +2559,8 @@ function groupedSummary(node) {
   const byCount = (a, b) => socials[b].length - socials[a].length || a.localeCompare(b);
 
   const plats = Object.keys(socials);
-  const known = plats.filter(p => SOCIAL_URL[p]).sort(byCount);   // social apribili
-  const rest = plats.filter(p => !SOCIAL_URL[p]).sort(byCount);   // altri servizi
+  const known = plats.filter(p => SOCIAL_URL[p]).sort(byCount);   // social accounts that can be opened
+  const rest = plats.filter(p => !SOCIAL_URL[p]).sort(byCount);   // other services
 
   let h = `<div class="d-sec g-sum"><h4>${esc(t('card.summary'))}</h4>`;
 
@@ -2569,7 +2569,7 @@ function groupedSummary(node) {
     known.forEach(p => { h += blk(p, TYPE_COLOR.account, socials[p], 'g-social'); });
   }
 
-  // tipi non-account (telefoni, email, username, veicoli, foto...)
+  // non-account types (phones, emails, usernames, vehicles, photos...)
   const otherTypes = Object.keys(others)
     .sort((a, b) => others[b].length - others[a].length || a.localeCompare(b));
   if (otherTypes.length) {
@@ -2590,18 +2590,18 @@ function groupedSummary(node) {
   return h + '</div>';
 }
 
-/* opts.print = versione per il PDF: niente nuvola di chip con le icone dei
-   nodi, restano i riferimenti in forma di elenco/tabella. */
+/* opts.print = version for the PDF: no cloud of chips with the node
+   icons, the references remain as a list/table. */
 function bodyFor(node, opts = {}) {
   const d = node.data();
   let h = '';
 
-  // Nota dell'utente, ben visibile in cima
+  // User's note, clearly visible at the top
   if (d.note) {
     h += `<div class="d-note"><b>${esc(t('card.note'))}</b><div>${esc(d.note).replace(/\n/g, '<br>')}</div></div>`;
   }
 
-  // forma latina dell'etichetta (traslitterazione come attributo del nodo)
+  // Latin form of the label (transliteration as a node attribute)
   if (d.roman && d.roman.toLowerCase() !== String(d.label || '').toLowerCase()) {
     h += `<div class="d-ren"><b>${esc(t('card.roman'))}</b>` +
          `<span class="cp" data-cp="${esc(d.roman)}" title="${esc(t('cp.hint'))}">${esc(d.roman)}</span>` +
@@ -2609,26 +2609,26 @@ function bodyFor(node, opts = {}) {
          `</div>`;
   }
 
-  // Etichetta cambiata a mano: si mostra sempre quella dei dati di origine
+  // Label changed by hand: the one from the source data is always shown
   if (d.renamed && d.label_orig) {
     h += `<div class="d-ren"><b>${esc(t('card.renamedFrom'))}</b>` +
          `<span class="cp" data-cp="${esc(d.label_orig)}" title="${esc(t('cp.hint'))}">` +
          `${esc(d.label_orig)}</span></div>`;
   }
 
-  // Riepilogo raggruppato: per i target (e per ogni nodo molto collegato)
+  // Grouped summary: for targets (and for every highly linked node)
   if (d.ntype === 'target' || (d.deg || 0) >= 4) {
     h += groupedSummary(node);
   }
 
-  // Etichette alternative dei nodi fusi
+  // Alternative labels of the merged nodes
   if (d.aliases && d.aliases.length) {
     h += `<div class="d-sec"><h4>${esc(t('card.aliases', { n: d.aliases.length }))}</h4><div class="d-imgs-list">` +
       d.aliases.map(a => `<span class="chip static cp" data-cp="${esc(a)}" ` +
         `title="${esc(t('cp.hint'))}">${esc(a)}</span>`).join('') + '</div></div>';
   }
 
-  // Nuvola dei nodi collegati (con icone): solo a schermo, non nel PDF
+  // Cloud of linked nodes (with icons): only on screen, not in the PDF
   const nbr = node.neighborhood('node');
   if (nbr.length && !opts.print) {
     h += `<div class="d-sec"><h4>${esc(t('card.connectedTo', { n: nbr.length }))}</h4><div class="d-imgs-list">` +
@@ -2636,7 +2636,7 @@ function bodyFor(node, opts = {}) {
       '</div></div>';
   }
 
-  // TUTTE le schede del nodo (anche quelle provenienti dai nodi fusi)
+  // ALL the node's cards (including those coming from the merged nodes)
   const recs = d.records || [];
   if (recs.length) h += `<h4 class="d-count">${esc(recs.length === 1
       ? t('card.card', { n: recs.length }) : t('card.cards', { n: recs.length }))}</h4>`;
@@ -2649,7 +2649,7 @@ function bodyFor(node, opts = {}) {
         r.images.slice(0, 12).map(u => `<img src="${esc(u)}" loading="lazy" alt="" onerror="this.remove()">`).join('') +
         '</div>';
     }
-    // il valore si copia con un click (comodo per cercare su altri portali)
+    // the value is copied with a click (handy for searching on other portals)
     h += '<div class="d-grid">' + flatten(r.raw).map(([k, v]) =>
       `<div>${esc(k)}</div><div class="cp" data-cp="${esc(v)}" ` +
       `title="${esc(t('cp.hint'))}">${renderVal(v)}</div>`).join('') + '</div>';
@@ -2659,13 +2659,13 @@ function bodyFor(node, opts = {}) {
   return h || `<div class="empty">${esc(t('card.empty'))}</div>`;
 }
 
-/* ================= COLLEGAMENTI MANUALI ================= */
-/* Inserisce archi nel grafo vivo, senza ricaricare. */
+/* ================= MANUAL LINKS ================= */
+/* Inserts links into the live graph, without reloading. */
 function injectEdges(edges) {
   let n = 0;
   cy.batch(() => {
     edges.forEach(e => {
-      if (cy.getElementById(e.id).length) return;              // già presente
+      if (cy.getElementById(e.id).length) return;              // already present
       const s = cy.getElementById(e.source), t = cy.getElementById(e.target);
       if (!s.length || !t.length) return;
       cy.add({ group: 'edges', data: Object.assign({}, e) });
@@ -2678,10 +2678,10 @@ function injectEdges(edges) {
   return n;
 }
 
-/* Collega i nodi scelti. Con due nodi si sceglie il verso (Da → A); con più
-   nodi si collega ogni coppia (a,b,c -> ab, ac, bc). In entrambi i casi si
-   impostano nome, frecce, forma, colore e tipo di linea del collegamento.
-   Fra due nodi possono esserci più collegamenti, ognuno con il suo nome. */
+/* Links the chosen nodes. With two nodes the direction is chosen (From → To); with more
+   nodes every pair is linked (a,b,c -> ab, ac, bc). In both cases the
+   name, arrows, shape, colour and line type of the link are set.
+   Between two nodes there can be several links, each with its own name. */
 let linkIds = [];
 
 function openLinkModal(ids, preset) {
@@ -2741,10 +2741,10 @@ on('#linkmodal-close', 'click', () => { $('#linkmodal').hidden = true; });
 on('#linkmodal', 'click', e => { if (e.target.id === 'linkmodal' && !dragEnd('linkmodal')) $('#linkmodal').hidden = true; });
 on('#link-edge-label', 'keydown', e => { if (e.key === 'Enter') saveLink(); });
 
-/* ================= MODIFICA DI UN COLLEGAMENTO (tasto destro) ================= */
+/* ================= EDITING A LINK (right-click) ================= */
 let edgeEditId = null;
 
-/* Da dove viene l'arco: decide cosa si può fare (eliminarlo, ripristinarlo). */
+/* Where the link comes from: decides what can be done (delete it, restore it). */
 const edgeKind = e => e.data('rel') === 'collegamento' ? 'link'
                     : e.data('manual') ? 'added' : 'data';
 
@@ -2763,7 +2763,7 @@ function openEdgeModal(edge) {
   $('#edgemodal-reset').hidden = kind !== 'data';
   writeEdgeProps('edg', edgePropsOf(edge));
 
-  // altri collegamenti fra gli stessi due nodi: si passa dall'uno all'altro
+  // other links between the same two nodes: switch from one to the other
   const par = edge.parallelEdges();
   const others = $('#edg-others');
   if (par.length > 1) {
@@ -2803,7 +2803,7 @@ on('#edgemodal-reset', 'click', () => saveEdge(true));
 on('#edgemodal-close', 'click', closeEdgeModal);
 on('#edgemodal', 'click', e => { if (e.target.id === 'edgemodal' && !dragEnd('edgemodal')) closeEdgeModal(); });
 on('#edg-edge-label', 'keydown', e => { if (e.key === 'Enter') saveEdge(false); });
-/* inverte il verso: si scambiano le frecce (il collegamento resta lo stesso) */
+/* reverses the direction: the arrows are swapped (the link stays the same) */
 on('#edg-swap-btn', 'click', () => {
   const { fwd, bwd } = arrowHeads('edg');
   setArrowHeads('edg', bwd, fwd);
@@ -2838,10 +2838,10 @@ on('#edgemodal-del', 'click', async () => {
   }
 });
 
-/* ================= AGGIUNTA MANUALE DI UN NODO ================= */
+/* ================= MANUAL ADDITION OF A NODE ================= */
 let addParent = null;
 
-/* Etichetta e segnaposto del campo valore, per tipo di nodo (chiavi i18n). */
+/* Label and placeholder of the value field, by node type (i18n keys). */
 const ADD_FIELDS = {
   social:   { label: 'add.urlLabel',   ph: 'add.urlPh' },
   link:     { label: 'add.linkLabel',  ph: 'add.linkPh' },
@@ -2851,11 +2851,11 @@ const ADD_FIELDS = {
   vehicle:  { label: 'add.plateLabel', ph: 'add.platePh' },
   name:     { label: 'add.nameOnly',   ph: 'add.nameOnlyPh' },
   place:    { label: 'add.cityLabel',  ph: 'add.cityPh' },
-  text:     { label: '',               ph: '' },   // usa solo titolo + testo
-  photo:    { label: '',               ph: '' }    // usa l'area immagine
+  text:     { label: '',               ph: '' },   // uses only title + text
+  photo:    { label: '',               ph: '' }    // uses the image area
 };
 
-/* Quali campi mostrare per ciascun tipo. */
+/* Which fields to show for each type. */
 const ADD_LAYOUT = {
   social:   { value: true,  name: true,  text: false, photo: false, nameKey: 'add.nameLabel',  namePh: 'add.namePh' },
   link:     { value: true,  name: true,  text: false, photo: false, nameKey: 'add.nameLabel',  namePh: 'add.linkNamePh' },
@@ -2869,10 +2869,10 @@ const ADD_LAYOUT = {
   photo:    { value: false, name: true,  text: false, photo: true,  nameKey: 'add.photoNameLabel', namePh: 'add.photoNamePh' }
 };
 
-let addPhoto = null;   // { dataUrl, filename, path } dell'immagine scelta
+let addPhoto = null;   // { dataUrl, filename, path } of the chosen image
 
-/* node = nodo di partenza (il nuovo nodo gli viene collegato); null = "Nuovo
-   nodo" indipendente: la sezione del collegamento non serve e si nasconde. */
+/* node = starting node (the new node is linked to it); null = standalone "New
+   node": the link section is not needed and is hidden. */
 function openAdd(node, opts = {}) {
   if (!requireCase()) return;
   addParent = node || null;
@@ -2891,7 +2891,7 @@ function openAdd(node, opts = {}) {
   ['#add-cognome', '#add-nome', '#add-nascita', '#add-colore'].forEach(s => { if ($(s)) $(s).value = ''; });
   if ($('#add-target')) $('#add-target').checked = !!opts.target;
   if (opts.kind) $('#add-type').value = opts.kind;
-  $('#add-onto-row').dataset.kind = '';          // campi ontologici vuoti
+  $('#add-onto-row').dataset.kind = '';          // empty ontology fields
   setAddPhoto(null);
   previewNodes.add = [node ? nodeView(node) : null, null];
   writeEdgeProps('add', EDGE_DEFAULTS);
@@ -2901,7 +2901,7 @@ function openAdd(node, opts = {}) {
   setTimeout(() => $(first).focus(), 50);
 }
 
-/* Persona: stessa identità del server (nome senza ordine + data di nascita). */
+/* Person: same identity as on the server (name regardless of order + date of birth). */
 function foldName(s) {
   return String(s || '').normalize('NFKD').replace(/[̀-ͯ]/g, '')
     .toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
@@ -2909,12 +2909,12 @@ function foldName(s) {
 function personKey(full) { return foldName(full).split(/\s+/).filter(Boolean).sort().join(' '); }
 function birthIt(iso) { return iso ? `${iso.slice(8, 10)}/${iso.slice(5, 7)}/${iso.slice(0, 4)}` : ''; }
 
-/* ---- elementi investigativi (armi, stupefacenti, valori...): i campi del
-   modulo vengono da ontology.py ---- */
+/* ---- investigative items (weapons, drugs, valuables...): the form
+   fields come from ontology.py ---- */
 const ontoLabel = o => ot(o.label);
 
-/* Una sezione della tendina per gruppo (Armi, Stupefacenti, Valori...), nell'ordine
-   di ontology.py (il JSON della pagina ha le chiavi in ordine alfabetico). */
+/* One drop-down section per group (Weapons, Drugs, Valuables...), in the order
+   of ontology.py (the page JSON has its keys in alphabetical order). */
 function fillOntoOptions() {
   const sel = $('#add-type');
   if (!sel) return;
@@ -2965,7 +2965,7 @@ function readOntoFields() {
   return out;
 }
 
-/* Anteprima dell'etichetta (quella vera la compone il server). */
+/* Preview of the label (the real one is built by the server). */
 function ontoPreviewLabel(kind, f) {
   const o = ONTO[kind];
   const skip = /descrizione|confezionamento|seriali|tagli|intestatario|traente|beneficiario|sede|stato/;
@@ -2998,7 +2998,7 @@ function syncAddType() {
   updateAddPreview();
 }
 
-/* ---- immagine: scelta da file, trascinamento o incolla ---- */
+/* ---- image: chosen from file, drag and drop or paste ---- */
 function setAddPhoto(dataUrl, filename) {
   addPhoto = dataUrl ? { dataUrl, filename: filename || 'immagine' } : null;
   const img = $('#add-thumb'), txt = $('#add-drop-txt');
@@ -3019,8 +3019,8 @@ function readImageFile(file) {
   r.readAsDataURL(file);
 }
 
-/* Cosa verrà creato: piattaforma e identificativo estratti dall'URL.
-   Qualsiasi tipo può essere evidenziato come target (spunta nel modulo). */
+/* What will be created: platform and identifier extracted from the URL.
+   Any type can be marked as a target (tick box in the form). */
 function addPayload() {
   const p = addPayloadOf($('#add-type').value);
   if (!p.err) p.target = !!($('#add-target') && $('#add-target').checked);
@@ -3030,7 +3030,7 @@ function addPayloadOf(kind) {
   const v = $('#add-value').value.trim();
   const nome = ($('#add-name') && $('#add-name').value.trim()) || '';
 
-  // tipi che non usano il campo "valore"
+  // types that do not use the "value" field
   if (kind === 'text') {
     if (!nome) return { err: '' };
     const corpo = ($('#add-text') && $('#add-text').value.trim()) || '';
@@ -3051,7 +3051,7 @@ function addPayloadOf(kind) {
   if (kind === 'name') {
     const cognome = ($('#add-cognome').value || '').trim().replace(/\s+/g, ' ');
     const nomeP = ($('#add-nome').value || '').trim().replace(/\s+/g, ' ');
-    const nascita = ($('#add-nascita').value || '').trim();      // AAAA-MM-GG
+    const nascita = ($('#add-nascita').value || '').trim();      // YYYY-MM-DD
     const full = `${cognome} ${nomeP}`.trim();
     if (!full) return { err: '' };
     if (full.length < 2) return { err: t('add.errName') };
@@ -3062,7 +3062,7 @@ function addPayloadOf(kind) {
   if (kind === 'place') {
     const nomeVia = ($('#add-address') && $('#add-address').value.trim()) || '';
     const topo = ($('#add-toponimo') && $('#add-toponimo').value) || '';
-    // tipo dalla tendina, se il nome non ne contiene gia' uno ("Piazza Duomo")
+    // type from the drop-down, if the name does not already contain one ("Piazza Duomo")
     const strada = nomeVia && topo && !STREET_TYPE_RE.test(nomeVia) ? `${topo} ${nomeVia}` : nomeVia;
     const civico = ($('#add-civico') && $('#add-civico').value.trim()) || '';
     const via = `${strada} ${civico}`.trim();
@@ -3107,8 +3107,8 @@ function addPayloadOf(kind) {
   return { ntype: 'username', value: v.replace(/^@+/, ''), label: v.replace(/^@+/, '') };
 }
 
-/* Anteprima del collegamento nella finestra di aggiunta: il nodo di partenza e
-   il nodo che si sta creando, con l'icona e il colore del tipo scelto. */
+/* Preview of the link in the add window: the starting node and
+   the node being created, with the icon and colour of the chosen type. */
 const ADD_KIND_NTYPE = { social: 'account' };
 function addPreviewNode(p) {
   if (!previewNodes.add) return;
@@ -3117,14 +3117,14 @@ function addPreviewNode(p) {
           : { ntype: ADD_KIND_NTYPE[kind] || kind, platform: kind === 'social' ? '' : kind,
               label: $('#add-value').value.trim() || $('#add-name').value.trim() || t('add.newNode') };
   if (d.ntype === 'photo' && addPhoto) d.image = addPhoto.dataUrl;
-  if ($('#add-target') && $('#add-target').checked) d.ntype = 'target';   // come farà il server
+  if ($('#add-target') && $('#add-target').checked) d.ntype = 'target';   // as the server will do
   previewNodes.add[1] = { icon: iconFor(d), label: d.label || d.value || t('add.newNode'),
                           color: TYPE_COLOR[d.ntype] || TYPE_COLOR.generic, ntype: d.ntype };
   updateEdgePreview('add');
 }
 
-/* Tipi di via della tendina (toponimi). Non contano nel confronto fra
-   indirizzi: "Via Giacomo Leopardi" e "Giacomo Leopardi" sono la stessa via. */
+/* Street types of the drop-down (toponyms). They do not count when comparing
+   addresses: "Via Giacomo Leopardi" and "Giacomo Leopardi" are the same street. */
 const TOPONIMI = ['Via', 'Viale', 'Piazza', 'Piazzale', 'Piazzetta', 'Corso', 'Largo',
   'Vicolo', 'Vico', 'Strada', 'Contrada', 'Località', 'Frazione', 'Borgo', 'Lungomare',
   'Lungolago', 'Salita', 'Traversa', 'Galleria', 'Circonvallazione', 'Calle', 'Rue',
@@ -3149,7 +3149,7 @@ function updateAddPreview() {
   addPreviewNode(p);
   if (p.err === '') { box.className = 'af-prev'; box.textContent = ''; return; }
   if (p.err) { box.className = 'af-prev af-err'; box.textContent = '⚠ ' + p.err; return; }
-  // la foto riceve l'id solo dopo il caricamento sul server
+  // the photo gets its id only after the upload to the server
   if (p.ntype === 'photo') {
     box.className = 'af-prev af-ok';
     box.innerHTML = `<b>${esc(t('cat.foto'))}</b> · ${esc(addPhoto.filename)}` +
@@ -3178,9 +3178,9 @@ function updateAddPreview() {
     (exists ? `<br><i>${esc(t('add.exists'))}</i>` : '');
 }
 
-/* Aggiunge un nodo a cytoscape con gli stessi campi calcolati al caricamento
-   (icona, colore, categoria, dimensione) e lo indicizza per la ricerca.
-   Se esiste già lo restituisce e basta. */
+/* Adds a node to cytoscape with the same fields computed at load time
+   (icon, colour, category, size) and indexes it for the search.
+   If it already exists, it simply returns it. */
 function addNodeToCy(nodeData) {
   const existing = cy.getElementById(nodeData.id);
   if (existing.length) return existing;
@@ -3196,7 +3196,7 @@ function addNodeToCy(nodeData) {
     icon: iconFor(n), color: TYPE_COLOR[n.ntype] || TYPE_COLOR.generic, disp: dispOf(n)
   }) });
 
-  // indice di ricerca (etichetta, id, piattaforma, alias, nota)
+  // search index (label, id, platform, aliases, note)
   const hay = `${n.label} ${n.id} ${n.platform} ${n.ntype} ` +
               `${(n.aliases || []).join(' ')} ${n.note || ''}`.toLowerCase();
   if (!INDEX.some(it => it.id === n.id)) {
@@ -3212,8 +3212,8 @@ function addNodeToCy(nodeData) {
   return cy.getElementById(n.id);
 }
 
-/* Inserisce nel grafo VIVO il nodo appena creato, senza ricaricare la pagina:
-   la vista corrente (nodi aperti, posizioni, zoom) resta intatta. */
+/* Inserts the node just created into the LIVE graph, without reloading the page:
+   the current view (open nodes, positions, zoom) stays intact. */
 function injectNode(nodeData, edgeData, parentId) {
   const node = addNodeToCy(nodeData);
 
@@ -3225,7 +3225,7 @@ function injectNode(nodeData, edgeData, parentId) {
     });
   }
 
-  // rende visibile il nuovo nodo accanto al suo genitore
+  // makes the new node visible next to its parent
   visibleNodes.add(node.id());
   if (parentId) visibleNodes.add(parentId);
   const parent = parentId ? cy.getElementById(parentId) : null;
@@ -3235,7 +3235,7 @@ function injectNode(nodeData, edgeData, parentId) {
     placed.add(node.id());
   }
   refresh(true);
-  ADJ = null;                                  // adiacenza da ricalcolare
+  ADJ = null;                                  // adjacency to be recomputed
   buildLegend();
   buildCatFilters();
   buildDegFilter();
@@ -3243,7 +3243,7 @@ function injectNode(nodeData, edgeData, parentId) {
   node.addClass('fresh');
   setTimeout(() => node.removeClass('fresh'), 2000);
   bringIntoView(node);
-  // se la piattaforma è nuova, scarica la sua icona (le altre sono già in cache)
+  // if the platform is new, download its icon (the others are already cached)
   upgradeBrandIcons();
   return node;
 }
@@ -3252,16 +3252,16 @@ on('#modal-add', 'click', () => { if (modalNode) openAdd(modalNode); });
 on('#newNode', 'click', () => { if (cy) openAdd(null); });
 on('#addmodal-close', 'click', () => { $('#addmodal').hidden = true; });
 on('#addmodal', 'click', e => {
-  // il clic sullo sfondo chiude, ma non se è la fine di un trascinamento
+  // a click on the background closes, but not if it is the end of a drag
   if (e.target.id === 'addmodal' && !dragEnd('addmodal')) $('#addmodal').hidden = true;
 });
 
-/* ---- finestre trascinabili: si prendono dalla barra del titolo ----
-   Lo spostamento è una traslazione del riquadro (che resta centrato dal
-   contenitore flex); la posizione si conserva fra un'apertura e l'altra e
-   viene riportata dentro lo schermo quando la finestra si apre o cambia di
-   misura. Doppio clic sulla barra = torna al centro. */
-const DRAG = {};                                     // stato per id della finestra
+/* ---- draggable windows: they are grabbed by the title bar ----
+   The move is a translation of the box (which stays centred by the
+   flex container); the position is kept between one opening and the next and
+   is brought back inside the screen when the window opens or changes
+   size. Double click on the bar = back to the centre. */
+const DRAG = {};                                     // state per window id
 const dragEnd = id => !!(DRAG[id] && DRAG[id].justDragged);
 function makeDraggable(id) {
   const modal = $(`#${id}`), box = $(`#${id}-box`), head = $(`#${id}-head`);
@@ -3269,11 +3269,11 @@ function makeDraggable(id) {
   const st = DRAG[id] = { dx: 0, dy: 0, justDragged: false };
   head.classList.add('draggable');
   const apply = () => { box.style.transform = (st.dx || st.dy) ? `translate(${st.dx}px, ${st.dy}px)` : ''; };
-  // tiene il riquadro dentro la finestra (almeno la barra del titolo resta visibile)
+  // keeps the box inside the window (at least the title bar stays visible)
   const clamp = () => {
     if (modal.hidden) return;
     const r = box.getBoundingClientRect();
-    const bx = r.left - st.dx, by = r.top - st.dy;          // posizione senza traslazione
+    const bx = r.left - st.dx, by = r.top - st.dy;          // position without translation
     const maxX = window.innerWidth - bx - 80, minX = -bx - r.width + 80;
     const maxY = window.innerHeight - by - 40, minY = -by;
     st.dx = Math.round(Math.max(minX, Math.min(maxX, st.dx)));
@@ -3298,7 +3298,7 @@ function makeDraggable(id) {
       head.classList.remove('dragging');
       if (moved) {
         clamp();
-        st.justDragged = true;                       // il clic che segue non chiude
+        st.justDragged = true;                       // the following click does not close
         setTimeout(() => { st.justDragged = false; }, 0);
       }
     };
@@ -3324,7 +3324,7 @@ on('#add-text', 'input', updateAddPreview);
 ['#add-address', '#add-civico', '#add-lat', '#add-lon'].forEach(s => on(s, 'input', updateAddPreview));
 on('#add-toponimo', 'change', updateAddPreview);
 
-/* immagine: clic per scegliere, trascinamento, incolla dagli appunti */
+/* image: click to choose, drag and drop, paste from the clipboard */
 on('#add-drop', 'click', () => $('#add-file').click());
 on('#add-file', 'change', e => readImageFile(e.target.files && e.target.files[0]));
 on('#add-drop', 'dragover', e => { e.preventDefault(); $('#add-drop').classList.add('over'); });
@@ -3347,7 +3347,7 @@ document.addEventListener('paste', e => {
   }
 });
 
-/* ---- nuovo target: crea la cartella in data/ e mette il nodo nel grafo ---- */
+/* ---- new target: creates the folder in data/ and puts the node in the graph ---- */
 on('#add-value', 'keydown', e => { if (e.key === 'Enter') $('#addmodal-save').click(); });
 ['#add-cognome', '#add-nome', '#add-nascita', '#add-colore'].forEach(sel => {
   on(sel, 'input', updateAddPreview);
@@ -3368,11 +3368,11 @@ on('#addmodal-save', 'click', async () => {
   try {
     const parentId = addParent ? addParent.id() : '';
     let value = p.value;
-    if (p.photo) {                     // prima si carica l'immagine, poi il nodo
+    if (p.photo) {                     // first the image is uploaded, then the node
       const up = await apiPost('/api/upload', {
         data: addPhoto.dataUrl, filename: addPhoto.filename
       });
-      value = up.path;                 // es. "media/foto_20260829-...png"
+      value = up.path;                 // e.g. "media/foto_20260829-...png"
     }
     const j = await apiPost('/api/node/add', {
       parent: parentId, ntype: p.ntype, platform: p.platform || '',
@@ -3380,19 +3380,19 @@ on('#addmodal-save', 'click', async () => {
       address: p.address || '', civico: p.civico || '', lat: p.lat || '', lon: p.lon || '',
       cognome: p.cognome || '', nome: p.nome || '', nascita: p.nascita || '', target: !!p.target,
       colore: p.colore || '', fields: p.fields || null,
-      edge: parentId ? readEdgeProps('add') : null   // nome, frecce, forma, colore, linea
+      edge: parentId ? readEdgeProps('add') : null   // name, arrows, shape, colour, line
     });
     $('#addmodal').hidden = true;
-    // inserimento a caldo: il grafo resta com'è, con il nuovo nodo in evidenza
+    // live insertion: the graph stays as it is, with the new node highlighted
     const isNew = !cy.getElementById(j.id).length;
     const node = injectNode(j.node, j.edge, parentId || null);
-    if (!parentId && isNew) {                // nodo indipendente: al centro della vista
+    if (!parentId && isNew) {                // standalone node: at the centre of the view
       const ex = cy.extent();
       node.position({ x: (ex.x1 + ex.x2) / 2, y: (ex.y1 + ex.y2) / 2 });
       placed.add(node.id());
     }
-    // etichetta non latina: sincronizza per far comparire il nodo latino
-    // (traslitterazione) e mostralo insieme al nodo appena aggiunto
+    // non-Latin label: sync to make the Latin node appear
+    // (transliteration) and show it together with the node just added
     if (j.script) {
       try {
         await syncGraph();
@@ -3401,9 +3401,9 @@ on('#addmodal-save', 'click', async () => {
         addToGraph([j.id, ...lat.map(x => x.id())], false);
       } catch (_) {}
     }
-    // luogo o persona: il server li unisce ai nodi uguali (una scheda in piu')
-    // e li collega con un tratteggio a quelli della stessa via / con lo stesso
-    // nome; si sincronizza per vedere subito quei collegamenti e i nodi collegati
+    // place or person: the server merges them with identical nodes (one more card)
+    // and links them with a dashed line to those in the same street / with the same
+    // name; sync to see those links and the linked nodes at once
     if (p.ntype === 'place' || p.ntype === 'name' || ONTO[p.ntype]) {
       try {
         await syncGraph();
@@ -3413,7 +3413,7 @@ on('#addmodal-save', 'click', async () => {
       } catch (_) {}
     }
     if (modalNode && modalNode.id() === parentId) {
-      $('#modal-body').innerHTML = bodyFor(modalNode);   // aggiorna il riepilogo
+      $('#modal-body').innerHTML = bodyFor(modalNode);   // update the summary
     }
     $('#stat').textContent = parentId
       ? t('add.done', { label: j.label, parent: addParent.data('label') })
@@ -3426,12 +3426,12 @@ on('#addmodal-save', 'click', async () => {
   }
 });
 
-/* ================= IMPORTAZIONE MASSIVA DA CSV / EXCEL =================
-   Ogni riga: nome nodo 1, tipo nodo 1, collegamento, nome nodo 2, tipo nodo 2
-   (+ colonne facoltative: url, piattaforma, testo, indirizzo, lat, lon, nota
-   per ciascun nodo; frecce, forma, colore, linea, spessore per il collegamento).
-   Il server legge il file e mostra l'anteprima; poi importa le righe spuntate. */
-let impFile = null;                 // { filename, data } del file scelto
+/* ================= BULK IMPORT FROM CSV / EXCEL =================
+   Each row: node 1 name, node 1 type, link, node 2 name, node 2 type
+   (+ optional columns: url, platform, text, address, lat, lon, note
+   for each node; arrows, shape, colour, line, width for the link).
+   The server reads the file and shows the preview; then it imports the ticked rows. */
+let impFile = null;                 // { filename, data } of the chosen file
 let impRows = [];
 
 const IMPORT_TEMPLATE = [
@@ -3456,9 +3456,9 @@ function downloadTemplate() {
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
 
-/* ---- procedura guidata: 1 file, 2 colonne, 3 anteprima ---- */
-let impCols = null;                 // risposta di /api/import/columns
-let impMapping = {};                // {indice colonna: chiave}
+/* ---- wizard: 1 file, 2 columns, 3 preview ---- */
+let impCols = null;                 // response of /api/import/columns
+let impMapping = {};                // {column index: key}
 const IMP_NODE_KEYS = ['name', 'type', 'label', 'url', 'platform', 'text', 'cognome', 'nascita',
                        'colore', 'flag', 'address', 'civico', 'lat', 'lon', 'note'];
 const IMP_EDGE_KEYS = ['rel', 'arrow', 'curve', 'color', 'lstyle', 'width'];
@@ -3487,7 +3487,7 @@ function openImport() {
   $('#impmodal').hidden = false;
 }
 
-/* tipi di nodo predefiniti: gli stessi della finestra «Nuovo nodo» (tranne la foto) */
+/* default node types: the same as in the «New node» window (except the photo) */
 function fillImpTypeSelects() {
   const src = $('#add-type');
   const opts = `<option value="">${esc(t('imp.auto'))}</option>` +
@@ -3499,8 +3499,8 @@ function fillImpTypeSelects() {
 function readImportFile(file) {
   if (!file) return;
   if (/\.json$/i.test(file.name)) {
-    // una risposta Epieos salvata ({"result": {...}}) va al suo import;
-    // tutto il resto sono entita' Follow the Money
+    // a saved Epieos response ({"result": {...}}) goes to its own import;
+    // everything else is Follow the Money entities
     const fr = new FileReader();
     fr.onload = () => {
       let obj = null;
@@ -3512,7 +3512,7 @@ function readImportFile(file) {
     fr.readAsText(file);
     return;
   }
-  if (/\.(jsonl|ftm|ndjson|zip)$/i.test(file.name)) {  // entita' Follow the Money (zip: bundle di Cognitor)
+  if (/\.(jsonl|ftm|ndjson|zip)$/i.test(file.name)) {  // Follow the Money entities (zip: Cognitor bundle)
     $('#impmodal').hidden = true;
     openFtmImport(file);
     return;
@@ -3536,11 +3536,11 @@ async function loadImportColumns() {
     return;
   }
   $('#imp-header').checked = !!impCols.header;
-  // mappatura iniziale: le colonne riconosciute dalle intestazioni; le altre
-  // diventano campi aggiuntivi del nodo 1 (cosi' nessun valore va perso)
+  // initial mapping: the columns recognised from the headers; the others
+  // become additional fields of node 1 (so no value is lost)
   impMapping = {};
   impCols.columns.forEach(c => {
-    // colonna libera: va al nodo 2 se il nome finisce per 2 (es. 'jurisdiction2'), altrimenti al nodo 1
+    // free column: goes to node 2 if the name ends in 2 (e.g. 'jurisdiction2'), otherwise to node 1
     impMapping[c.index] = c.auto || (impCols.header && c.name ? `extra${/2$/.test(c.name) ? '2' : '1'}:${c.name}` : '');
   });
   renderImportMapping();
@@ -3592,7 +3592,7 @@ function readImportMapping() {
 }
 
 on('#imp-header', 'change', () => {
-  // senza intestazione le colonne non hanno nome: i «campi aggiuntivi» non hanno senso
+  // without a header the columns have no name: «additional fields» make no sense
   if (!$('#imp-header').checked) {
     Object.keys(impMapping).forEach(k => { if (String(impMapping[k]).startsWith('extra')) impMapping[k] = ''; });
   }
@@ -3603,7 +3603,7 @@ on('#imp-map', 'change', e => {
   if (!sel) return;
   const c = impCols.columns[+sel.dataset.col];
   impMapping[c.index] = (sel.value === 'extra1' || sel.value === 'extra2') ? `${sel.value}:${impColName(c)}` : sel.value;
-  // la stessa chiave su due colonne: la precedente torna a «ignora»
+  // the same key on two columns: the previous one goes back to «ignore»
   Object.keys(impMapping).forEach(k => {
     if (+k !== c.index && impMapping[k] && impMapping[k] === impMapping[c.index] && !impMapping[k].startsWith('extra')) {
       impMapping[k] = '';
@@ -3618,9 +3618,9 @@ const impNode = n => n
     `<small>${esc(n.ntype === 'account' ? n.platform : n.ntype)}</small></span>`
   : '<span class="imp-none">—</span>';
 
-/* Tabella di anteprima (righe del piano: nodo 1, collegamento, nodo 2), usata
-   dall'importazione da file e dall'AI. Le righe con errore non si importano;
-   le altre hanno una casella per escluderle. */
+/* Preview table (plan rows: node 1, link, node 2), used
+   by the file import and by the AI. Rows with errors are not imported;
+   the others have a box to exclude them. */
 function planTableHtml(rows) {
   return `<table class="imp-t"><thead><tr><th></th><th>#</th>` +
     `<th>${esc(t('imp.node1'))}</th><th>${esc(t('imp.link'))}</th><th>${esc(t('imp.node2'))}</th></tr></thead><tbody>` +
@@ -3637,7 +3637,7 @@ function planTableHtml(rows) {
     (rows.length > 1000 ? `<div class="af-hint">${esc(t('imp.more', { n: rows.length - 1000 }))}</div>` : '');
 }
 
-/* Conteggi del piano per la riga di riepilogo. */
+/* Plan counts for the summary line. */
 function planCounts(rows) {
   const ok = rows.filter(r => !r.error);
   const newN = new Set(), oldN = new Set();
@@ -3767,7 +3767,7 @@ on('#tr-done', 'click', () => { $('#trmodal').hidden = true; });
 on('#trmodal-close', 'click', () => { $('#trmodal').hidden = true; });
 on('#tr-path', 'keydown', e => { if (e.key === 'Enter') startTranscribe(); });
 
-/* ---- esportazione del caso in Follow the Money (righe JSON) ---- */
+/* ---- export of the case to Follow the Money (JSON lines) ---- */
 on('#exportFtm', 'click', async () => {
   if (!requireCase()) return;
   const visible = cy ? cy.nodes().map(n => n.id()) : [];
@@ -3799,9 +3799,9 @@ on('#exportFtm', 'click', async () => {
   } finally { btn.disabled = false; }
 });
 
-/* ================= IMPORTAZIONE FOLLOW THE MONEY =================
-   File di entita' FtM anche grandi: ispezione (conteggi per schema), filtri,
-   importazione in background con avanzamento (/api/ftm/*). */
+/* ================= FOLLOW THE MONEY IMPORT =================
+   FtM entity files, even large ones: inspection (counts per schema), filters,
+   background import with progress (/api/ftm/*). */
 let ftmFile = null, ftmInfo = null;
 const FTM_WARN_NODES = 5000;
 
@@ -3978,13 +3978,13 @@ on('#impmodal-go', 'click', commitImport);
 on('#impmodal-next', 'click', previewImport);
 on('#impmodal-back', 'click', () => impStep($('#imp-step3').hidden ? 1 : 2));
 
-/* ================= AI: DAL TESTO LIBERO AI NODI =================
-   Nella finestra "Aggiungi" / "Nuovo nodo" il pulsante ✨ AI trasforma il
-   modulo in un'unica area di testo: il chatbot legge il testo, propone nodi e
-   collegamenti, l'utente sceglie quali tenere e li aggiunge al grafo. */
-let aiConf = null;                  // configurazione pubblica (senza la chiave)
+/* ================= AI: FROM FREE TEXT TO NODES =================
+   In the "Add" / "New node" window the ✨ AI button turns the
+   form into a single text area: the chatbot reads the text, proposes nodes and
+   links, the user chooses which to keep and adds them to the graph. */
+let aiConf = null;                  // public configuration (without the key)
 let aiMode = false;
-let aiItems = [];                   // righe proposte dal server (da rimandare al commit)
+let aiItems = [];                   // rows proposed by the server (to be sent back at commit)
 let aiRows = [];
 
 async function loadAiConf() {
@@ -4019,7 +4019,7 @@ function setAiMode(onoff) {
   syncAiSave();
   if (aiMode) {
     const g = $('#ai-glow');
-    g.classList.remove('intro'); void g.offsetWidth;      // riavvia l'animazione
+    g.classList.remove('intro'); void g.offsetWidth;      // restart the animation
     g.classList.add('intro');
     setTimeout(() => g.classList.remove('intro'), 1700);
     setTimeout(() => $('#ai-text').focus(), 60);
@@ -4046,7 +4046,7 @@ function syncAiSave() {
 }
 
 on('#add-ai-toggle', 'click', () => {
-  if (!aiMode && !(aiConf && aiConf.ready)) {       // AI spenta o non configurata
+  if (!aiMode && !(aiConf && aiConf.ready)) {       // AI off or not configured
     if (confirm(t('ai.needConfig'))) openAiConfig();
     return;
   }
@@ -4080,7 +4080,7 @@ async function runAi() {
 on('#ai-run', 'click', runAi);
 on('#ai-text', 'keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) runAi(); });
 
-/* Aggiunge al grafo le righe spuntate della proposta. */
+/* Adds the ticked rows of the proposal to the graph. */
 async function commitAi() {
   const skip = [...document.querySelectorAll('#ai-res input[data-row]')]
     .filter(c => !c.checked).map(c => +c.dataset.row);
@@ -4102,7 +4102,7 @@ async function commitAi() {
   }
 }
 
-/* ---------------- pannello di configurazione (chatbot.conf) ---------------- */
+/* ---------------- configuration panel (chatbot.conf) ---------------- */
 function openAiConfig() {
   const c = aiConf || {};
   $('#aic-enabled').checked = !!c.enabled;
@@ -4128,7 +4128,7 @@ function aiConfPayload() {
     auth_prefix: $('#aic-prefix').value.trim(), auto: $('#aic-auto').checked
   };
   const k = $('#aic-key').value.trim();
-  if (k) p.api_key = k;                // vuota = resta quella salvata
+  if (k) p.api_key = k;                // empty = the saved one stays
   return p;
 }
 
@@ -4152,7 +4152,7 @@ async function testAiConfig() {
   btn.disabled = true;
   r.className = 'aic-test'; r.textContent = t('aicfg.testing');
   try {
-    // si prova la configurazione SALVATA: prima si salva quella del modulo
+    // the SAVED configuration is tested: the form's one is saved first
     aiConf = await apiPost('/api/ai/config', aiConfPayload());
     syncAiSide();
     $('#aic-key').value = '';
@@ -4171,8 +4171,8 @@ async function testAiConfig() {
 on('#aiSettings', 'click', openAiConfig);
 
 /* ================= OPENSANCTIONS =================
-   Ricerca online (API yente) e importazione delle corrispondenze come entita'
-   FtM. Spento = nessuna chiamata; l'interruttore chiede conferma. */
+   Online search (yente API) and import of the matches as FtM
+   entities. Off = no calls; the switch asks for confirmation. */
 let osaConf = null, osaLast = [];
 
 function syncOsaSide() {
@@ -4307,7 +4307,7 @@ on('#osaResults', 'click', async e => {
   }
 });
 
-/* dalla scheda di una persona o societa': cerca il nome su OpenSanctions */
+/* from the card of a person or company: search the name on OpenSanctions */
 const OSA_SCHEMA_OF_TYPE = { name: 'Person', target: 'Person', organization: 'Company', company: 'Company',
   ftmorganization: 'Organization', publicbody: 'PublicBody', legalentity: 'LegalEntity', vessel: 'Vessel', airplane: 'Airplane' };
 on('#modal-osa', 'click', () => {
@@ -4321,7 +4321,7 @@ on('#modal-osa', 'click', () => {
 });
 loadOsaConf();
 
-/* ======================= EPIEOS (ricerca a pagamento) ======================= */
+/* ======================= EPIEOS (paid search) ======================= */
 let epConf = null, epSearches = {}, epPending = null;
 const EP_MODULES_KNOWN = ['flickr', 'notion', 'gravatar', 'trello', 'hibp', 'foursquare', 'etsy', 'chess', 'substack',
   'mapstr', 'dropbox', 'google', 'holehe', 'skype', 'plex', 'linkedin', 'nikerunclub', 'fitbit', 'github', 'duolingo',
@@ -4336,7 +4336,7 @@ function isEpieosJson(obj) {
   return keys.length > 0 && keys.every(k => EP_MODULES_KNOWN.includes(k));
 }
 
-/* email o telefono? ('' = non riconoscibile) */
+/* email or phone? ('' = not recognisable) */
 function epKindOf(q) {
   q = (q || '').trim();
   if (/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(q)) return 'email';
@@ -4379,7 +4379,7 @@ async function loadEpSearches() {
   } catch (_) { epSearches = {}; }
 }
 
-/* elenco delle ricerche salvate nel caso (clic = apre il nodo) */
+/* list of the searches saved in the case (click = opens the node) */
 function renderEpSearches() {
   const box = $('#epResults');
   if (!box) return;
@@ -4454,7 +4454,7 @@ async function saveEpConfig() {
     alert(t('err.opFailed', { e: err.message }));
   } finally { btn.disabled = false; syncEpSide(); }
 }
-/* GET /schema: pack e moduli disponibili per la chiave (gratis) */
+/* GET /schema: packs and modules available for the key (free) */
 async function readEpSchema() {
   const r = $('#epc-test-res'), btn = $('#epmodal-schema');
   btn.disabled = true; r.className = 'aic-test'; r.textContent = '…';
@@ -4478,8 +4478,8 @@ on('#epmodal-close', 'click', () => { $('#epmodal').hidden = true; });
 on('#epmodal', 'click', e => { if (e.target.id === 'epmodal' && !dragEnd('epmodal')) $('#epmodal').hidden = true; });
 on('#epc-key-eye', 'click', () => { const k = $('#epc-key'); k.type = k.type === 'password' ? 'text' : 'password'; });
 
-/* moduli del pack per il tipo di identificativo: dallo schema letto con la
-   chiave, altrimenti l'elenco noto del pack osinter */
+/* modules of the pack for the identifier type: from the schema read with the
+   key, otherwise the known list of the osinter pack */
 function epModulesFor(kind) {
   const c = epConf || {};
   const p = (c.packs || []).find(x => x.pack === (c.pack || 'osinter'));
@@ -4487,8 +4487,8 @@ function epModulesFor(kind) {
   return (mods && mods.length) ? mods : ((c.modules || {})[kind] || []);
 }
 
-/* finestra di conferma: identificativo, moduli (deselezionabili), crediti.
-   Nessuna ricerca parte senza il clic su «Cerca». */
+/* confirmation window: identifier, modules (can be deselected), credits.
+   No search starts without the click on «Search». */
 function epConfirm(query, kind, anchor) {
   epPending = { query, kind, anchor };
   $('#epconfirm-query').textContent = query;
@@ -4530,11 +4530,11 @@ on('#epconfirm-run', 'click', async () => {
   } catch (err) {
     r.className = 'aic-test err'; r.textContent = err.message;
     btn.disabled = false;
-    loadEpConf();                                 // i crediti potrebbero essere cambiati
+    loadEpConf();                                 // the credits may have changed
   }
 });
 
-/* casella laterale: crea (o ritrova) il nodo dell'identificativo e chiede conferma */
+/* side box: creates (or finds) the identifier's node and asks for confirmation */
 async function epSearchFromBox(q) {
   q = (q || '').trim();
   const kind = epKindOf(q);
@@ -4551,7 +4551,7 @@ async function epSearchFromBox(q) {
 on('#epSearch', 'click', () => epSearchFromBox($('#epQuery').value));
 on('#epQuery', 'keydown', e => { if (e.key === 'Enter') { e.preventDefault(); epSearchFromBox($('#epQuery').value); } });
 
-/* dalla scheda di una email o di un telefono */
+/* from the card of an email or a phone */
 on('#modal-ep', 'click', () => {
   if (!modalNode) return;
   const d = modalNode.data();
@@ -4562,7 +4562,7 @@ on('#modal-ep', 'click', () => {
   epConfirm((q || '').trim(), kind, d.id);
 });
 
-/* file JSON con una risposta Epieos salvata: nessuna chiamata, nessun credito */
+/* JSON file with a saved Epieos response: no calls, no credits */
 async function epImportFile(filename, text, obj) {
   if (!requireCase()) return;
   const w = obj.epieos || {};
@@ -4599,7 +4599,7 @@ on('#aimodal', 'click', e => { if (e.target.id === 'aimodal' && !dragEnd('aimoda
 on('#aic-key-eye', 'click', () => {
   const k = $('#aic-key'); k.type = k.type === 'password' ? 'text' : 'password';
 });
-/* interruttore nella barra laterale: accende/spegne subito (salvato in chatbot.conf) */
+/* switch in the side bar: turns on/off at once (saved in chatbot.conf) */
 on('#aiSwitch', 'change', async e => {
   const want = e.target.checked;
   try {
@@ -4612,9 +4612,9 @@ on('#aiSwitch', 'change', async e => {
 });
 loadAiConf();
 
-/* ================= PANNELLO MODIFICHE MANUALI ================= */
-let manData = { added: [], links: [], labels: [] };   // ultimo elenco ricevuto
-let manShowAll = false;                   // false = solo le prime MAN_LIMIT voci
+/* ================= MANUAL CHANGES PANEL ================= */
+let manData = { added: [], links: [], labels: [] };   // last list received
+let manShowAll = false;                   // false = only the first MAN_LIMIT entries
 const MAN_LIMIT = 8;
 
 async function openManual() {
@@ -4633,14 +4633,14 @@ async function openManual() {
   }
 }
 
-/* Etichetta leggibile di un nodo: dal grafo se c'è, altrimenti l'id. */
+/* Readable label of a node: from the graph if there, otherwise the id. */
 const nodeLabel = id => {
   const n = cy && cy.getElementById(id);
   return (n && n.length && n.data('label')) || id;
 };
 
-/* Disegna l'elenco applicando il filtro di testo e il limite di righe.
-   Con molte modifiche l'elenco resta corto: il pulsante mostra tutto. */
+/* Draws the list applying the text filter and the row limit.
+   With many changes the list stays short: the button shows everything. */
 function renderManual() {
   const q = (($('#man-filter') && $('#man-filter').value) || '').trim().toLowerCase();
   const hit = s => !q || String(s || '').toLowerCase().includes(q);
@@ -4663,7 +4663,7 @@ function renderManual() {
   const shownA = cut(added), shownL = cut(links), shownE = cut(labels);
   const shown = shownA.length + shownL.length + shownE.length;
 
-  // pulsante "mostra tutto / mostra meno"
+  // "show all / show less" button
   const btn = $('#man-showall');
   if (btn) {
     const needed = totHit > shown || manShowAll;
@@ -4732,13 +4732,13 @@ on('#man-showall', 'click', () => { manShowAll = !manShowAll; renderManual(); })
 on('#manmodal-close', 'click', () => { $('#manmodal').hidden = true; });
 on('#manmodal', 'click', e => { if (e.target.id === 'manmodal' && !dragEnd('manmodal')) $('#manmodal').hidden = true; });
 
-/* ================= DIZIONARIO DI TRASLITTERAZIONE =================
-   Elenco delle parole non latine (in sospeso, a mano, dall'AI) con la forma
-   latina modificabile in riga. Ogni salvataggio cambia translit_version sul
-   server: il grafo si ricostruisce e i nodi latini si aggiornano (reloadData). */
+/* ================= TRANSLITERATION DICTIONARY =================
+   List of the non-Latin words (pending, by hand, from the AI) with the Latin
+   form editable in the row. Each save changes translit_version on the
+   server: the graph is rebuilt and the Latin nodes are updated (reloadData). */
 const DICT_LIMIT = 200;
 let dictRows = [], dictOffset = 0, dictMore = false, dictTimer = null;
-let dictLast = { counts: {}, engine: '' };          // per ridisegnare al cambio lingua
+let dictLast = { counts: {}, engine: '' };          // to redraw on language change
 
 async function openDict() {
   const box = $('#dictmodal');
@@ -4796,7 +4796,7 @@ async function dictSave(rowEl) {
   const inp = rowEl.querySelector('.dict-val');
   const value = (inp.value || '').trim();
   const r = dictRows.find(x => x.word === word);
-  if (r && (r.value || '') === value) return;          // niente da salvare
+  if (r && (r.value || '') === value) return;          // nothing to save
   inp.disabled = true;
   try {
     const j = await apiPost('/api/translit/set', { word, value });
@@ -4807,7 +4807,7 @@ async function dictSave(rowEl) {
     rowEl.classList.add('saved');
     setTimeout(() => rowEl.classList.remove('saved'), 1200);
     $('#stat').textContent = value ? t('dict.saved', { w: word, v: value }) : t('dict.cleared', { w: word });
-    await reloadData();                                // i nodi latini vanno rifatti
+    await reloadData();                                // the Latin nodes must be redone
     refreshTranslitBtn();
   } catch (err) {
     alert(t('err.generic', { e: err.message }));
@@ -4818,8 +4818,8 @@ async function dictSave(rowEl) {
 
 on('#showDict', 'click', openDict);
 
-/* interruttore "nodi latini separati": attributo del nodo (predefinito) o
-   nodi gemelli come nell'originale; impostazione globale sul server */
+/* "separate Latin nodes" switch: node attribute (default) or
+   twin nodes as in the original; global setting on the server */
 async function syncTranslitModeSwitch() {
   const sw = $('#translitNodes');
   if (!sw) return;
@@ -4828,7 +4828,7 @@ async function syncTranslitModeSwitch() {
     const j = await r.json();
     TRANSLIT_MODE = j.mode || 'attribute';
     sw.checked = TRANSLIT_MODE === 'nodes';
-  } catch (_) { /* server vecchio: resta il predefinito */ }
+  } catch (_) { /* old server: the default stays */ }
 }
 on('#translitNodes', 'change', async e => {
   const mode = e.target.checked ? 'nodes' : 'attribute';
@@ -4943,16 +4943,16 @@ on('#manmodal-body', 'click', async e => {
       const id = unRen.dataset.unrename;
       if (!confirm(t('man.confirmLabel'))) return;
       await apiPost('/api/node/label', { id, label: '' });
-      await syncGraph();               // annullando la rinomina salta la fusione
+      await syncGraph();               // cancelling the rename skips the merge
       $('#stat').textContent = t('stat.renameReset');
     } else return;
-    openManual();                       // ricarica l'elenco
+    openManual();                       // reload the list
   } catch (err) {
     alert(t('err.opFailed', { e: err.message }));
   }
 });
 
-/* ================= PANNELLO NODI CANCELLATI ================= */
+/* ================= DELETED NODES PANEL ================= */
 async function openDeleted() {
   const box = $('#delmodal');
   if (!box) return;
@@ -4994,8 +4994,8 @@ function renderDeleted(items) {
   }).join('');
 }
 
-/* Ripristino a caldo: i nodi tornano nel grafo senza ricaricare la pagina,
-   quindi la vista corrente (nodi aperti, posizioni, zoom) resta intatta. */
+/* Live restore: the nodes come back into the graph without reloading the page,
+   so the current view (open nodes, positions, zoom) stays intact. */
 async function restoreDeleted(payload, msg) {
   try {
     const j = await apiPost('/api/node/restore', payload);
@@ -5011,7 +5011,7 @@ async function restoreDeleted(payload, msg) {
       });
     });
 
-    // i gradi si ricalcolano dagli archi realmente presenti
+    // degrees are recomputed from the links actually present
     const touched = new Set(back);
     edges.forEach(e => { touched.add(e.source); touched.add(e.target); });
     touched.forEach(id => {
@@ -5019,7 +5019,7 @@ async function restoreDeleted(payload, msg) {
       if (m.length) m.data('deg', m.connectedEdges().length);
     });
 
-    // i nodi ripristinati diventano visibili, accanto a un vicino già in vista
+    // the restored nodes become visible, next to a neighbour already in view
     const eles = cy.collection();
     back.forEach(id => {
       const n = cy.getElementById(id);
@@ -5045,7 +5045,7 @@ async function restoreDeleted(payload, msg) {
       setTimeout(() => eles.removeClass('fresh'), 2000);
       bringIntoView(eles);
     }
-    openDeleted();                              // aggiorna l'elenco dei cancellati
+    openDeleted();                              // update the list of deleted nodes
     $('#stat').textContent = typeof msg === 'function' ? msg(j.restored) : msg;
   } catch (err) {
     alert(t('err.restoreFailed', { e: err.message }));
@@ -5065,7 +5065,7 @@ on('#delmodal-all', 'click', () => {
   restoreDeleted({ all: true }, n => t('del.restoredAll', { n }));
 });
 
-/* ================= LIGHTBOX IMMAGINI ================= */
+/* ================= IMAGE LIGHTBOX ================= */
 function openLightbox(src) {
   const lb = $('#lightbox');
   if (!lb || !src) return;
@@ -5079,7 +5079,7 @@ function closeLightbox() {
   lb.hidden = true;
   $('#lb-img').src = '';
 }
-// click su una qualsiasi immagine della scheda -> ingrandimento
+// click on any image in the card -> enlargement
 on('#modal-body', 'click', e => {
   if (e.target.tagName === 'IMG' && !e.target.closest('.chip')) {
     e.stopPropagation();
@@ -5089,7 +5089,7 @@ on('#modal-body', 'click', e => {
 on('#lightbox', 'click', e => { if (e.target.id !== 'lb-open') closeLightbox(); });
 on('#lb-close', 'click', closeLightbox);
 
-/* ================= LEGENDA & FILTRI ================= */
+/* ================= LEGEND & FILTERS ================= */
 function buildLegend() {
   const l = $('#legend');
   if (!l || !cy) return;
@@ -5103,9 +5103,9 @@ function buildLegend() {
     (seed ? `<span><i class="lg-seed"></i>${esc(t('legend.seed'))}</span>` : '');
 }
 
-/* Tendina "Collegamenti": elenco dei numeri di connessioni realmente presenti
-   nel grafo. La selezione è ESATTA: ogni voce indica quanti nodi hanno
-   precisamente quel numero di collegamenti. */
+/* "Links" drop-down: list of the numbers of connections actually present
+   in the graph. The selection is EXACT: each entry shows how many nodes have
+   precisely that number of links. */
 function buildDegFilter() {
   const sel = $('#minDeg');
   if (!sel || !cy) return;
@@ -5122,8 +5122,8 @@ function buildDegFilter() {
   sel.value = String(degFilter);
 }
 
-/* Pulsanti categoria: uno per ogni categoria presente nel grafo, con conteggio.
-   Click = mostra/nascondi tutti i nodi di quella categoria. */
+/* Category buttons: one for each category present in the graph, with count.
+   Click = show/hide all nodes of that category. */
 function buildCatFilters() {
   const box = $('#catFilters');
   if (!box || !cy) return;
@@ -5141,15 +5141,15 @@ function buildCatFilters() {
   syncCatButtons();
 }
 
-/* Chiavi delle categorie realmente presenti nel grafo. */
+/* Keys of the categories actually present in the graph. */
 function presentCatKeys() {
   const s = new Set();
   cy.nodes().forEach(n => s.add(n.data('cat') || 'altro'));
   return [...s];
 }
 
-/* Allinea le classi dei pulsanti a hiddenCats e aggiorna l'etichetta del
-   pulsante "Nascondi/Mostra tutto" in base allo stato corrente. */
+/* Aligns the button classes to hiddenCats and updates the label of the
+   "Hide/Show all" button according to the current state. */
 function syncCatButtons() {
   document.querySelectorAll('#catFilters .cat-btn').forEach(b => {
     const off = hiddenCats.has(b.dataset.cat);
@@ -5177,7 +5177,7 @@ on('#search', 'keydown', e => {
 on('#search', 'focus', () => { if ($('#search-results').children.length) $('#search-results').style.display = 'block'; });
 on('#searchBtn', 'click', () => { clearTimeout(searchTimer); searchNodes($('#search').value); });
 on('#addAll', 'click', showAllMatches);
-/* Porta nel grafo tutti i nodi target (senza espanderli). */
+/* Brings all the target nodes into the graph (without expanding them). */
 on('#loadTargets', 'click', () => {
   if (!cy) return;
   const ids = cy.nodes().filter(n => n.data('ntype') === 'target').map(n => n.id());
@@ -5197,7 +5197,7 @@ on('#toggleIds', 'change', e => { showIds = e.target.checked; refresh(true); });
 on('#depth', 'change', () => refresh(true));
 on('#minDeg', 'change', e => {
   degFilter = parseInt(e.target.value, 10) || 0;
-  if (!degFilter) degOnly = false;          // senza filtro il comando non serve
+  if (!degFilter) degOnly = false;          // without a filter the command is not needed
   syncDegOnlyBtn();
   refresh(true);
 });
@@ -5207,7 +5207,7 @@ on('#degOnly', 'click', () => {
   refresh(true);
 });
 
-/* ---- selettore di lingua ---- */
+/* ---- language selector ---- */
 function buildLangSelector() {
   const sel = $('#langSel');
   if (!sel) return;
@@ -5217,23 +5217,23 @@ function buildLangSelector() {
 }
 on('#langSel', 'change', e => setLang(e.target.value));
 
-/* Richiamata da setLang(): ridisegna tutto ciò che contiene testo tradotto. */
+/* Called by setLang(): redraws everything that contains translated text. */
 function onLangChange() {
   const sel = $('#langSel');
-  if (sel && sel.value !== LANG) sel.value = LANG;   // tiene allineato il selettore
+  if (sel && sel.value !== LANG) sel.value = LANG;   // keeps the selector aligned
   document.querySelectorAll('.edge-props').forEach(b => updateEdgePreview(b.dataset.prefix));
-  fillOntoOptions();                               // tipi investigativi nella lingua scelta
-  if (typeof syncOsaSide === 'function') syncOsaSide();   // stato OpenSanctions nella lingua scelta
-  if (typeof syncEpSide === 'function') syncEpSide();     // stato Epieos nella lingua scelta
-  document.querySelectorAll('select[id$="-edge-ftm"]').forEach(sel => {   // relazioni FtM
+  fillOntoOptions();                               // investigative types in the chosen language
+  if (typeof syncOsaSide === 'function') syncOsaSide();   // OpenSanctions status in the chosen language
+  if (typeof syncEpSide === 'function') syncEpSide();     // Epieos status in the chosen language
+  document.querySelectorAll('select[id$="-edge-ftm"]').forEach(sel => {   // FtM relations
     [...sel.options].forEach(o => { o.textContent = o.value ? `${ftmEdgeLabel(o.value)} · ${ftmEdgeVerb(o.value)}` : t('edge.ftmNone'); });
   });
   if ($('#dictmodal') && !$('#dictmodal').hidden) renderDict(dictLast.counts, dictLast.engine);
-  loadGStyle();                                    // forme dei collegamenti
+  loadGStyle();                                    // link shapes
   if ($('#add-onto-row')) $('#add-onto-row').dataset.kind = '';
   if (!cy) {
-    // grafo non ancora caricato: i testi dinamici della barra laterale si
-    // traducono comunque (altrimenti restavano in italiano)
+    // graph not loaded yet: the dynamic texts of the side bar are
+    // translated anyway (otherwise they stayed in Italian)
     const tg = $('#catToggleAll');
     if (tg) tg.textContent = t('btn.hideAll');
     const md = $('#minDeg');
@@ -5259,18 +5259,18 @@ function onLangChange() {
   if (!$('#edgemodal').hidden && edgeEditId) {
     const e = cy.getElementById(edgeEditId);
     if (e.length) $('#edg-kind').textContent = t('edge.kind.' + edgeKind(e));
-  }  if (modalNode) openModal(modalNode);            // riapre la scheda tradotta
+  }  if (modalNode) openModal(modalNode);            // reopens the translated card
   const po = $('#pathonly');
   if (po && !po.hidden) po.textContent = pathOnly ? t('btn.showRest') : t('btn.hideRest');
   refreshTranslitBtn();
 }
 on('#openMode', 'change', e => setOpenMode(e.target.value));
-/* Mostra/nascondi una categoria: effetto IMMEDIATO sul grafo.
-   - spegnere una categoria toglie subito dalla vista i suoi nodi;
-   - riaccenderla li rimette;
-   il pulsante resta rosso finché la categoria è spenta.
-   Non è un filtro permanente: se in seguito espandi un nodo, i suoi
-   collegamenti compaiono comunque (puoi rispegnere la categoria per nasconderli).*/
+/* Show/hide a category: IMMEDIATE effect on the graph.
+   - switching a category off removes its nodes from the view at once;
+   - switching it back on puts them back;
+   the button stays red while the category is off.
+   It is not a permanent filter: if you later expand a node, its
+   links appear anyway (you can switch the category off again to hide them).*/
 function hideCat(cat) {
   hiddenCats.add(cat);
   cy.nodes().not('.hidden').forEach(n => {
@@ -5296,8 +5296,8 @@ on('#catToggleAll', 'click', () => {
   if (!cy) return;
   const keys = presentCatKeys();
   const allHidden = keys.length > 0 && keys.every(k => hiddenCats.has(k));
-  if (allHidden) keys.forEach(showCat);            // erano tutte spente -> riaccendi
-  else keys.forEach(k => { if (!hiddenCats.has(k)) hideCat(k); });   // spegni le accese
+  if (allHidden) keys.forEach(showCat);            // they were all off -> switch them back on
+  else keys.forEach(k => { if (!hiddenCats.has(k)) hideCat(k); });   // switch off the ones that are on
   syncCatButtons();
   refresh(false);
 });
@@ -5314,7 +5314,7 @@ on('#expandAll', 'click', () => {
     expanded.add(n.id()); visibleNodes.add(n.id());
     ids.push(n.id(), ...nbhd(n, depthVal()).map(m => m.id()));
   });
-  unhide(ids);                       // espandere tutto mostra davvero tutto
+  unhide(ids);                       // expanding everything really shows everything
   refresh(true);
   runLayout({ fit: true });
 });
@@ -5322,7 +5322,7 @@ on('#collapseAll', 'click', () => { expanded.clear(); refresh(false); });
 on('#clearGraph', 'click', () => {
   expanded.clear(); visibleNodes.clear(); pinned.clear(); placed.clear();
   hiddenNodes.clear(); catHidden.clear(); clearFocus(true);
-  // azzera anche i filtri, altrimenti il grafo si ripopola subito
+  // also reset the filters, otherwise the graph fills up again at once
   degFilter = 0; degOnly = false;
   if ($('#minDeg')) $('#minDeg').value = '0';
   hiddenCats.clear();
@@ -5332,13 +5332,13 @@ on('#clearGraph', 'click', () => {
 });
 on('#fit', 'click', () => { if (cy) { cy.fit(cy.elements().not('.hidden'), 50); capZoom(1.8); } });
 
-/* ================= VISTE SALVATE ================= */
-/* Fotografa lo stato corrente del grafo: nodi a schermo con la loro posizione,
-   nodi espansi, nascondimenti, filtri e inquadratura (zoom+pan). */
+/* ================= SAVED VIEWS ================= */
+/* Takes a snapshot of the current graph state: on-screen nodes with their position,
+   expanded nodes, hidings, filters and framing (zoom+pan). */
 function captureView() {
-  // salva OGNI nodo attualmente a schermo con la sua posizione esatta, non solo
-  // quelli aggiunti a mano: così anche i vicini mostrati dalle espansioni tornano
-  // al loro posto, senza essere riposizionati da capo.
+  // save EVERY node currently on screen with its exact position, not only
+  // those added by hand: so the neighbours shown by expansions also go back
+  // to their place, without being repositioned from scratch.
   const nodes = [];
   cy.nodes().not('.hidden').forEach(n => {
     const p = n.position();
@@ -5352,8 +5352,8 @@ function captureView() {
   };
 }
 
-/* Ricostruisce il grafo esattamente com'era. Ritorna il numero di nodi della
-   vista che non esistono più (dati cambiati nel frattempo). */
+/* Rebuilds the graph exactly as it was. Returns the number of nodes of the
+   view that no longer exist (data changed in the meantime). */
 function applyView(v) {
   if (!cy || !v) return 0;
   [visibleNodes, expanded, pinned, placed, hiddenNodes, catHidden, hiddenCats,
@@ -5384,7 +5384,7 @@ function applyView(v) {
   computeDegReveal();
 
   syncCatButtons(); syncHiddenBtn(); syncDegOnlyBtn();
-  refresh(false);                       // niente layout: le posizioni sono ripristinate
+  refresh(false);                       // no layout: the positions are restored
   if (v.zoom && v.pan) { cy.zoom(v.zoom); cy.pan(v.pan); }
   else cy.fit(cy.elements().not('.hidden'), 50);
   return missing;
@@ -5458,7 +5458,7 @@ on('#viewDelete', 'click', async () => {
   } catch (e) { $('#stat').textContent = t('views.deleteErr'); }
 });
 
-/* ================= FONTI DOCUMENTALI ================= */
+/* ================= DOCUMENT SOURCES ================= */
 const srcState = { indexed: false, folder: '', count: 0, ocr: false };
 const SRC_ICON = { '.pdf': '📕', '.docx': '📘', '.doc': '📘', '.xlsx': '📗',
   '.xls': '📗', '.csv': '📗', '.txt': '📄', '.md': '📄', '.log': '📄',
@@ -5466,7 +5466,7 @@ const SRC_ICON = { '.pdf': '📕', '.docx': '📘', '.doc': '📘', '.xlsx': '�
   '.bmp': '🖼️', '.tif': '🖼️', '.tiff': '🖼️' };
 const IMG_EXTS = new Set(['.png', '.jpg', '.jpeg', '.webp', '.gif', '.bmp', '.tif', '.tiff']);
 
-/* Download di Tesseract dall'interfaccia: stato del lavoro sul server. */
+/* Tesseract download from the interface: state of the job on the server. */
 const ocrJob = { state: 'idle', stage: '', percent: 0, error: '' };
 
 function ocrJobText() {
@@ -5484,15 +5484,15 @@ function renderSrcStatus() {
   let html;
   if (srcState.indexed) {
     const port = srcState.portable ? ` · <span class="src-ocr on">${esc(t('src.portable'))}</span>` : '';
-    // se portabile mostro il nome relativo (es. «sources»), non il percorso assoluto
+    // if portable, show the relative name (e.g. «sources»), not the absolute path
     const shown = (srcState.portable && srcState.folderRel) ? srcState.folderRel : srcState.folder;
     html = `<b>${srcState.count}</b> ${esc(t('src.files'))} · ${ocr}${port}` +
       `<div class="src-folder" title="${esc(srcState.folder)}">${esc(shown)}</div>`;
   } else {
     html = `<span class="src-none">${esc(t('src.noneYet'))}</span> · ${ocr}`;
   }
-  // OCR assente: su Windows un pulsante scarica Tesseract in tools/tesseract,
-  // altrove si spiega come installarlo
+  // OCR missing: on Windows a button downloads Tesseract into tools/tesseract,
+  // elsewhere it explains how to install it
   if (!srcState.ocr) {
     if (ocrJob.state === 'running') {
       html += `<div class="src-ocr-job">${esc(ocrJobText())}</div>`;
@@ -5517,7 +5517,7 @@ async function pollOcrInstall() {
     renderSrcStatus();
   }
   if (ocrJob.state === 'done') $('#stat').textContent = t('src.ocrDone');
-  await loadSrcStatus();                         // «OCR attivo» e niente più pulsante
+  await loadSrcStatus();                         // «OCR active» and no more button
 }
 
 async function startOcrInstall() {
@@ -5548,12 +5548,12 @@ async function loadSrcStatus() {
     srcState.canInstall = !!j.ocr_can_install;
     srcState.ocrReason = j.ocr_reason || '';
     srcState.ocrUrl = j.ocr_url || '';
-    // download gia' in corso (es. pagina ricaricata): si riprende a seguirlo
+    // download already in progress (e.g. page reloaded): resume following it
     if (j.ocr_install === 'running' && ocrJob.state !== 'running') {
       ocrJob.state = 'running'; pollOcrInstall();
     }
-    // il campo si lascia VUOTO per la cartella 'sources' predefinita (portabile):
-    // così Scansiona usa sempre il percorso relativo. Lo precompilo solo se
+    // the field is left EMPTY for the default 'sources' folder (portable):
+    // so Scan always uses the relative path. I only prefill it if
   } catch (_) { srcState.indexed = false; }
   renderSrcStatus();
 }
@@ -5561,8 +5561,8 @@ async function loadSrcStatus() {
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 on('#srcScan', 'click', async () => {
-  // scansiona SEMPRE la cartella 'sources' del programma: invio la cartella vuota,
-  // il server usa la predefinita e la memorizza come percorso relativo (portabile).
+  // ALWAYS scan the program's 'sources' folder: send the empty folder,
+  // the server uses the default one and stores it as a relative path (portable).
   const folder = '';
   const btn = $('#srcScan');
   const old = btn.textContent;
@@ -5570,8 +5570,8 @@ on('#srcScan', 'click', async () => {
   const st = $('#srcStatus');
   st.innerHTML = `<span class="src-busy">${esc(t('src.scanning'))}</span>`;
   try {
-    await apiPost('/api/sources/scan', { folder });   // avvia in background
-    // segue l'avanzamento con polling di /api/sources/progress
+    await apiPost('/api/sources/scan', { folder });   // start in the background
+    // follow the progress by polling /api/sources/progress
     for (;;) {
       await sleep(300);
       const r = await fetch('/api/sources/progress');
@@ -5600,14 +5600,14 @@ on('#srcScan', 'click', async () => {
   } finally { btn.disabled = false; btn.textContent = old; }
 });
 
-/* Evidenzia il termine trovato dentro uno snippet, dato l'offset. */
+/* Highlights the term found inside a snippet, given the offset. */
 function markSnippet(text, at, len) {
   if (typeof at !== 'number' || at < 0) return esc(text);
   return esc(text.slice(0, at)) + '<mark>' + esc(text.slice(at, at + len)) +
     '</mark>' + esc(text.slice(at + len));
 }
 
-/* Card HTML di un file-fonte, dato l'HTML degli snippet già evidenziati. */
+/* HTML card of a source file, given the HTML of the already highlighted snippets. */
 function srcFileCard(f, snipsHtml) {
   const ic = SRC_ICON[f.ext] || '📄';
   const url = '/api/sources/file/' + encodeURIComponent(f.id);
@@ -5637,8 +5637,8 @@ function renderSrcResultsInto(box, res, term) {
     }).join('');
 }
 
-/* Scompone la chiave scheda (etichetta del nodo) nei termini da cercare:
-   parole >= 3 lettere, escludendo numeri puri e sigle tipo "A2". */
+/* Splits the card key (node label) into the terms to search for:
+   words >= 3 letters, excluding bare numbers and codes like "A2". */
 function labelTerms(label) {
   const raw = String(label || '').split(/[\s\-_/.,;:()·|]+/).map(s => s.trim()).filter(Boolean);
   const terms = raw.filter(s => s.length >= 3 && !/^\d+$/.test(s)
@@ -5646,9 +5646,9 @@ function labelTerms(label) {
   return [...new Set(terms)].slice(0, 12);
 }
 
-/* ---- ricerca dalla scheda: multi-termine con chip selezionabili ---- */
-let srcMulti = null;              // ultimo risultato multi-termine
-const srcSel = new Set();         // termini attualmente selezionati
+/* ---- search from the card: multi-term with selectable chips ---- */
+let srcMulti = null;              // last multi-term result
+const srcSel = new Set();         // terms currently selected
 
 function renderMulti() {
   const box = $('#modal-src-res');
@@ -5688,8 +5688,8 @@ async function searchSources() {
   try {
     srcMulti = await apiPost('/api/sources/multi', { terms, mode });
     srcSel.clear();
-    // all'inizio seleziono la combinazione più specifica (la prima: più parole,
-    // più risultati): mostra subito i match migliori. Gli altri chip li aggiungi tu.
+    // at first select the most specific combination (the first: most words,
+    // most results): it shows the best matches at once. You add the other chips.
     if (srcMulti.terms.length) srcSel.add(srcMulti.terms[0].term);
     renderMulti();
   } catch (e) {
@@ -5698,7 +5698,7 @@ async function searchSources() {
 }
 on('#modal-src-btn', 'click', searchSources);
 on('#srcExact', 'change', () => { if (modalNode && !$('#modal-src').hidden) searchSources(); });
-// click sui chip: seleziona/deseleziona un termine e rifiltra i risultati
+// click on the chips: selects/deselects a term and refilters the results
 on('#modal-src-res', 'click', e => {
   const chip = e.target.closest('.src-chip');
   if (!chip) return;
@@ -5707,7 +5707,7 @@ on('#modal-src-res', 'click', e => {
   renderMulti();
 });
 
-/* ---- ricerca libera nelle fonti (modal dedicato) ---- */
+/* ---- free search in the sources (dedicated modal) ---- */
 async function freeSearchSources(term) {
   const q = (term || '').trim();
   if (q.length < 2) { $('#srcQuery').focus(); return; }
@@ -5755,7 +5755,7 @@ on('#modal-focus', 'click', () => {
   addToGraph([id], true);
 });
 on('#modal-body', 'click', e => {
-  if (e.target.closest('a')) return;          // i link del riepilogo restano cliccabili
+  if (e.target.closest('a')) return;          // the summary links stay clickable
   const chip = e.target.closest('[data-goto]');
   if (!chip) return;
   const id = chip.dataset.goto;
@@ -5763,15 +5763,15 @@ on('#modal-body', 'click', e => {
   addToGraph([id], true);
 });
 
-/* ---- Copia con un click sui valori della scheda ----
-   Serve a riusare rapidamente un dato su altri portali o in un documento. */
+/* ---- Copy with a click on the card values ----
+   Useful to reuse a piece of data quickly on other portals or in a document. */
 function flashCopied(el) {
   el.classList.add('copied');
   setTimeout(() => el.classList.remove('copied'), 900);
 }
 
 function handleCopyClick(e) {
-  // link, foto e pulsanti hanno un comportamento proprio
+  // links, photos and buttons have their own behaviour
   if (e.target.closest('a') || e.target.tagName === 'IMG' ||
       e.target.closest('button')) return;
   const el = e.target.closest('[data-cp]');
@@ -5787,7 +5787,7 @@ function handleCopyClick(e) {
 on('#modal-body', 'click', handleCopyClick);
 on('#modal-title', 'click', handleCopyClick);
 
-/* "mostra tutto / mostra meno" sui valori lunghi delle schede */
+/* "show all / show less" on the long values of the cards */
 on('#modal-body', 'click', e => {
   const btn = e.target.closest('.lv-more');
   if (!btn) return;
@@ -5798,9 +5798,9 @@ on('#modal-body', 'click', e => {
   btn.textContent = open ? t('card.showLess') : t('card.showMore');
 });
 
-/* POST JSON con errori parlanti: se l'endpoint non esiste (server non
-   riavviato) la risposta è una pagina HTML e r.json() darebbe un messaggio
-   incomprensibile; qui si distingue il caso e si dice cosa fare. */
+/* POST JSON with meaningful errors: if the endpoint does not exist (server not
+   restarted) the response is an HTML page and r.json() would give an
+   incomprehensible message; here the case is detected and the user is told what to do. */
 async function apiPost(url, payload) {
   let r;
   try {
@@ -5823,18 +5823,18 @@ async function apiPost(url, payload) {
   return j;
 }
 
-/* ---- Nota sul nodo ---- */
+/* ---- Note on the node ---- */
 on('#modal-note', 'click', async () => {
   if (!modalNode) return;
   const d = modalNode.data();
   const cur = d.note || '';
   const txt = window.prompt(t('note.prompt', { label: d.label }), cur);
-  if (txt === null) return;                   // annullato
+  if (txt === null) return;                   // cancelled
   try {
     const j = await apiPost('/api/note', { id: d.id, note: txt });
     modalNode.data('note', j.note || '');
     modalNode.toggleClass('noted', !!j.note);
-    reindexNode(modalNode);                   // la nota diventa cercabile subito
+    reindexNode(modalNode);                   // the note becomes searchable at once
     $('#modal-body').innerHTML = bodyFor(modalNode);
     $('#stat').textContent = j.note ? t('stat.noteSaved') : t('stat.noteRemoved');
   } catch (err) {
@@ -5842,21 +5842,21 @@ on('#modal-note', 'click', async () => {
   }
 });
 
-/* ---- Rinomina la scheda ----
-   L'etichetta nuova sta nelle annotazioni: i file di origine non si toccano.
-   Se dopo la modifica un'altra scheda rappresenta lo stesso identificativo
-   (es. lo stesso numero scritto con 00 e con +) le due diventano una sola. */
+/* ---- Rename the card ----
+   The new label lives in the annotations: the source files are not touched.
+   If after the change another card represents the same identifier
+   (e.g. the same number written with 00 and with +) the two become one. */
 async function renameNode(node) {
   if (!node || !node.length) return;
   const d = node.data();
   const cur = String(d.label || '');
   const txt = window.prompt(t('rename.prompt', { label: cur }), cur);
-  if (txt === null) return;                   // annullato
+  if (txt === null) return;                   // cancelled
   const nuovo = txt.trim();
-  if (nuovo === cur.trim()) return;           // niente da cambiare
+  if (nuovo === cur.trim()) return;           // nothing to change
   try {
     const j = await apiPost('/api/node/label', { id: d.id, label: nuovo });
-    await syncGraph();                        // la fusione cambia nodi e archi
+    await syncGraph();                        // the merge changes nodes and links
     const n = cy.getElementById(j.id);
     if (n && n.length) {
       if (!visibleNodes.has(j.id)) addToGraph([j.id], true);
@@ -5872,10 +5872,10 @@ async function renameNode(node) {
     alert(t('rename.failed', { e: err.message }));
   }
 }
-/* ---- Modifica di TUTTI i valori del nodo ----
-   Etichetta, URL, nota, ogni campo di ogni scheda e i campi aggiunti a mano.
-   I file di origine non si toccano: le modifiche stanno in annotations.json
-   e si possono annullare in blocco. */
+/* ---- Editing ALL the node's values ----
+   Label, URL, note, every field of every card and the fields added by hand.
+   The source files are not touched: the changes live in annotations.json
+   and can be undone all together. */
 let editNode = null;
 
 function edRow(key, val, attrs) {
@@ -5915,7 +5915,7 @@ function openEditModal(node) {
     h += `<div class="ed-sec"><h4>${esc(t('card.recordBadge', { i: i + 1, n: recs.length,
       coll: r.collection || t('card.sheet') }))}</h4>` +
       (rows.length ? rows.map(([k, v]) =>
-        // i valori accorciati (oltre MAX_VAL) non si modificano: si perderebbe il resto
+        // shortened values (beyond MAX_VAL) are not edited: the rest would be lost
         edRow(k, v, `data-ri="${i}" data-path="${esc(k)}" data-orig="${esc(v)}"` +
           (v.length > MAX_VAL ? ' data-ro="1"' : ''))).join('')
         : `<div class="af-hint">${esc(t('card.empty'))}</div>`) +
@@ -5943,8 +5943,8 @@ on('#editmodal-body', 'click', e => {
   const x = e.target.closest('.ed-x');
   if (!x) return;
   const row = x.closest('.ed-row');
-  if (row.classList.contains('ed-extra')) row.remove();      // campo aggiunto: via
-  else if (!row.dataset.ro) row.classList.toggle('ed-del');  // campo della scheda: segnato
+  if (row.classList.contains('ed-extra')) row.remove();      // added field: removed
+  else if (!row.dataset.ro) row.classList.toggle('ed-del');  // card field: marked
 });
 
 async function saveEdit() {
@@ -5978,13 +5978,13 @@ async function saveEdit() {
   try {
     if (Object.keys(payload).length > 1) await apiPost('/api/node/edit', payload);
     if (note !== (d.note || '').trim()) await apiPost('/api/note', { id: d.id, note });
-    // qualsiasi nodo puo' diventare (o smettere di essere) un target
+    // any node can become (or stop being) a target
     const tgt = $('#ed-target') && $('#ed-target').checked;
     if (tgt !== (d.ntype === 'target')) await apiPost('/api/node/target', { id: d.id, target: tgt });
     let id = d.id;
     if (label && label !== String(d.label || '').trim()) {
       const j = await apiPost('/api/node/label', { id: d.id, label });
-      id = j.id;                                   // la rinomina può fondere le schede
+      id = j.id;                                   // the rename can merge the cards
     }
     await syncGraph();
     $('#editmodal').hidden = true;
@@ -6022,9 +6022,9 @@ on('#editmodal-reset', 'click', async () => {
 on('#modal-rename', 'click', () => renameNode(modalNode));
 on('#modal-title', 'dblclick', () => renameNode(modalNode));
 
-/* ---- Esporta la scheda in PDF ----
-   Si stampa in un iframe nascosto: il browser offre "Salva come PDF" senza
-   librerie esterne e senza disturbare la pagina del grafo. */
+/* ---- Export the card to PDF ----
+   It is printed in a hidden iframe: the browser offers "Save as PDF" without
+   external libraries and without disturbing the graph page. */
 function cardToPdf(node) {
   const d = node.data();
   const cards = (d.records || []).length;
@@ -6087,8 +6087,8 @@ function cardToPdf(node) {
   printDoc(html);
 }
 
-/* Stampa un documento HTML in un iframe nascosto: il browser propone
-   "Salva come PDF" senza librerie esterne e senza disturbare la pagina. */
+/* Prints an HTML document in a hidden iframe: the browser offers
+   "Save as PDF" without external libraries and without disturbing the page. */
 function printDoc(html, waitMs) {
   const ifr = document.createElement('iframe');
   ifr.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden';
@@ -6097,13 +6097,13 @@ function printDoc(html, waitMs) {
   doc.open(); doc.write(html); doc.close();
   const go = () => {
     try { ifr.contentWindow.focus(); ifr.contentWindow.print(); } catch (_) {}
-    setTimeout(() => ifr.remove(), 1500);      // rimosso a stampa avviata
+    setTimeout(() => ifr.remove(), 1500);      // removed once printing has started
   };
-  // attende il caricamento delle immagini, ma senza bloccarsi
+  // waits for the images to load, but without getting stuck
   setTimeout(go, waitMs !== undefined ? waitMs : (doc.images.length ? 700 : 120));
 }
 
-/* Intestazione comune dei documenti stampabili. */
+/* Common header of the printable documents. */
 const REPORT_CSS = `
   *{box-sizing:border-box}
   body{font:11px/1.45 system-ui,-apple-system,sans-serif;color:#0f172a;margin:18px;
@@ -6128,7 +6128,7 @@ const REPORT_CSS = `
   .sum b{color:#0f172a}
   @page{margin:12mm}`;
 
-/* ---- 1) Esporta l'immagine del grafo visibile ---- */
+/* ---- 1) Export the image of the visible graph ---- */
 function exportGraphPdf() {
   const eles = cy.elements().not('.hidden');
   if (!eles.length) { alert(t('exp.empty')); return; }
@@ -6151,11 +6151,11 @@ function exportGraphPdf() {
   $('#stat').textContent = t('stat.pdfReady');
 }
 
-/* ---- 2) Scheda tabellare dei nodi: rapporto di analisi ----
-   Volutamente SENZA la tabella dei collegamenti: questo documento e' l'anagrafe
-   delle entita' presenti nella vista, non la mappa delle relazioni (quella e'
-   il PDF del grafo). L'impaginazione segue lo schema di un rapporto: testata,
-   dati del documento, sintesi quantitativa, poi l'inventario per categoria. */
+/* ---- 2) Tabular sheet of the nodes: analysis report ----
+   Deliberately WITHOUT the links table: this document is the register
+   of the entities present in the view, not the map of the relations (that is
+   the graph PDF). The layout follows the structure of a report: heading,
+   document details, quantitative summary, then the inventory by category. */
 function exportTablePdf() {
   const nodes = cy.nodes().not('.hidden');
   if (!nodes.length) { alert(t('exp.empty')); return; }
@@ -6166,13 +6166,13 @@ function exportTablePdf() {
     const h = mk ? socialHandle(d) : '';
     return mk && h ? mk(h) : '';
   };
-  // il titolo di categoria senza l'emoji iniziale: in stampa e' solo rumore
+  // the category title without the leading emoji: in print it is just noise
   const catName = k => groupTitle(k).replace(/^\S+\s/, '');
 
   const rows = nodes.map(n => n.data());
   const tot = rows.length;
 
-  // --- conteggi per categoria, dalla piu' numerosa alla meno
+  // --- counts per category, from the most numerous to the least
   const byType = {};
   rows.forEach(d => { byType[d.ntype] = (byType[d.ntype] || 0) + 1; });
   const cats = Object.keys(byType).sort((a, b) =>
@@ -6189,7 +6189,7 @@ function exportTablePdf() {
     </tr>`;
   }).join('');
 
-  // --- inventario: una sezione per categoria, numerazione progressiva unica
+  // --- inventory: one section per category, single progressive numbering
   let np = 0;
   const sezioni = cats.map(k => {
     const lista = rows.filter(d => d.ntype === k)
@@ -6289,14 +6289,14 @@ on('#modal-pdf', 'click', () => {
   $('#stat').textContent = t('stat.pdfReady');
 });
 
-/* ---- Eliminazione nodo (doppia conferma) ---- */
+/* ---- Node deletion (double confirmation) ---- */
 on('#modal-del', 'click', async () => {
   if (!modalNode) return;
   const d = modalNode.data();
   if (!confirm(t('confirm.delete1', { label: d.label, ntype: d.ntype, deg: d.deg }))) return;
   if (!confirm(t('confirm.delete2', { label: d.label }))) return;
   try {
-    // target di provenienza: utile a riconoscere il nodo nell'elenco cancellati
+    // originating target: useful to recognise the node in the deleted list
     const targets = [...new Set(collectAround(modalNode, 2)
       .filter(m => m.data('ntype') === 'target')
       .map(m => m.data('label')))];
@@ -6306,7 +6306,7 @@ on('#modal-del', 'click', async () => {
     });
     const id = d.id;
     closeModal();
-    // toglie il nodo dalla vista e da tutti gli insiemi di stato
+    // removes the node from the view and from all the state sets
     [visibleNodes, expanded, selected, pinned, placed].forEach(s => s.delete(id));
     cy.getElementById(id).remove();
     INDEX = INDEX.filter(it => it.id !== id);
@@ -6320,11 +6320,11 @@ on('#modal-del', 'click', async () => {
   }
 });
 
-/* ---- Crediti: piccolo banner con i dati dello sviluppatore ---- */
+/* ---- Credits: small banner with the developer's details ---- */
 const setCredits = mostra => { const b = $('#credmodal'); if (b) b.hidden = !mostra; };
 on('#creditsLink', 'click', () => setCredits(true));
 on('#credmodal-close', 'click', () => setCredits(false));
-// clic fuori dal riquadro = chiusura, come negli altri pannelli
+// click outside the box = close, as in the other panels
 on('#credmodal', 'click', e => { if (e.target.id === 'credmodal') setCredits(false); });
 
 on('#ctx-new-node', 'click', () => { hideCtxMenu(); if (cy) openAdd(null); });
@@ -6356,9 +6356,9 @@ document.addEventListener('contextmenu', e => {
   e.preventDefault();
 }, { capture: true });
 
-/* ================= LICENZE =================
-   Il programma (GPL v3 con clausole aggiuntive) e tutti i componenti di terze
-   parti: elenco e testi in static/licenses/ (generati da tools/make_licenses.py). */
+/* ================= LICENCES =================
+   The program (GPL v3 with additional clauses) and all the third-party
+   components: list and texts in static/licenses/ (generated by tools/make_licenses.py). */
 let licIndex = null, licCur = '';
 const LIC_GROUPS = ['program', 'js', 'python', 'assets', 'tools'];
 
@@ -6415,7 +6415,7 @@ async function showLicense(id) {
 }
 
 on('#licLink', 'click', e => { e.preventDefault(); openLicenses(); });
-/* manuale d'uso (static/manual/manual.html, sei lingue): si apre nella lingua dell'interfaccia */
+/* user manual (static/manual/manual.html, six languages): opens in the interface language */
 on('#manualLink', 'click', e => {
   e.preventDefault();
   window.open('/static/manual/manual.html?lang=' + encodeURIComponent(LANG), '_blank', 'noopener');
@@ -6424,20 +6424,20 @@ on('#lic-list', 'click', e => { const b = e.target.closest('[data-lic]'); if (b)
 on('#licmodal-close', 'click', () => { $('#licmodal').hidden = true; });
 on('#licmodal', 'click', e => { if (e.target.id === 'licmodal' && !dragEnd('licmodal')) $('#licmodal').hidden = true; });
 
-/* Traduzioni applicate PRIMA di costruire il grafo, così ogni testo
-   generato dinamicamente nasce già nella lingua scelta. */
+/* Translations applied BEFORE building the graph, so every dynamically
+   generated text is born already in the chosen language. */
 applyI18n();
 buildLangSelector();
 load();
 refreshTranslitBtn();
-/* elementi investigativi nella tendina del tipo di nodo */
+/* investigative items in the node type drop-down */
 fillOntoOptions();
 on('#add-onto-row', 'input', updateAddPreview);
 on('#add-onto-row', 'change', updateAddPreview);
 
-/* ================= CASI (FASCICOLI) =================
-   Ogni caso ha i suoi nodi, schede, collegamenti, note, viste e JSON importati.
-   Cambiando caso si ricarica la pagina: lo stato del grafo e' del caso. */
+/* ================= CASES (CASE FILES) =================
+   Each case has its own nodes, cards, links, notes, views and imported JSON.
+   Switching case reloads the page: the graph state belongs to the case. */
 let casesList = [], caseMode = 'new';
 
 async function loadCases() {
@@ -6455,15 +6455,15 @@ async function loadCases() {
     $('#caseEdit').disabled = !hasCase;
     $('#caseDel').disabled = !hasCase;
     $('#caseMerge').disabled = casesList.length < 2;
-    // primo avvio (o ultimo caso eliminato): si chiede subito di creare un caso
+    // first start (or last case deleted): asks at once to create a case
     if (!hasCase) openCaseModal('new');
   } catch (e) {
     $('#caseDesc').textContent = e.message;
   }
 }
 
-/* Senza un caso aperto non si aggiunge nulla: si apre la finestra per crearne
-   uno (o sceglierne uno esistente dalla tendina) con l'avviso del perche'. */
+/* Without an open case nothing can be added: the window opens to create
+   one (or choose an existing one from the drop-down) with a notice explaining why. */
 function requireCase() {
   if (hasCase) return true;
   openCaseModal('new');
@@ -6512,7 +6512,7 @@ async function saveCaseModal() {
     } else {
       if (!name) { msg.textContent = t('case.needName'); return; }
       await apiPost('/api/cases/add', { name, description });
-      location.reload();                       // il nuovo caso e' vuoto
+      location.reload();                       // the new case is empty
     }
   } catch (e) {
     msg.textContent = e.message;
@@ -6520,7 +6520,7 @@ async function saveCaseModal() {
 }
 
 on('#caseSel', 'change', async e => {
-  if (!e.target.value) return;                 // voce «nessun caso»
+  if (!e.target.value) return;                 // «no case» entry
   try {
     await apiPost('/api/cases/switch', { id: e.target.value });
     location.reload();
@@ -6542,16 +6542,16 @@ on('#casemodal-save', 'click', saveCaseModal);
 on('#cm-name', 'keydown', e => { if (e.key === 'Enter') saveCaseModal(); });
 loadCases();
 
-/* ============ STILE DI TUTTI I COLLEGAMENTI (pannello di sinistra) ============
-   Vale per il grafo intero e si applica sopra lo stile del singolo collegamento,
-   che resta salvato: con «come impostati» ogni collegamento torna come prima.
-   La scelta e' una preferenza di chi guarda: sta nel browser, non nei dati. */
+/* ============ STYLE OF ALL LINKS (left panel) ============
+   Applies to the whole graph and sits on top of the single link's style,
+   which stays saved: with «as set» every link goes back to how it was.
+   The choice is a viewer preference: it lives in the browser, not in the data. */
 const GSTYLE = { shape: '', line: '', width: '' };
 
 function loadGStyle() {
   try {
     Object.assign(GSTYLE, JSON.parse(localStorage.getItem('edgeStyle') || '{}'));
-  } catch (_) { /* preferenza assente o illeggibile: si resta sui valori attuali */ }
+  } catch (_) { /* preference missing or unreadable: the current values stay */ }
   const sh = $('#gsShape');
   if (sh) {
     sh.innerHTML = `<option value="">${esc(t('gstyle.keep'))}</option>` +

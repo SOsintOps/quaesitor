@@ -28,9 +28,9 @@ from ..archive import _run_scan, sources_index
 bp = Blueprint("documents", __name__)
 
 
-# -------- Tesseract scaricabile dall'interfaccia (solo Windows) ----------
-# Stesso procedimento di setup_tesseract.py, eseguito in un thread: lo stato
-# si legge da /api/ocr/install/status mentre il pannello mostra l'avanzamento.
+# -------- Tesseract downloadable from the interface (Windows only) ----------
+# Same procedure as setup_tesseract.py, run in a thread: the state is read from
+# /api/ocr/install/status while the panel shows the progress.
 _OCR_JOB = {"state": "idle", "stage": "", "percent": 0, "error": ""}
 _OCR_LOCK = threading.Lock()
 
@@ -45,7 +45,7 @@ def _ocr_install_worker():
     try:
         dest = os.path.join(BASE_DIR, "tools", "tesseract")
         exe = _tess.setup_windows(_tess.DEFAULT_URL, dest, progress=progress, stage=stage)
-        ok = _src.configure_ocr(BASE_DIR)          # attiva l'OCR senza riavviare
+        ok = _src.configure_ocr(BASE_DIR)          # enables OCR without restarting
         _OCR_JOB.update(state="done" if ok else "error", percent=100,
                         error="" if ok else "tesseract.exe scaricato ma non utilizzabile")
         logging.info(f"Tesseract in {exe}: OCR {'attivo' if ok else 'NON attivo'}")
@@ -56,7 +56,7 @@ def _ocr_install_worker():
 
 @bp.route("/api/ocr/install", methods=["POST"])
 def api_ocr_install():
-    """Avvia il download di Tesseract nella cartella tools/tesseract."""
+    """Starts the download of Tesseract into the tools/tesseract folder."""
     if os.name != "nt":
         return jsonify({"error": "download automatico disponibile solo su Windows"}), 400
     if _src.OCR_AVAILABLE:
@@ -78,25 +78,25 @@ def api_ocr_install_status():
 
 @bp.route("/api/sources/status")
 def api_sources_status():
-    """Stato dell'indice delle fonti: cartella, quanti file, OCR disponibile."""
+    """State of the sources index: folder, how many files, OCR available."""
     idx = sources_index()
     st = _src.index_summary(idx) if idx else {}
     if idx:
-        # cartella da cui si legge DAVVERO ora (di norma 'fonti' accanto
-        # all'eseguibile): così l'utente vede dove sta pescando i documenti
+        # folder actually read from NOW (usually 'sources' next to the
+        # executable): so the user sees where the documents are taken from
         cartella = _src.resolved_folder(idx, BASE_DIR, archive.SOURCES_DEFAULT)
         st["folder"] = cartella
-        # se la cartella risolta sta accanto al programma il tutto è portabile:
-        # lo si dichiara qui, non in base a com'era l'indice al momento della
-        # scansione (poteva essere una cartella assoluta di un altro PC)
+        # if the resolved folder is next to the program, the whole is portable:
+        # it is declared here, not from how the index was at scan time
+        # (it could have been an absolute folder on another PC)
         rel = _src._rel_to_base(cartella, BASE_DIR)
         st["portable"] = bool(rel)
         st["folder_rel"] = rel
     st["ocr_available"] = _src.OCR_AVAILABLE
-    st["ocr_langs"] = _src.OCR_LANG                 # es. "ita+eng" ("" = predefinita)
+    st["ocr_langs"] = _src.OCR_LANG                 # e.g. "ita+eng" ("" = default)
     st["ocr_reason"] = _src.OCR_REASON             # "module" | "binary" | ""
-    # download automatico solo su Windows e solo se manca il binario (se manca
-    # il modulo Python pytesseract, scaricare Tesseract non servirebbe)
+    # automatic download only on Windows and only if the binary is missing (if the
+    # pytesseract Python module is missing, downloading Tesseract would not help)
     st["ocr_can_install"] = os.name == "nt" and _src.OCR_REASON != "module"
     st["ocr_install"] = _OCR_JOB["state"]
     st["ocr_url"] = _tess.DEFAULT_URL
@@ -107,9 +107,9 @@ def api_sources_status():
 
 @bp.route("/api/sources/pick", methods=["POST"])
 def api_sources_pick():
-    """Apre il selezionatore cartelle nativo del sistema (l'app gira in locale)
-    e ritorna il percorso scelto. Se non c'è un ambiente grafico, il client
-    ripiega sull'inserimento manuale del percorso."""
+    """Opens the system's native folder picker (the app runs locally) and
+    returns the chosen path. If there is no graphical environment, the client
+    falls back to entering the path by hand."""
     try:
         import tkinter as tk
         from tkinter import filedialog
@@ -129,12 +129,12 @@ def api_sources_pick():
 
 @bp.route("/api/sources/scan", methods=["POST"])
 def api_sources_scan():
-    """Avvia l'indicizzazione della cartella in un thread di lavoro e ritorna
-    subito. L'avanzamento si legge con /api/sources/progress. Corpo: {folder}."""
+    """Starts indexing the folder in a worker thread and returns at once.
+    The progress is read with /api/sources/progress. Body: {folder}."""
     data = request.get_json(silent=True) or {}
     folder = str(data.get("folder") or "").strip().strip('"')
     if not folder:
-        folder = archive.SOURCES_DEFAULT          # 'sources' accanto all'eseguibile
+        folder = archive.SOURCES_DEFAULT          # 'sources' next to the executable
     if not os.path.isdir(folder):
         return jsonify({"error": f"cartella non trovata: {folder}"}), 404
     with _scan_lock:
@@ -148,13 +148,13 @@ def api_sources_scan():
 
 @bp.route("/api/sources/progress")
 def api_sources_progress():
-    """Stato dell'indicizzazione in corso (per la barra 'file n di n')."""
+    """State of the indexing in progress (for the 'file n of n' bar)."""
     return jsonify(dict(_scan))
 
 
 @bp.route("/api/sources/search", methods=["POST"])
 def api_sources_search():
-    """Cerca un termine nelle fonti indicizzate. Corpo: {q, mode:'partial'|'total'}."""
+    """Searches a term in the indexed sources. Body: {q, mode:'partial'|'total'}."""
     data = request.get_json(silent=True) or {}
     q = str(data.get("q") or "").strip()
     mode = "total" if data.get("mode") == "total" else "partial"
@@ -168,9 +168,9 @@ def api_sources_search():
 
 @bp.route("/api/sources/multi", methods=["POST"])
 def api_sources_multi():
-    """Cerca più termini insieme (le parole della chiave scheda). Corpo:
-    {terms:[...], mode}. Ritorna i termini positivi (con conteggio) e i file,
-    ciascuno con i termini che vi corrispondono."""
+    """Searches several terms together (the words of the card key). Body:
+    {terms:[...], mode}. Returns the terms found (with count) and the files,
+    each with the terms that match it."""
     data = request.get_json(silent=True) or {}
     terms = data.get("terms") or []
     mode = "total" if data.get("mode") == "total" else "partial"
@@ -182,18 +182,18 @@ def api_sources_multi():
 
 @bp.route("/api/sources/file/<fid>")
 def api_sources_file(fid):
-    """Serve un file indicizzato (per l'anteprima), validando che appartenga
-    all'indice e stia dentro la cartella scansionata."""
+    """Serves an indexed file (for the preview), checking that it belongs to
+    the index and lies inside the scanned folder."""
     idx = sources_index()
     if not idx:
         abort(404)
     f = _src.find_file(idx, fid)
     if not f:
         abort(404)
-    # risolve il percorso ORA, cercando PRIMA nella cartella 'fonti' accanto
-    # all'eseguibile: è quella la posizione dei documenti, e l'unica che resta
-    # valida portando il programma su un altro PC (l'indice conserva il
-    # percorso assoluto della macchina che ha fatto la scansione).
+    # resolves the path NOW, looking FIRST in the 'sources' folder next to the
+    # executable: that is where the documents live, and the only location that
+    # stays valid when the program is moved to another PC (the index keeps the
+    # absolute path of the machine that did the scan).
     path, folder = _src.locate_file(idx, f.get("rel"), BASE_DIR, archive.SOURCES_DEFAULT)
     if not path:
         logging.warning(

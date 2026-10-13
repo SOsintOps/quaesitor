@@ -4,7 +4,7 @@ import pytest
 pytest.importorskip("numpy")
 pytest.importorskip("scipy")
 
-"""Il trascritto con i nomi delle persone al posto delle etichette dei parlanti."""
+"""The transcript with the names of the people in place of the speaker labels."""
 import json
 
 from quaesitor.audio.transcribe import write_named_transcript
@@ -32,7 +32,7 @@ def test_i_nomi_sostituiscono_le_etichette(tmp_path):
     assert out and out.endswith("transcript_nomi.txt")
     assert "IVANA MILIČEVIĆ  Buonasera." in testo and "HOON LEE  Buonasera a lei." in testo
     assert "PARLANTE" not in testo.split("corrispondenze")[1].split("\n\n")[1]
-    assert "corrispondenze (stabilite dall'analista)" in testo   # da dove viene il nome
+    assert "corrispondenze (stabilite dall'analista)" in testo   # where the name comes from
 
 
 def test_un_parlante_senza_nome_resta_com_era(tmp_path):
@@ -70,14 +70,14 @@ class _Info:
 
 
 class _ModelloFinto:
-    """Restituisce segmenti con la stessa forma di faster-whisper."""
+    """Returns segments with the same shape as faster-whisper's."""
     def transcribe(self, path, **kw):
         return iter([_Seg(0.0, 3.0, "Buonasera."), _Seg(3.0, 8.0, "Buonasera a lei.")]), _Info()
 
 
 def test_legge_i_segmenti_che_scrive_transcribe_video(tmp_path):
-    """Il 2026-09-02 il trascritto con i nomi leggeva start/end su segmenti scritti
-    con t0/t1: KeyError, e il test passava perche' costruiva i segmenti a mano."""
+    """On 2026-09-02 the transcript with names read start/end on segments written
+    with t0/t1: KeyError, and the test passed because it built the segments by hand."""
     from quaesitor.audio.transcribe import transcribe_video
     d = tmp_path / "run"
     transcribe_video("intervista.mp4", d, model=_ModelloFinto())

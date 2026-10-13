@@ -10,6 +10,13 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 1.8.1 — 2026
+
+- **Fixed:** The built-in manual, in all six languages, names the documents folder `sources` where it still said `fonti` (the sources section and the backup note).
+- **Changed:** The comments and docstrings of the source code are in English: Python, JavaScript, CSS and the page template. Code, interface texts, data values and the licence headers of the original author are unchanged, as checked file by file against the previous release (same syntax tree for Python, same token stream for JavaScript).
+
+---
+
 ## 1.8.0 — 2026
 
 - **Changed:** The repository is reorganised, following the Flask project layout. The program lives in the `quaesitor/` package; `app.py` in the root starts it as before, so `start.bat`, the Linux launchers of Argos, Speculator and Wukong and `python app.py` are unchanged. The 6,100 lines of the old `app.py` are split into `quaesitor/blueprints/` (the routes, one module per area) and ten shared modules layered without import cycles; the URLs of the page and of the API are the same. The generated Follow the Money ontology sits in `quaesitor/generated/`, marked as generated for GitHub; `build_app.py` moved to `scripts/`.

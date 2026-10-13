@@ -32,7 +32,7 @@ DATA_DIR = os.environ.get("DATA_DIR", os.path.join(BASE_DIR, "data"))
 IMG_KEYS = ("pic", "photo", "avatar", "image", "img")
 IMG_RE = re.compile(r"\.(jpg|jpeg|png|webp|gif)(\?|$)", re.I)
 PHOTO_EXT = (".jpg", ".jpeg", ".png", ".webp", ".gif", ".bmp", ".tif", ".tiff")
-# sottocartella di DATA_DIR con le immagini caricate a mano: non è un target
+# subfolder of DATA_DIR with manually uploaded images: it is not a target
 MEDIA_DIRNAME = "media"
 URL_RE = re.compile(r"^https?://", re.I)
 
@@ -57,7 +57,7 @@ def _flat(s):
 
 
 class NodeError(ValueError):
-    """Valore non valido per il tipo di nodo richiesto (messaggio per l'utente)."""
+    """Invalid value for the requested node type (message for the user)."""
 
 
 def _json_obj(v):
@@ -87,18 +87,18 @@ def _decode_upload(data):
     return blob
 
 
-# ================= IMPORTAZIONE DI JSON DA APP TERZE (export OSINT) =================
-# Il file si aggancia a un nodo (di norma il target): i record diventano nodi e
-# collegamenti con le stesse regole di sempre (build_graph). Il contenuto sta
-# nel database, nessun file o cartella su disco.
+# ================= IMPORT OF JSON FROM THIRD-PARTY APPS (OSINT exports) =================
+# The file is attached to a node (usually the target): the records become nodes and
+# links with the usual rules (build_graph). The content lives in the database, no
+# file or folder on disk.
 IMPORT_MAX_MB = 25
 
 
-# ======================= IMPORTAZIONE FOLLOW THE MONEY =======================
-# File di entita' FtM anche grandi (dataset interi): niente anteprima riga per
-# riga, ma conteggi per schema (ispezione), filtri, e importazione in un thread
-# a lotti con avanzamento. Gli id FtM finiscono nella tabella ftm_ids del caso:
-# un re-import aggiorna i nodi invece di duplicarli.
+# ======================= FOLLOW THE MONEY IMPORT =======================
+# FtM entity files, even large ones (whole datasets): no row-by-row preview, but
+# counts per schema (inspection), filters, and import in a thread, in batches with
+# progress. The FtM ids end up in the case's ftm_ids table: a re-import updates the
+# nodes instead of duplicating them.
 FTM_MAX_MB = 200
 FTM_BATCH = 2000
 
@@ -110,13 +110,12 @@ def _ftm_blob(data):
     return blob
 
 
-# ======================= OPENSANCTIONS (ricerca online) =======================
-# Ricerca di persone e societa' su OpenSanctions (API yente: api.opensanctions.org
-# con chiave, oppure un'istanza propria) e importazione delle corrispondenze
-# come entita' Follow the Money, con le relazioni annidate.
-# E' l'UNICA funzione, insieme all'AI, che manda dati fuori dal computer:
-# spenta per impostazione predefinita (services.conf), e i nomi cercati sono
-# gli unici dati inviati.
+# ======================= OPENSANCTIONS (online search) =======================
+# Search for people and companies on OpenSanctions (yente API: api.opensanctions.org
+# with a key, or a self-hosted instance) and import of the matches as Follow the
+# Money entities, with the nested relationships.
+# It is the ONLY feature, together with the AI, that sends data off the computer:
+# off by default (services.conf), and the searched names are the only data sent.
 SERVICES_CONF = os.path.join(BASE_DIR, "services.conf")
 SERVICES_DEFAULTS = {
     "opensanctions_enabled": "false",
@@ -133,7 +132,7 @@ SERVICES_DEFAULTS = {
 
 
 def _load_kv_conf(path, defaults, env_prefix):
-    """File 'chiave = valore' (commenti con #) + variabili d'ambiente."""
+    """'key = value' file (comments with #) + environment variables."""
     conf = dict(defaults)
     try:
         with open(path, "r", encoding="utf-8-sig") as f:
@@ -156,7 +155,7 @@ def _load_kv_conf(path, defaults, env_prefix):
 
 
 def _save_kv_conf(path, updates, header):
-    """Aggiorna un file 'chiave = valore' conservando commenti e ordine."""
+    """Updates a 'key = value' file, preserving comments and order."""
     eol = "\n"
     try:
         with open(path, "r", encoding="utf-8-sig", newline="") as f:
@@ -203,9 +202,9 @@ SERVICES = _load_services_conf()
 
 
 def _http_json_full(url, payload=None, headers=None, timeout=20, explain=None):
-    """Come _http_json ma ritorna (dati, errore, header di risposta, codice HTTP).
-    'explain' traduce i codici HTTP del servizio in messaggi chiari; il corpo
-    dell'errore (JSON {statusCode, error, message} o testo) e' allegato."""
+    """Like _http_json but returns (data, error, response headers, HTTP status).
+    'explain' translates the service's HTTP codes into clear messages; the error
+    body (JSON {statusCode, error, message} or text) is appended."""
     body = json.dumps(payload).encode("utf-8") if payload is not None else None
     req = urllib.request.Request(url, data=body, method="POST" if body is not None else "GET")
     req.add_header("Accept", "application/json")
@@ -244,12 +243,12 @@ _AI_TYPES = {"person": "persona", "organization": "organization", "organisation"
              "username": "username", "social": "social", "link": "link", "url": "link",
              "website": "link", "place": "luogo", "address": "luogo", "location": "luogo",
              "vehicle": "veicolo", "car": "veicolo", "text": "testo", "note": "testo"}
-_AI_TYPES.update({t: t for t in onto.TYPES})     # arma, stupefacente, assegno...
+_AI_TYPES.update({t: t for t in onto.TYPES})     # weapon, narcotic, cheque...
 
 
 
-# stato della scansione in corso, aggiornato dal thread di lavoro e letto dal
-# client tramite /api/sources/progress (polling: robusto anche da eseguibile).
+# state of the scan in progress, updated by the worker thread and read by the
+# client via /api/sources/progress (polling: robust even from the executable).
 _scan = {"running": False, "done": 0, "total": 0, "name": "",
          "finished": False, "error": "", "summary": None}
 _scan_lock = _threading.Lock()

@@ -25,19 +25,19 @@ from .core import _hash
 from .chatbot import _bot, _bot_down, CHATBOT, chatbot_ask, chatbot_probe, chatbot_ready
 
 
-# ==================== ROMANIZZAZIONE ====================
-# Scritture "ambigue": abjad senza vocali brevi. Nessun motore automatico può
-# restituire un nome leggibile (محمد = m-h-m-d), servono i dizionari manuali.
-AMBIGUOUS_SCRIPTS = {"ARABIC", "HEBREW", "SYRIAC", "THAANA", "CJK"}   # CJK: lettura dei kanji ambigua
+# ==================== ROMANIZATION ====================
+# "Ambiguous" scripts: abjads without short vowels. No automatic engine can
+# return a readable name (محمد = m-h-m-d): the manual dictionaries are needed.
+AMBIGUOUS_SCRIPTS = {"ARABIC", "HEBREW", "SYRIAC", "THAANA", "CJK"}   # CJK: ambiguous kanji reading
 
-WORD_RE = _rx.compile(r"[\p{L}\p{M}]+")   # lettere + segni combinanti (devanagari, thai, kana con dakuten)
+WORD_RE = _rx.compile(r"[\p{L}\p{M}]+")   # letters + combining marks (Devanagari, Thai, kana with dakuten)
 
-try:                                    # PyICU: qualità migliore, tutti gli alfabeti
+try:                                    # PyICU: better quality, every script
     import icu
     _ICU = icu.Transliterator.createInstance("Any-Latin; Latin-ASCII")
     _romanize_raw = _ICU.transliterate
     TRANSLIT_ENGINE = "icu"
-except Exception:                       # fallback puro Python
+except Exception:                       # pure Python fallback
     try:
         from anyascii import anyascii as _romanize_raw
         TRANSLIT_ENGINE = "anyascii"
@@ -45,7 +45,7 @@ except Exception:                       # fallback puro Python
         _romanize_raw = None
         TRANSLIT_ENGINE = None
 
-# alfabeti non occidentali riconosciuti (prefisso del nome Unicode del carattere)
+# recognised non-Western scripts (prefix of the Unicode name of the character)
 SCRIPTS = (
     "CYRILLIC", "ARABIC", "GREEK", "HEBREW", "HIRAGANA", "KATAKANA", "HANGUL",
     "THAI", "DEVANAGARI", "ARMENIAN", "GEORGIAN", "BENGALI", "GUJARATI",
@@ -56,7 +56,7 @@ SCRIPTS = (
 
 
 def script_of(text):
-    """Alfabeto dominante di una stringa, None se è già latina/neutra."""
+    """Dominant script of a string, None if it is already Latin/neutral."""
     counts = {}
     letters = 0
     for ch in str(text or ""):
@@ -84,25 +84,25 @@ def script_of(text):
     return best[0]
 
 
-# ---------- dizionario di traslitterazione (tabella 'translit' di SQLite) ----------
-# Ogni parola ha una sola riga: 'manual' (scritta a mano, vince sempre),
-# 'ai' (proposta dal chatbot) o 'pending' (nota ma ancora da tradurre).
+# ---------- transliteration dictionary ('translit' table in SQLite) ----------
+# Each word has a single row: 'manual' (written by hand, always wins),
+# 'ai' (proposed by the chatbot) or 'pending' (known but still to be transliterated).
 def load_word_dict():
-    """{parola originale: traslitterazione}; '' = da tradurre."""
+    """{original word: transliteration}; '' = still to be done."""
     return store.translit_dict()
 
 
 def write_pending(pending):
-    """Parole nuove, da tradurre (a mano o con l'AI)."""
+    """New words, still to be transliterated (by hand or with the AI)."""
     n = store.translit_add_pending(sorted(pending or []), script_of)
     if n:
         logging.info(f"{n} parole da traslitterare aggiunte al dizionario")
     return n
 
 
-# ---------- traslitterazione con il chatbot ----------
-# La risposta del modello e' un DATO, non un comando: se ne prende solo il
-# testo latino e si scarta tutto il resto (istruzioni, spiegazioni, markup).
+# ---------- transliteration with the chatbot ----------
+# The model's answer is DATA, not a command: only its Latin text is taken
+# and everything else is discarded (instructions, explanations, markup).
 LATIN_OUT = re.compile(r"^[A-Za-z][A-Za-z0-9 '\-.]{0,79}$")
 
 TRANSLIT_PROMPT = (
@@ -120,24 +120,24 @@ TRANSLIT_PROMPT = (
 
 
 def _pulisci_translit(valore):
-    """Tiene solo una traslitterazione plausibile: testo latino, breve."""
+    """Keeps only a plausible transliteration: Latin text, short."""
     v = re.sub(r"\s+", " ", str(valore or "")).strip().strip('"\'')
     v = "".join(c for c in v if c.isprintable())
-    if script_of(v):                       # contiene ancora caratteri non latini
+    if script_of(v):                       # still contains non-Latin characters
         return ""
-    # i modelli usano spesso la trascrizione accademica (Muḥammad, ʿAntānī):
-    # si tolgono diacritici e segni invece di scartare la parola
+    # models often use the scholarly transcription (Muḥammad, ʿAntānī):
+    # diacritics and marks are stripped instead of discarding the word
     v = _clean(v)
     if not v or not LATIN_OUT.match(v):
         return ""
-    if script_of(v):                       # contiene ancora caratteri non latini
+    if script_of(v):                       # still contains non-Latin characters
         return ""
     return v
 
 
 def _estrai_json(testo):
-    """Il primo oggetto JSON contenuto nella risposta (i modelli aggiungono
-    spesso ``` o una frase di cortesia)."""
+    """The first JSON object contained in the answer (models often add
+    ``` or a polite sentence)."""
     t = str(testo or "")
     i, j = t.find("{"), t.rfind("}")
     if i < 0 or j <= i:
@@ -150,7 +150,7 @@ def _estrai_json(testo):
 
 
 def chatbot_translit(parole):
-    """{parola: forma latina} per le parole che il chatbot sa tradurre."""
+    """{word: Latin form} for the words the chatbot can transliterate."""
     parole = [p for p in parole if p]
     if not parole or not chatbot_ready():
         return {}
@@ -161,7 +161,7 @@ def chatbot_translit(parole):
     grezzo = _estrai_json(risposta)
     fuori = {}
     for k, v in grezzo.items():
-        if k in parole:                     # solo le parole chieste
+        if k in parole:                     # only the words asked for
             val = _pulisci_translit(v)
             if val:
                 fuori[k] = val
@@ -172,8 +172,8 @@ def chatbot_translit(parole):
 
 
 def save_ai_translit(nuove):
-    """Salva le parole tradotte dal chatbot; una traduzione fatta a mano
-    ha sempre la precedenza e non viene sovrascritta."""
+    """Saves the words transliterated by the chatbot; a hand-made transliteration
+    always takes precedence and is not overwritten."""
     try:
         return store.translit_save_ai(nuove, CHATBOT["model"])
     except Exception as e:
@@ -182,16 +182,16 @@ def save_ai_translit(nuove):
 
 
 def _per_ai(w):
-    """La parola va fatta tradurre all'AI? Con l'AI attiva: qualunque alfabeto
-    non latino (e' piu' precisa del motore locale); senza, solo le scritture
-    ambigue, che finiscono nel dizionario da compilare a mano."""
+    """Should the word go to the AI? With the AI active: any non-Latin script
+    (it is more accurate than the local engine); without it, only the ambiguous
+    scripts, which end up in the dictionary to be filled in by hand."""
     s = script_of(w)
     return bool(s) and (s in AMBIGUOUS_SCRIPTS or chatbot_ready())
 
 
 def parole_da_traslitterare(graph=None, wdict=None):
-    """Tutte le parole ancora senza traslitterazione: le voci vuote dei
-    dizionari piu' le parole non latine che compaiono nelle etichette."""
+    """All the words still without a transliteration: the empty entries of the
+    dictionaries plus the non-Latin words that appear in the labels."""
     wdict = load_word_dict() if wdict is None else wdict
     todo = {w for w, v in wdict.items()
             if not str(v or "").strip() and _per_ai(w)}
@@ -206,8 +206,8 @@ def parole_da_traslitterare(graph=None, wdict=None):
 
 
 def ai_fill_translit(todo, budget=None, max_words=None, force=False):
-    """Fa tradurre al chatbot le parole di 'todo', a gruppi, e le salva.
-    Ritorna le statistiche; se il chatbot tace, 'tradotte' e' 0 e basta."""
+    """Has the chatbot transliterate the words of 'todo', in batches, and saves them.
+    Returns the statistics; if the chatbot stays silent, 'tradotte' is 0, nothing more."""
     stat = {"chieste": 0, "tradotte": 0, "restano": len(todo), "errore": "",
             "salvate": 0}
     if not todo or not chatbot_ready():
@@ -218,7 +218,7 @@ def ai_fill_translit(todo, budget=None, max_words=None, force=False):
         return stat
     if force:
         _bot["down_until"] = 0.0
-    vivo, perche = chatbot_probe()             # sonda veloce, niente attese lunghe
+    vivo, perche = chatbot_probe()             # quick probe, no long waits
     if not vivo:
         _bot_down(perche)
         stat["errore"] = perche
@@ -247,16 +247,16 @@ def ai_fill_translit(todo, budget=None, max_words=None, force=False):
     return stat
 
 
-# ---------- motore ----------
+# ---------- engine ----------
 _MOD_CATS = {"Lm", "Sk", "Mn", "Mc"}
 
 
 def _clean(s):
-    """Toglie diacritici e lettere modificatrici (ʿ ʾ ̣ ...) lasciate da ICU."""
+    """Strips diacritics and modifier letters (ʿ ʾ ̣ ...) left by ICU."""
     s = unicodedata.normalize("NFKD", str(s or ""))
     s = "".join(c for c in s if unicodedata.category(c) not in _MOD_CATS)
     s = s.encode("ascii", "ignore").decode("ascii")
-    s = re.sub(r"[`'\"]", "", s)          # ʿayn/hamza resi da anyascii come ` e '
+    s = re.sub(r"[`'\"]", "", s)          # ʿayn/hamza rendered by anyascii as ` and '
     return re.sub(r"\s+", " ", s).strip(" -_.")
 
 
@@ -265,20 +265,20 @@ _HAN_RE = _rx.compile(r"^\p{Han}+$")
 
 
 def _is_han(word):
-    """Solo ideogrammi (cinese, o kanji senza kana)."""
+    """Ideograms only (Chinese, or kanji without kana)."""
     return bool(_HAN_RE.match(str(word or "")))
 
 
 def _auto(word):
-    """Traslitterazione automatica di una singola parola, con capitalizzazione."""
+    """Automatic transliteration of a single word, with capitalisation."""
     if word in _auto_cache:
         return _auto_cache[word]
     if not _romanize_raw:
         return ""
     try:
         if _is_han(word):
-            # cinese: una sillaba per carattere, separate da spazi ("Zhang Wei",
-            # non "ZhangWei"); vale per entrambi i motori (ICU e anyascii)
+            # Chinese: one syllable per character, separated by spaces ("Zhang Wei",
+            # not "ZhangWei"); applies to both engines (ICU and anyascii)
             out = " ".join(_clean(_romanize_raw(ch)) for ch in word)
         else:
             out = _clean(_romanize_raw(word))
@@ -290,11 +290,11 @@ def _auto(word):
 
 
 def romanize(text, wdict, pending):
-    """(forma latina, alfabeto, quante parole dal dizionario manuale/AI).
-    Le stringhe multi-parola vengono spezzate: ogni parola è tradotta
-    singolarmente, così il dizionario è riutilizzabile ovunque.
-    Il dizionario (a mano o compilato dall'AI) vince sempre sul motore
-    automatico, per qualunque alfabeto."""
+    """(Latin form, script, how many words from the manual/AI dictionary).
+    Multi-word strings are split: each word is transliterated on its own,
+    so the dictionary can be reused anywhere.
+    The dictionary (hand-made or filled in by the AI) always wins over the
+    automatic engine, for any script."""
     text = str(text or "")
     scr = script_of(text)
     if not scr:
@@ -304,18 +304,18 @@ def romanize(text, wdict, pending):
     for w in WORD_RE.findall(text):
         ws = script_of(w)
         if not ws:
-            parts.append(w)                    # già latina
+            parts.append(w)                    # already Latin
             continue
         val = wdict.get(w)
         if val and val.strip():
-            parts.append(val.strip())          # dizionario manuale o AI
+            parts.append(val.strip())          # manual or AI dictionary
             manual += 1
             continue
         if val is None and ws in AMBIGUOUS_SCRIPTS:
-            pending.add(w)                     # parola nuova -> nel prossimo file
-        auto = _auto(w)                        # ripiego automatico (ICU/anyascii)
+            pending.add(w)                     # new word -> into the next file
+        auto = _auto(w)                        # automatic fallback (ICU/anyascii)
         if not auto:
-            return None, scr, 0                # nessun motore: niente nodo a metà
+            return None, scr, 0                # no engine: no half-done node
         parts.append(auto)
     out = re.sub(r"\s+", " ", " ".join(p for p in parts if p)).strip()
     return (out or None), scr, manual
@@ -329,10 +329,10 @@ TRANSLIT_MODES = ("attribute", "nodes")
 
 
 def translit_mode():
-    """'attribute' (predefinito in questo fork): la forma latina e' un attributo
-    del nodo (campo 'roman': seconda riga dell'etichetta, riga della scheda,
-    ricerca); 'nodes': come nell'originale, un nodo latino gemello collegato
-    all'originale. Impostazione globale, nell'archivio (meta)."""
+    """'attribute' (default in this fork): the Latin form is an attribute of the
+    node ('roman' field: second line of the label, line of the card, search);
+    'nodes': as in the original, a twin Latin node linked to the original one.
+    Global setting, in the archive (meta)."""
     try:
         m = store.get_gmeta("translit_mode", "attribute")
     except Exception:
@@ -341,25 +341,25 @@ def translit_mode():
 
 
 def add_translit(graph, only=None, offline=False):
-    """Aggiunge un nodo latino per ogni etichetta in alfabeto non occidentale,
-    collegato all'originale con un arco 'translit'. Idempotente.
+    """Adds a Latin node for every label in a non-Western script, linked to
+    the original by a 'translit' edge. Idempotent.
 
-    only    : se dato, elabora solo i nodi con questi id (gli altri restano
-              intatti). Serve per traslitterare i nodi aggiunti a mano, che non
-              passano da build_graph.
-    offline : niente chatbot e niente scrittura di file (nuove parole non
-              raccolte). Usato a ogni richiesta per i nodi manuali: dev'essere
-              istantaneo e senza effetti collaterali. In questa modalita' non
-              si toccano i nodi latini gia' esistenti (potrebbero venire dalla
-              cache), ci si limita a crearne di nuovi e a collegarli."""
+    only    : if given, processes only the nodes with these ids (the others stay
+              untouched). Used to transliterate nodes added by hand, which do
+              not go through build_graph.
+    offline : no chatbot and no file writes (new words not collected). Used
+              at every request for the manual nodes: it must be instant and
+              free of side effects. In this mode the existing Latin nodes are
+              not touched (they may come from the cache); new ones are only
+              created and linked."""
     if not _romanize_raw and not offline:
-        # si prosegue lo stesso: le parole gia' nel dizionario (AI o a mano)
-        # danno comunque il loro nodo latino
+        # carry on anyway: the words already in the dictionary (AI or by hand)
+        # still yield their Latin node
         logging.warning("Nessun motore di traslitterazione locale: solo dizionario/AI")
 
     wdict = load_word_dict()
-    # Il chatbot compila da solo le parole ancora scoperte. Se non risponde
-    # non cambia nulla: si prosegue con il dizionario e il motore automatico.
+    # The chatbot fills in the still-uncovered words by itself. If it does not
+    # answer nothing changes: work goes on with the dictionary and the automatic engine.
     if not offline and CHATBOT["auto"] and chatbot_ready():
         todo = parole_da_traslitterare(graph, wdict)
         if todo:
@@ -378,7 +378,7 @@ def add_translit(graph, only=None, offline=False):
             continue
         labels = [n.get("label")] + list(n.get("aliases") or [])
         rom, scr, manual = romanize(labels[0], wdict, pending)
-        for extra in labels[1:]:               # anche gli alias alimentano il dizionario
+        for extra in labels[1:]:               # aliases feed the dictionary too
             romanize(extra, wdict, pending)
         if not rom:
             continue
@@ -389,7 +389,7 @@ def add_translit(graph, only=None, offline=False):
 
         if slug(rom) == slug(n.get("label")):
             continue
-        if mode == "attribute":                # niente nodo gemello: basta 'roman'
+        if mode == "attribute":                # no twin node: 'roman' is enough
             continue
 
         lid = "latin:" + slug(rom)
@@ -403,7 +403,7 @@ def add_translit(graph, only=None, offline=False):
             }
             graph["nodes"].append(existing[lid])
             added += 1
-        elif not offline:                      # non mutare i latini gia' in cache
+        elif not offline:                      # do not mutate Latin nodes already cached
             al = existing[lid].setdefault("aliases", [])
             if n.get("label") and n["label"] not in al:
                 al.append(n["label"])

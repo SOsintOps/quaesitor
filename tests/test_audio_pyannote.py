@@ -4,7 +4,7 @@ import pytest
 pytest.importorskip("numpy")
 pytest.importorskip("scipy")
 
-"""Diarizzazione avanzata (pyannote): opzionale, e con un ripiego che non lascia a piedi."""
+"""Advanced diarization (pyannote): optional, with a fallback that never leaves you stranded."""
 from quaesitor.audio import diarize
 
 
@@ -17,7 +17,7 @@ def test_stato_dice_che_cosa_manca():
 
 
 def test_il_token_e_dell_analista():
-    """Senza token non è mai pronto, per quanto sia installato."""
+    """Without a token it is never ready, however installed it is."""
     st = diarize.pyannote_status("")
     assert not st["ready"]
     con_token = diarize.pyannote_status("hf_finto")
@@ -26,7 +26,7 @@ def test_il_token_e_dell_analista():
 
 
 def test_senza_pyannote_si_ripiega_e_lo_dichiara(monkeypatch):
-    """Il ripiego sulla diarizzazione leggera è automatico e finisce nel log."""
+    """The fallback to the lightweight diarization is automatic and ends up in the log."""
     detto = []
     monkeypatch.setattr(diarize, "add_speakers",
                         lambda *a, **k: {"segments": [], "speakers": 0})
@@ -47,7 +47,7 @@ def test_senza_richiesta_non_prova_nemmeno(monkeypatch):
 
 
 def _pyannote_finto(monkeypatch, turni):
-    """Inietta torch e pyannote.audio finti: la pipeline restituisce `turni`."""
+    """Injects fake torch and pyannote.audio: the pipeline returns `turni`."""
     import sys
     import types
 
@@ -76,8 +76,8 @@ def _pyannote_finto(monkeypatch, turni):
 
 
 def test_pyannote_etichetta_i_segmenti_reali(monkeypatch):
-    """Il 2026-09-02 pyannote leggeva start/end su segmenti scritti con t0/t1: il
-    KeyError finiva nel ripiego e pyannote non veniva mai usato."""
+    """On 2026-09-02 pyannote read start/end on segments written with t0/t1: the
+    KeyError ended in the fallback and pyannote was never used."""
     _pyannote_finto(monkeypatch, [(0.0, 4.0, 0), (4.0, 10.0, 1)])
     transcript = {"segments": [{"t0": 0.0, "t1": 3.0, "text": "a", "speaker": None},
                                {"t0": 5.0, "t1": 9.0, "text": "b", "speaker": None}]}
@@ -91,8 +91,8 @@ def test_pyannote_etichetta_i_segmenti_reali(monkeypatch):
 
 
 def test_pyannote_senza_modello_voce_lascia_i_turni_validi(monkeypatch, tmp_path):
-    """Le impronte sui turni di pyannote richiedono il modello WeSpeaker: se il download
-    fallisce, i parlanti restano e il log lo dichiara."""
+    """The voiceprints on pyannote's turns need the WeSpeaker model: if the download
+    fails, the speakers stay and the log says so."""
     monkeypatch.setenv("QUAESITOR_MODELS_DIR", str(tmp_path / "vuota"))
     _pyannote_finto(monkeypatch, [(0.0, 4.0, 0), (4.0, 10.0, 1)])
     monkeypatch.setattr(diarize, "decode_audio", lambda p: __import__("numpy").zeros(160000, "float32"))

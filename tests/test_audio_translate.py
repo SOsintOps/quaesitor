@@ -17,7 +17,7 @@ def test_align_to_segments_by_overlap_and_nearest():
     tr = [{"t0": 0.5, "t1": 4.0, "text": "Hello"}, {"t0": 4.2, "t1": 6.0, "text": "there"},
           {"t0": 6.5, "t1": 9.5, "text": "friend"}, {"t0": 30.0, "t1": 31.0, "text": "far"}]
     out = T.align_to_segments(segs, tr)
-    assert out == ["Hello", "there friend", "far"]        # "there" copre di più il 1°; "far" al più vicino
+    assert out == ["Hello", "there friend", "far"]        # "there" covers the 1st most; "far" goes to the nearest
     assert T.align_to_segments([], tr) == []
     assert T.align_to_segments(segs, []) == ["", "", ""]
 
@@ -56,7 +56,7 @@ def test_translate_english_source_to_italian_with_argos(monkeypatch):
     monkeypatch.setattr(T, "ArgosPair", _FakePair)
     tr = _transcript("en", ["Hello.", "Bye."])
     T.translate_transcript(tr, ["en", "it"], log=lambda s: None)
-    assert tr["translations"] == ["it"]                   # en = già la lingua dell'audio
+    assert tr["translations"] == ["it"]                   # en = already the language of the audio
     assert [s["tr"]["it"] for s in tr["segments"]] == ["<it>Hello.", "<it>Bye."]
 
 
@@ -70,7 +70,7 @@ class _Info:
 
 
 class _StubModel:
-    """transcribe() normale in italiano; task='translate' restituisce l'inglese."""
+    """Normal transcribe() in Italian; task='translate' returns the English."""
     def transcribe(self, path, **kw):
         if kw.get("task") == "translate":
             return iter([_Seg(0.0, 2.0, "Good morning."), _Seg(2.0, 4.0, "See you.")]), _Info()
@@ -80,12 +80,12 @@ class _StubModel:
 def test_translate_italian_source_to_english_with_whisper(monkeypatch):
     tr = _transcript("it", ["Buongiorno.", "Arrivederci."])
     T.translate_transcript(tr, ["en", "it"], video_path="v.mp4", model=_StubModel(), log=lambda s: None)
-    assert tr["translations"] == ["en"]                   # it = già la lingua dell'audio
+    assert tr["translations"] == ["en"]                   # it = already the language of the audio
     assert [s["tr"]["en"] for s in tr["segments"]] == ["Good morning.", "See you."]
 
 
 def test_pivot_through_english_for_other_sources(monkeypatch, tmp_path):
-    """Sorgente tedesca: inglese da Whisper, italiano da Argos en_it sul testo inglese."""
+    """German source: English from Whisper, Italian from Argos en_it on the English text."""
     monkeypatch.setattr(T, "pair_cached", lambda s, d: True)
     monkeypatch.setattr(T, "ArgosPair", _FakePair)
     _FakePair.calls.clear()
@@ -102,7 +102,7 @@ def test_pivot_through_english_for_other_sources(monkeypatch, tmp_path):
     assert tr["translations"] == ["it"]
     assert _FakePair.calls == [["Good morning.", "See you."]]
     assert tr["segments"][0]["tr"]["it"] == "<it>Good morning."
-    assert "en" not in tr["segments"][0]["tr"]            # l'inglese era solo pivot
+    assert "en" not in tr["segments"][0]["tr"]            # English was only the pivot
 
 
 def test_write_transcript_translated_file(tmp_path):
@@ -116,19 +116,19 @@ def test_write_transcript_translated_file(tmp_path):
     assert path.endswith("transcript_it.txt")
     assert "TRADUZIONE (IT)" in body
     assert "[00:00:00-00:00:02] PARLANTE 1 (it) Ciao." in body
-    assert "(it) Bye." in body                             # traduzione mancante: testo originale
-    assert not (tmp_path / "transcript.json").exists()    # il .json non viene toccato
+    assert "(it) Bye." in body                             # missing translation: original text
+    assert not (tmp_path / "transcript.json").exists()    # the .json is not touched
 
 
 def test_transcribe_video_with_translation_and_fallback(tmp_path, monkeypatch):
-    # traduzione ok
+    # translation ok
     monkeypatch.setattr(T, "pair_cached", lambda s, d: True)
     monkeypatch.setattr(T, "ArgosPair", _FakePair)
     res = transcribe_video("v.mp4", tmp_path / "ok", model=_StubModel(), translate=("en", "it"))
     assert res["translations"] == ["en"]
     assert (tmp_path / "ok" / "transcript_en.txt").exists()
     assert not (tmp_path / "ok" / "transcript_it.txt").exists()
-    # traduzione che fallisce: la trascrizione resta valida
+    # translation that fails: the transcription stays valid
     monkeypatch.setattr(T, "whisper_translate", lambda *a, **k: (_ for _ in ()).throw(RuntimeError("boom")))
     res = transcribe_video("v.mp4", tmp_path / "ko", model=_StubModel(), translate=("en",))
     assert len(res["segments"]) == 2 and not res.get("translations")
@@ -148,7 +148,7 @@ def test_diarize_then_translate_keeps_speakers(tmp_path, monkeypatch):
 
 
 def test_audio_italiano_con_solo_italiano_richiesto_non_rifa_whisper():
-    """Il 2026-09-02 partiva una seconda passata di Whisper verso l'inglese, poi scartata."""
+    """On 2026-09-02 a second Whisper pass into English was started, then discarded."""
     class _ModelloCheNonVaChiamato:
         def transcribe(self, *a, **k):
             raise AssertionError("seconda passata inutile")

@@ -32,7 +32,7 @@ bp = Blueprint("translit", __name__)
 
 @bp.route("/api/translit/status")
 def api_translit_status():
-    """Quante parole restano da traslitterare e se il chatbot e' utilizzabile."""
+    """How many words are left to transliterate and whether the chatbot is usable."""
     wdict = load_word_dict()
     todo = parole_da_traslitterare(current_graph(), wdict)
     return jsonify({
@@ -49,22 +49,22 @@ def api_translit_status():
 
 @bp.route("/api/translit/mode", methods=["GET", "POST"])
 def api_translit_mode():
-    """Dove va la forma latina: 'attribute' (nel nodo) o 'nodes' (gemelli)."""
+    """Where the Latin form goes: 'attribute' (in the node) or 'nodes' (twins)."""
     if request.method == "POST":
         data = request.get_json(silent=True) or {}
         mode = str(data.get("mode") or "").strip()
         if mode not in TRANSLIT_MODES:
             return jsonify({"error": "modalita' non valida"}), 400
         store.set_gmeta("translit_mode", mode)
-        _cache["key"] = None                   # il grafo va ricostruito
+        _cache["key"] = None                   # the graph must be rebuilt
         logging.info(f"Traslitterazione: modalita' {mode}")
     return jsonify({"ok": True, "mode": translit_mode()})
 
 
 @bp.route("/api/translit/ai", methods=["POST"])
 def api_translit_ai():
-    """Fa traslitterare al chatbot tutte le parole ancora scoperte.
-    Se il chatbot non risponde lo dice e non cambia niente."""
+    """Has the chatbot transliterate all the words still uncovered.
+    If the chatbot does not respond it says so and changes nothing."""
     if not chatbot_ready():
         return jsonify({"error": "AI disattivata o endpoint non impostato "
                                  "(pannello Intelligenza artificiale)"}), 400
@@ -78,22 +78,22 @@ def api_translit_ai():
     if not stat["tradotte"] and stat["errore"]:
         return jsonify({"error": stat["errore"]}), 502
     if stat["tradotte"]:
-        _cache["key"] = None                  # le etichette latine vanno rifatte
+        _cache["key"] = None                  # the Latin labels must be redone
     stat["ok"] = True
     return jsonify(stat)
 
 
-# ==================== DIZIONARIO DI TRASLITTERAZIONE (a mano) ====================
-# La finestra "Dizionario" del pannello: elenco delle parole non latine viste
-# nel grafo (in sospeso, tradotte a mano, tradotte dall'AI), modifica in riga,
-# import/export CSV. Un valore scritto a mano vince sempre sul motore
-# automatico e sull'AI (store.translit_set); vuoto = torna "da tradurre".
-# Ogni modifica incrementa translit_version: il grafo si ricostruisce da solo.
+# ==================== TRANSLITERATION DICTIONARY (by hand) ====================
+# The "Dizionario" window of the panel: list of the non-Latin words seen
+# in the graph (pending, translated by hand, translated by the AI), inline editing,
+# CSV import/export. A value written by hand always wins over the automatic
+# engine and the AI (store.translit_set); empty = back to "to translate".
+# Every edit increments translit_version: the graph rebuilds itself.
 
 @bp.route("/api/translit/words")
 def api_translit_words():
-    """Pagina del dizionario. Parametri: q (filtro su parola o valore),
-    source (pending | manual | ai | vuoto = tutte), limit, offset."""
+    """Dictionary page. Parameters: q (filter on word or value),
+    source (pending | manual | ai | empty = all), limit, offset."""
     q = str(request.args.get("q") or "").strip()[:80]
     source = str(request.args.get("source") or "").strip()
     if source not in ("", "pending", "manual", "ai"):
@@ -107,7 +107,7 @@ def api_translit_words():
     more = len(rows) > limit
     rows = rows[:limit]
     for r in rows:
-        # proposta del motore automatico, mostrata come suggerimento
+        # proposal of the automatic engine, shown as a suggestion
         r["auto"] = _auto(r["word"]) if not str(r.get("value") or "").strip() else ""
     return jsonify({"rows": rows, "more": more, "offset": offset,
                     "counts": store.translit_counts(),
@@ -116,7 +116,7 @@ def api_translit_words():
 
 @bp.route("/api/translit/set", methods=["POST"])
 def api_translit_set():
-    """Scrive (o svuota) la traslitterazione di una parola: {word, value}."""
+    """Writes (or clears) the transliteration of a word: {word, value}."""
     data = request.get_json(silent=True) or {}
     word = re.sub(r"\s+", " ", str(data.get("word") or "")).strip()[:120]
     value = re.sub(r"\s+", " ", str(data.get("value") or "")).strip()[:120]
@@ -134,7 +134,7 @@ def api_translit_set():
 
 @bp.route("/api/translit/delete", methods=["POST"])
 def api_translit_delete():
-    """Toglie la parola dal dizionario: tornera' in sospeso se ricompare."""
+    """Removes the word from the dictionary: it will be pending again if it reappears."""
     data = request.get_json(silent=True) or {}
     word = str(data.get("word") or "").strip()
     if not word:
@@ -145,9 +145,9 @@ def api_translit_delete():
 
 @bp.route("/api/translit/collect", methods=["POST"])
 def api_translit_collect():
-    """Mette in sospeso TUTTE le parole non latine presenti nel grafo (non solo
-    quelle delle scritture ambigue), cosi' si possono correggere a mano anche
-    le romanizzazioni automatiche (cinese, cirillico...)."""
+    """Marks as pending ALL the non-Latin words in the graph (not only those
+    of the ambiguous scripts), so the automatic romanisations (Chinese,
+    Cyrillic...) can be corrected by hand too."""
     words = set()
     for n in current_graph().get("nodes", []):
         if n.get("ntype") == "latin":
@@ -162,9 +162,9 @@ def api_translit_collect():
 
 @bp.route("/api/translit/import", methods=["POST"])
 def api_translit_import():
-    """Importa un CSV 'parola;traslitterazione' (anche , o tab; con o senza
-    intestazione). Le righe diventano voci MANUALI; una riga con il valore
-    vuoto rimette la parola in sospeso. Corpo: {text} oppure {data: base64}."""
+    """Imports a 'word;transliteration' CSV (also , or tab; with or without a
+    header). The rows become MANUAL entries; a row with an empty value puts
+    the word back to pending. Body: {text} or {data: base64}."""
     import csv
     import io
     data = request.get_json(silent=True) or {}
@@ -186,7 +186,7 @@ def api_translit_import():
         word = str(cells[0]).strip()
         value = str(cells[1]).strip() if len(cells) > 1 else ""
         if i == 1 and word.lower() in ("parola", "word", "originale", "original"):
-            continue                                    # intestazione
+            continue                                    # header
         if not script_of(word) or (value and script_of(value)):
             skipped += 1
             if len(errors) < 10:
@@ -200,7 +200,7 @@ def api_translit_import():
 
 @bp.route("/api/translit/export")
 def api_translit_export():
-    """Scarica tutto il dizionario come CSV (parola;traslitterazione;origine;scrittura)."""
+    """Downloads the whole dictionary as CSV (word;transliteration;origin;script)."""
     import csv
     import io
     from flask import Response
@@ -209,6 +209,6 @@ def api_translit_export():
     w.writerow(["parola", "traslitterazione", "origine", "scrittura", "aggiornata"])
     for r in store.translit_rows(limit=200000):
         w.writerow([r["word"], r["value"], r["source"], r["script"], r["updated_at"]])
-    data = "\ufeff" + out.getvalue()                  # BOM: Excel apre l'UTF-8 correttamente
+    data = "\ufeff" + out.getvalue()                  # BOM: Excel opens the UTF-8 correctly
     return Response(data, mimetype="text/csv; charset=utf-8",
                     headers={"Content-Disposition": "attachment; filename=traslitterazioni.csv"})

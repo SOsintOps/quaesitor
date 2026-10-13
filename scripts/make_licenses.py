@@ -1,12 +1,12 @@
 # OSInt Graph - esplorazione grafica di dati OSINT per casi investigativi
 # Copyright (C) 2025-2026 Andrea Cumini <andrea@osintinfo.net>
 # SPDX-License-Identifier: GPL-3.0-or-later
-"""Raccoglie le licenze di TUTTI i componenti del programma in quaesitor/static/licenses/
-(un file di testo per licenza + index.json) e genera THIRD-PARTY-NOTICES.md.
+"""Collects the licences of ALL the components of the program in quaesitor/static/licenses/
+(one text file per licence + index.json) and writes THIRD-PARTY-NOTICES.md.
 
-I testi vengono presi dai pacchetti Python installati nel venv, dai file in
-quaesitor/static/vendor e dall'interprete Python: cosi' sono quelli veri delle versioni
-usate. Da rilanciare quando si aggiorna una dipendenza:
+The texts are taken from the Python packages installed in the venv, from the files in
+quaesitor/static/vendor and from the Python interpreter, so they are the real ones of the
+versions in use. Run it again whenever a dependency is updated:
 
     .venv\\Scripts\\python.exe scripts\\make_licenses.py
 """
@@ -20,7 +20,7 @@ import sys
 from importlib.metadata import distribution, PackageNotFoundError
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-RES = os.path.join(ROOT, "quaesitor")          # templates/ e static/ del programma
+RES = os.path.join(ROOT, "quaesitor")          # templates/ and static/ of the program
 OUT = os.path.join(RES, "static", "licenses")
 os.makedirs(OUT, exist_ok=True)
 
@@ -37,7 +37,7 @@ def wr(name, text):
 
 
 def pkg_license(name):
-    """Testo della licenza dal dist-info del pacchetto installato."""
+    """Licence text from the dist-info of the installed package."""
     try:
         d = distribution(name)
     except PackageNotFoundError:
@@ -82,7 +82,7 @@ def add(id_, name, version, license_, holder, url, role_it, role_en, file, group
                     "file": file, "group": group, "bundled": bundled})
 
 
-# ----------------------------------------------------------- il programma ---
+# ------------------------------------------------------------ the program ---
 add("osint-graph", "Quaesitor (fork of OSInt Graph)", "", "GNU GPL v3 con clausole aggiuntive (attribuzione, nome e logo)",
     "Copyright (C) 2025-2026 Andrea Cumini", "https://www.osintinfo.net",
     "Il programma: licenza e termini aggiuntivi", "The program: license and additional terms",
@@ -92,7 +92,7 @@ add("gpl-3.0", "GNU General Public License", "versione 3", "GPL-3.0",
     "Testo integrale della licenza del programma", "Full text of the program's license",
     wr("GPL-3.0.txt", rd(os.path.join(ROOT, "LICENSE"))), "program")
 
-# ------------------------------------------------- librerie JavaScript -----
+# ------------------------------------------------ JavaScript libraries -----
 cy_src = rd(os.path.join(RES, "static", "vendor", "cytoscape.min.js"))
 m = re.match(r"/\*\*(.*?)\*/", cy_src, re.S)
 cy_text = re.sub(r"^\s*\* ?", "", m.group(1), flags=re.M).strip() if m else MIT.format(holder="2016-2024, The Cytoscape Consortium")
@@ -109,7 +109,7 @@ for id_, name, ver in (("cytoscape-fcose", "cytoscape-fcose", "2.2.0"),
         "Disposizione automatica dei nodi (layout organico)", "Automatic node layout (organic layout)",
         wr(f"{id_}.txt", MIT.format(holder="i-Vis Research Group, Bilkent University")), "js")
 
-# ------------------------------------------------------- icone e carattere ---
+# ---------------------------------------------------------- icons and font ---
 add("font-awesome", "Font Awesome Free", "6", "Icone CC BY 4.0, codice MIT",
     "Fonticons, Inc.", "https://fontawesome.com",
     "Icone di ripiego dei tipi di nodo e dell'interfaccia", "Fallback node type icons and interface icons",
@@ -258,7 +258,7 @@ FROM, OUT OF THE USE OR INABILITY TO USE THE FONT SOFTWARE OR FROM
 OTHER DEALINGS IN THE FONT SOFTWARE.
 """), "assets")
 
-# --------------------------------------------------------- pacchetti Python --
+# ---------------------------------------------------------- Python packages --
 PY = [
     ("Flask", "Flask", "Server web dell'applicazione", "Application web server"),
     ("Werkzeug", "Werkzeug", "Libreria di base del server web", "Web server toolkit"),
@@ -291,9 +291,9 @@ for pkg, shown, rit, ren in PY:
     add(pkg.lower().replace(".", "-"), shown, ver, lic, "", f"https://pypi.org/project/{pkg}/",
         rit, ren, wr(f"{pkg.lower().replace('.', '-')}.txt", text), "python")
 
-# ------------------------------- trascrizione video, facoltativa (1.6.0) --
-# requirements-audio.txt: installati solo se l'utente sceglie la trascrizione.
-# Lo script li vuole installati nel venv, come gli altri pacchetti.
+# --------------------------------- video transcription, optional (1.6.0) --
+# requirements-audio.txt: installed only if the user chooses transcription.
+# The script wants them installed in the venv, like the other packages.
 AUDIO = [
     ("faster-whisper", "faster-whisper", "MIT", "Trascrizione (Whisper su CTranslate2)", "Transcription (Whisper on CTranslate2)"),
     ("ctranslate2", "CTranslate2", "MIT", "Esecuzione di Whisper e della traduzione", "Inference engine of Whisper and of the translation"),
@@ -313,7 +313,7 @@ for pkg, shown, lic, rit, ren in AUDIO:
                  "pip install -r requirements-audio.txt")
     try:
         ver, text = pkg_license(pkg)
-    except SystemExit:                          # wheel senza file di licenza (es. ctranslate2)
+    except SystemExit:                          # wheel without a licence file (e.g. ctranslate2)
         ver, text = d.version, (f"{shown} {d.version} - https://pypi.org/project/{pkg}/\n\n"
                                 f"Licensed under the {lic} licence. The installed wheel ships no licence file;\n"
                                 "the full text is in the source repository of the project.\n")
@@ -349,7 +349,7 @@ add("python", "Python", ".".join(map(str, sys.version_info[:3])), "PSF License",
     "Interprete incorporato nell'eseguibile", "Interpreter embedded in the executable",
     wr("python.txt", rd(py_lic)) if os.path.exists(py_lic) else "", "python")
 
-# ---------------------------------------------- componenti esterni/strumenti --
+# ------------------------------------------------- external components/tools --
 _, apache = pkg_license("pytesseract")
 add("tesseract", "Tesseract OCR", "5.3.3", "Apache-2.0",
     "Tesseract contributors (Google, Ray Smith e altri)", "https://github.com/tesseract-ocr/tesseract",

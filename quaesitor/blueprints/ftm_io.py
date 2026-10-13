@@ -137,7 +137,7 @@ def _run_ftm_import(blob, opts):
 
 @bp.route("/api/ftm/inspect", methods=["POST"])
 def api_ftm_inspect():
-    """Conteggi per schema e dataset di un file FtM. Corpo: {filename, data}."""
+    """Counts per schema and dataset of an FtM file. Body: {filename, data}."""
     data = request.get_json(silent=True) or {}
     try:
         kind, src = _ftm_source(data)
@@ -158,8 +158,8 @@ def api_ftm_inspect():
 
 @bp.route("/api/ftm/import", methods=["POST"])
 def api_ftm_import():
-    """Avvia l'importazione in un thread. Corpo: {data, schemas: [...], text,
-    max_entities, connected_only, dataset}. Avanzamento: /api/ftm/progress."""
+    """Starts the import in a thread. Body: {data, schemas: [...], text,
+    max_entities, connected_only, dataset}. Progress: /api/ftm/progress."""
     data = request.get_json(silent=True) or {}
     try:
         kind, src = _ftm_source(data)
@@ -197,9 +197,9 @@ def api_ftm_progress():
 
 @bp.route("/api/ftm/export", methods=["GET", "POST"])
 def api_ftm_export():
-    """Il caso (o i nodi indicati in {ids}) come entita' Follow the Money, in
-    righe JSON leggibili da Aleph, OpenSanctions e dalla CLI ftm.
-    ?summary=1 ritorna solo il riepilogo (quanti nodi, quanti senza schema)."""
+    """The case (or the nodes given in {ids}) as Follow the Money entities, as
+    JSON lines readable by Aleph, OpenSanctions and the ftm CLI.
+    ?summary=1 returns only the summary (how many nodes, how many without a schema)."""
     from flask import Response
     data = request.get_json(silent=True) or {} if request.method == "POST" else {}
     only = {str(x) for x in (data.get("ids") or [])} or None
@@ -212,7 +212,7 @@ def api_ftm_export():
     new_ids = summary.pop("new_ids", [])
     if request.args.get("summary") or data.get("summary"):
         return jsonify(dict(summary, ok=True))
-    if new_ids:                                     # il re-import dell'export ricade sugli stessi nodi
+    if new_ids:                                     # re-importing the export lands on the same nodes
         store.ftm_set((f, n, sc, "export") for f, n, sc in new_ids)
     body = "".join(json.dumps(e, ensure_ascii=False) + "\n" for e in ents)
     name = re.sub(r"[^A-Za-z0-9_-]+", "_", (store.get_case(store.current_case()) or {}).get("name") or "caso")

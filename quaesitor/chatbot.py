@@ -20,12 +20,12 @@ import urllib.error
 from .paths import BASE_DIR
 
 
-# ==================== CHATBOT REMOTO (AI) ====================
-# Chatbot dell'utente (Ollama dietro un reverse proxy). Serve a compilare da
-# solo il dizionario di traslitterazione: le scritture senza vocali brevi
-# (arabo, ebraico...) non sono traducibili da un motore automatico.
-# REGOLA: se il chatbot non risponde NON succede nulla. Si prosegue con il
-# dizionario compilato a mano e la traslitterazione automatica di sempre.
+# ==================== REMOTE CHATBOT (AI) ====================
+# The user's chatbot (Ollama behind a reverse proxy). It fills in the
+# transliteration dictionary by itself: scripts without short vowels
+# (Arabic, Hebrew...) cannot be rendered by an automatic engine.
+# RULE: if the chatbot does not answer, NOTHING happens. Work goes on with the
+# hand-filled dictionary and the usual automatic transliteration.
 CHATBOT_CONF = os.path.join(BASE_DIR, "chatbot.conf")
 CHATBOT_DEFAULTS = {
     "enabled": "true", "endpoint": "", "api_key": "", "model": "gemma3:12b",
@@ -36,7 +36,7 @@ CHATBOT_DEFAULTS = {
 
 
 def _load_chatbot_conf():
-    """chatbot.conf (chiave = valore) + variabili d'ambiente CHATBOT_*."""
+    """chatbot.conf (key = value) + CHATBOT_* environment variables."""
     conf = dict(CHATBOT_DEFAULTS)
     try:
         with open(CHATBOT_CONF, "r", encoding="utf-8-sig") as f:
@@ -55,8 +55,8 @@ def _load_chatbot_conf():
         env = os.environ.get("CHATBOT_" + k.upper())
         if env is not None:
             conf[k] = env
-    # Un solo interruttore: 'enabled' (lo switch "AI attiva" dell'app). Spento
-    # = il chatbot non viene mai contattato, per nessuna funzione.
+    # A single switch: 'enabled' (the app's "AI active" toggle). Off
+    # = the chatbot is never contacted, for any feature.
     conf["endpoint"] = conf["endpoint"].rstrip("/")
     for k, minimo in (("timeout", 1), ("max_words", 1), ("batch", 1), ("budget", 5)):
         try:
@@ -70,20 +70,20 @@ def _load_chatbot_conf():
 
 CHATBOT = _load_chatbot_conf()
 
-# stato in memoria: quale formato di API funziona e da quando il chatbot e'
-# considerato irraggiungibile (per non riprovare a ogni ricostruzione)
-BOT_RETRY_AFTER = 300              # secondi di attesa dopo un tentativo fallito
+# in-memory state: which API format works and since when the chatbot is
+# considered unreachable (so as not to retry at every rebuild)
+BOT_RETRY_AFTER = 300              # seconds to wait after a failed attempt
 _bot = {"api": None, "down_until": 0.0, "reason": "", "ok_at": 0.0}
 
 
 def chatbot_ready():
-    """Il chatbot si puo' usare: interruttore acceso ed endpoint impostato.
-    Da spento non si tenta nessun collegamento."""
+    """The chatbot can be used: switch on and endpoint set.
+    When off, no connection is attempted."""
     return bool(CHATBOT["enabled"] and CHATBOT["endpoint"])
 
 
 def _bot_call(path, payload):
-    """POST JSON al chatbot. Ritorna (dati, errore): uno dei due e' sempre None."""
+    """POST JSON to the chatbot. Returns (data, error): one of the two is always None."""
     url = CHATBOT["endpoint"] + path
     body = json.dumps(payload).encode("utf-8")
     req = urllib.request.Request(url, data=body, method="POST")
@@ -109,15 +109,15 @@ def _bot_call(path, payload):
 
 
 PROBE_TIMEOUT = 5
-AI_NUM_CTX = 8192                      # finestra di contesto chiesta a Ollama (token)                      # come il CONNECTTIMEOUT del client PHP
+AI_NUM_CTX = 8192                      # context window requested from Ollama (tokens)                      # like the CONNECTTIMEOUT of the PHP client
 
 
 def chatbot_probe():
-    """Colpo di sonda veloce: il SERVER risponde? Serve solo a non far
-    aspettare il timeout pieno quando la macchina e' spenta o irraggiungibile.
-    Un 401 NON conta come guasto: il proxy puo' proteggere /api/tags e lasciare
-    passare /api/generate, che e' la rotta che ci interessa davvero.
-    Ritorna (raggiungibile, motivo)."""
+    """Quick probe: does the SERVER answer? It only avoids waiting for the
+    full timeout when the machine is off or unreachable.
+    A 401 does NOT count as a failure: the proxy may protect /api/tags and let
+    /api/generate through, which is the route that really matters.
+    Returns (reachable, reason)."""
     url = CHATBOT["endpoint"] + "/api/tags"
     req = urllib.request.Request(url, method="GET")
     testa = (CHATBOT["auth_header"] or "").strip()
@@ -129,7 +129,7 @@ def chatbot_probe():
             r.read(1)
             return True, ""
     except urllib.error.HTTPError:
-        return True, ""                    # ha risposto: si prova la generazione
+        return True, ""                    # it answered: try the generation
     except urllib.error.URLError as e:
         return False, f"{e.reason}"
     except Exception as e:
@@ -144,10 +144,10 @@ def _bot_down(motivo):
 
 
 def chatbot_ask(prompt, force=False, json_mode=False, ignore_switch=False):
-    """Manda un prompt al chatbot. Ritorna il testo, oppure None se il chatbot
-    non risponde: in quel caso il chiamante DEVE proseguire senza.
-    ignore_switch=True (prova di collegamento dal pannello): basta l'endpoint.
-    json_mode: chiede a Ollama una risposta in JSON valido."""
+    """Sends a prompt to the chatbot. Returns the text, or None if the chatbot
+    does not answer: in that case the caller MUST carry on without it.
+    ignore_switch=True (connection test from the panel): the endpoint is enough.
+    json_mode: asks Ollama for an answer in valid JSON."""
     if ignore_switch:
         if not CHATBOT["endpoint"]:
             return None
@@ -157,7 +157,7 @@ def chatbot_ask(prompt, force=False, json_mode=False, ignore_switch=False):
         return None
 
     forme = ["ollama", "openai"] if CHATBOT["api"] == "auto" else [CHATBOT["api"]]
-    if _bot["api"] in forme:                     # quella che ha gia' funzionato
+    if _bot["api"] in forme:                     # the one that already worked
         forme = [_bot["api"]]
     ultimo = ""
     for forma in forme:
@@ -172,9 +172,9 @@ def chatbot_ask(prompt, force=False, json_mode=False, ignore_switch=False):
                 except Exception:
                     testo = ""
         else:
-            # num_ctx: il prompt dei nodi (con gli elenchi di armi, sostanze,
-            # reati...) supera la finestra predefinita di Ollama (2-4k token), che
-            # altrimenti lo troncherebbe in silenzio
+            # num_ctx: the node prompt (with the lists of weapons, substances,
+            # offences...) exceeds Ollama's default window (2-4k tokens), which
+            # would otherwise truncate it silently
             req = {"model": CHATBOT["model"], "prompt": prompt, "stream": False,
                    "options": {"temperature": 0, "num_ctx": AI_NUM_CTX}}
             if json_mode:
@@ -184,9 +184,9 @@ def chatbot_ask(prompt, force=False, json_mode=False, ignore_switch=False):
         if err:
             ultimo = err
             if err.startswith(("HTTP 401", "HTTP 403")):
-                break                            # la chiave e' sbagliata: inutile insistere
+                break                            # wrong key: no point insisting
             if not err.startswith("HTTP"):
-                break                            # server irraggiungibile: vale per ogni formato
+                break                            # server unreachable: applies to every format
             continue
         if testo:
             _bot["api"] = forma

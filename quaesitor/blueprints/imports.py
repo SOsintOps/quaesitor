@@ -27,8 +27,8 @@ bp = Blueprint("imports", __name__)
 
 
 def read_table(filename, blob):
-    """File CSV, Excel (.xlsx) o entita' Follow the Money (JSON) -> lista di
-    righe (liste di stringhe)."""
+    """CSV, Excel (.xlsx) or Follow the Money entity (JSON) file -> list of
+    rows (lists of strings)."""
     name = (filename or "").lower()
     if ftm.is_ftm(name, blob):
         try:
@@ -45,7 +45,7 @@ def read_table(filename, blob):
             wb = openpyxl.load_workbook(io.BytesIO(blob), read_only=True, data_only=True)
         except Exception as e:
             raise NodeError(f"file Excel illeggibile: {e}")
-        for ws in wb.worksheets:               # il primo foglio con dei dati
+        for ws in wb.worksheets:               # the first sheet with data
             rows = []
             for r in ws.iter_rows(values_only=True):
                 cells = ["" if v is None else
@@ -79,8 +79,8 @@ def read_table(filename, blob):
 
 
 def import_columns(table):
-    """Per la procedura guidata: intestazioni, esempi e mappatura automatica.
-    'header' dice se la prima riga sembra un'intestazione."""
+    """For the wizard: headers, samples and automatic mapping.
+    'header' says whether the first row looks like a header."""
     if not table:
         raise NodeError("il file e' vuoto")
     auto = map_header(table[0]) or {}
@@ -97,7 +97,7 @@ def import_columns(table):
 
 
 def _import_opts(data):
-    """Opzioni della procedura guidata dalla richiesta (tutte facoltative)."""
+    """Wizard options from the request (all optional)."""
     mapping = data.get("mapping")
     out = {"mapping": None, "has_header": None, "defaults": {}}
     if isinstance(mapping, dict) and mapping:
@@ -116,7 +116,7 @@ def api_imports_list():
 
 @bp.route("/api/imports/add", methods=["POST"])
 def api_imports_add():
-    """{anchor: id del nodo, filename, content: testo del JSON, dossier: bool}"""
+    """{anchor: node id, filename, content: JSON text, dossier: bool}"""
     data = request.get_json(silent=True) or {}
     anchor = str(data.get("anchor") or "").strip()
     filename = os.path.basename(str(data.get("filename") or "export.json"))[:200]
@@ -153,8 +153,8 @@ def api_imports_delete():
 
 @bp.route("/api/import/columns", methods=["POST"])
 def api_import_columns():
-    """Procedura guidata, passo 2: colonne del file, esempi e mappatura
-    automatica dalle intestazioni (l'utente puo' cambiarla)."""
+    """Wizard, step 2: the file's columns, samples and automatic mapping
+    from the headers (the user can change it)."""
     data = request.get_json(silent=True) or {}
     try:
         table = read_table(data.get("filename"), _decode_upload(data))
@@ -167,7 +167,7 @@ def api_import_columns():
 
 @bp.route("/api/import/preview", methods=["POST"])
 def api_import_preview():
-    """Legge il file e mostra cosa verra' creato, senza scrivere niente."""
+    """Reads the file and shows what will be created, without writing anything."""
     data = request.get_json(silent=True) or {}
     try:
         table = read_table(data.get("filename"), _decode_upload(data))
@@ -180,7 +180,7 @@ def api_import_preview():
 
 @bp.route("/api/import/commit", methods=["POST"])
 def api_import_commit():
-    """Crea davvero i nodi e i collegamenti del file."""
+    """Actually creates the nodes and links of the file."""
     data = request.get_json(silent=True) or {}
     skip = {int(x) for x in (data.get("skip") or []) if str(x).isdigit()}
     try:

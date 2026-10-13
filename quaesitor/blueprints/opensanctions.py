@@ -44,7 +44,7 @@ def _osa_public():
 
 
 def _http_json(url, payload=None, headers=None, timeout=20):
-    """GET (payload None) o POST JSON. Ritorna (dati, errore)."""
+    """GET (payload None) or POST JSON. Returns (data, error)."""
     data, err, _, _ = _http_json_full(url, payload, headers, timeout)
     return data, err
 
@@ -62,7 +62,7 @@ def _osa_call(path, payload=None, query=None):
 
 
 def _osa_brief(e):
-    """Un risultato ridotto all'essenziale per l'elenco."""
+    """A result reduced to the essentials for the list."""
     p = e.get("properties") or {}
     return {"id": e.get("id"), "schema": e.get("schema"), "caption": e.get("caption") or (p.get("name") or [""])[0],
             "countries": (p.get("country") or p.get("nationality") or p.get("jurisdiction") or [])[:4],
@@ -72,8 +72,8 @@ def _osa_brief(e):
 
 
 def _osa_flatten(e, out):
-    """Entita' con proprieta' annidate (?nested=true) -> {id: entita'} piatto:
-    le entita' annidate diventano voci proprie, al loro posto resta l'id."""
+    """Entities with nested properties (?nested=true) -> flat {id: entity}:
+    the nested entities become entries of their own, the id stays in their place."""
     if not isinstance(e, dict) or not e.get("id") or not e.get("schema"):
         return None
     props = {}
@@ -129,7 +129,7 @@ def api_osa_config():
 
 @bp.route("/api/osa/test", methods=["POST"])
 def api_osa_test():
-    """Prova di collegamento: /healthz dell'istanza, poi una ricerca minima."""
+    """Connection test: the instance's /healthz, then a minimal search."""
     data, err = _osa_call("/healthz")
     if err:
         return jsonify({"ok": False, "error": err}), 502
@@ -141,7 +141,7 @@ def api_osa_test():
 
 @bp.route("/api/osa/search")
 def api_osa_search():
-    """Ricerca per testo: ?q=&schema=&limit= -> elenco ridotto."""
+    """Text search: ?q=&schema=&limit= -> reduced list."""
     q = str(request.args.get("q") or "").strip()[:200]
     if len(q) < 2:
         return jsonify({"error": "termine troppo corto"}), 400
@@ -161,8 +161,8 @@ def api_osa_search():
 
 @bp.route("/api/osa/match", methods=["POST"])
 def api_osa_match():
-    """Confronto strutturato (nome + data di nascita / paese / numero):
-    {schema, properties: {...}} -> corrispondenze con punteggio."""
+    """Structured match (name + date of birth / country / number):
+    {schema, properties: {...}} -> matches with a score."""
     data = request.get_json(silent=True) or {}
     schema = str(data.get("schema") or "Person").strip()
     props = {k: ([v] if not isinstance(v, list) else v) for k, v in (data.get("properties") or {}).items() if v}
@@ -178,8 +178,8 @@ def api_osa_match():
 
 @bp.route("/api/osa/import", methods=["POST"])
 def api_osa_import():
-    """Porta nel caso le entita' indicate ({ids: [...]}) con le loro relazioni
-    annidate, come un file FtM (stesso motore: id conservati, aggiornamenti)."""
+    """Brings the given entities ({ids: [...]}) into the case with their nested
+    relationships, like an FtM file (same engine: ids kept, updates)."""
     data = request.get_json(silent=True) or {}
     ids = [str(x) for x in (data.get("ids") or []) if str(x).strip()][:50]
     if not ids:

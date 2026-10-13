@@ -40,8 +40,8 @@ def entity_icons():
 
 @bp.route("/")
 def index():
-    # versione = mtime di app.js/style.css: forza il browser a riscaricare i
-    # file statici quando cambiano (niente più JS servito dalla cache)
+    # version = mtime of app.js/style.css: forces the browser to download the
+    # static files again when they change (no more JS served from the cache)
     def _mtime(fn):
         try:
             return int(os.path.getmtime(os.path.join(os.path.join(RES_DIR, "static"), fn)))
@@ -59,9 +59,9 @@ _fa_cache = {}
 
 
 def fa_icons():
-    """Icone Font Awesome Free (static/vendor/fa): {nome: svg}. Stanno dentro
-    l'app, non su internet. Si inseriscono nella pagina, cosi' sono pronte
-    prima che il grafo venga disegnato."""
+    """Font Awesome Free icons (static/vendor/fa): {name: svg}. They live inside
+    the app, not on the internet. They are inserted into the page, so they are
+    ready before the graph is drawn."""
     if not _fa_cache:
         try:
             for fn in os.listdir(_FA_DIR):
@@ -81,7 +81,7 @@ def api_ontology():
 
 @bp.route("/media/<path:relpath>")
 def media(relpath):
-    """Serve le immagini contenute in DATA_DIR (solo lettura, path controllato)."""
+    """Serves the images in DATA_DIR (read only, checked path)."""
     root = os.path.abspath(DATA_DIR)
     full = os.path.abspath(os.path.join(root, relpath))
     if not full.startswith(root + os.sep) or not os.path.isfile(full):
@@ -94,10 +94,10 @@ def media(relpath):
 
 @bp.route("/api/brand-icons")
 def api_brand_icons():
-    """Sigle dei marchi che hanno l'icona in static/vendor/icons/.
-    Il front-end la usa per non chiedere file inesistenti: le icone stanno
-    DENTRO l'eseguibile, non su internet, e non tutti i marchi ce l'hanno
-    (per quelli che mancano resta il badge con l'iniziale)."""
+    """Codes of the brands that have an icon in static/vendor/icons/.
+    The front end uses it so as not to request missing files: the icons live
+    INSIDE the executable, not on the internet, and not every brand has one
+    (those missing keep the badge with the initial)."""
     cartella = os.path.join(RES_DIR, "static", "vendor", "icons")
     try:
         nomi = [f[:-4] for f in os.listdir(cartella) if f.lower().endswith(".svg")]

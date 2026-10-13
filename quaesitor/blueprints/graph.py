@@ -47,9 +47,9 @@ def api_graph():
 
 @bp.route("/api/reload", methods=["POST"])
 def api_reload():
-    """Rilegge i dati da disco e ricostruisce il grafo, senza riavviare l'app.
-    Serve dopo aver aggiunto schede o cartelle target: una cartella nuova ma
-    vuota non cambia la firma dei file, quindi la cache va invalidata a mano."""
+    """Rereads the data from disk and rebuilds the graph, without restarting the app.
+    Needed after adding cards or target folders: a new but empty folder does not
+    change the file signature, so the cache has to be invalidated by hand."""
     try:
         _cache["key"] = None
         g = dict(current_graph())
@@ -63,7 +63,7 @@ def api_reload():
 
 @bp.route("/api/note", methods=["POST"])
 def api_note():
-    """Salva (o rimuove, se testo vuoto) la nota di un nodo."""
+    """Saves (or removes, if the text is empty) the note of a node."""
     data = request.get_json(silent=True) or {}
     nid = str(data.get("id") or "").strip()
     text = str(data.get("note") or "").strip()
@@ -81,12 +81,12 @@ def api_note():
 
 @bp.route("/api/node/label", methods=["POST"])
 def api_node_label():
-    """Cambia l'etichetta di una scheda ({'id': ..., 'label': ...}).
-    Con etichetta vuota si torna a quella dei dati di origine.
-    I file di origine NON vengono toccati: la modifica sta in annotations.json.
-    Se dopo la modifica un'altra scheda rappresenta lo stesso identificativo
-    (es. lo stesso numero scritto con 00 e con +) le due diventano una sola:
-    la risposta dice su quale id e' finita la scheda."""
+    """Changes the label of a card ({'id': ..., 'label': ...}).
+    With an empty label it goes back to the one from the source data.
+    The source files are NOT touched: the edit lives in annotations.json.
+    If after the edit another card represents the same identifier
+    (e.g. the same number written with 00 and with +) the two become one:
+    the response says which id the card ended up on."""
     data = request.get_json(silent=True) or {}
     nid = str(data.get("id") or "").strip()
     label = re.sub(r"\s+", " ", str(data.get("label") or "")).strip()[:300]
@@ -98,8 +98,8 @@ def api_node_label():
     g = current_graph()
     prima = next((n for n in g["nodes"] if n["id"] == nid), None)
     if prima is None:
-        # id gia' confluito in un'altra scheda: se non ha una sua etichetta
-        # modificata si lavora direttamente sulla scheda che lo ha assorbito
+        # id already merged into another card: if it has no edited label of its
+        # own, work directly on the card that absorbed it
         prima = next((n for n in g["nodes"] if nid in (n.get("alias_ids") or [])), None)
         if prima is not None and nid not in labels:
             nid = prima["id"]
@@ -112,9 +112,9 @@ def api_node_label():
                        "ntype": prima.get("ntype") or "",
                        "at": datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
     elif not label:
-        # si torna alle etichette dei dati: si tolgono anche quelle degli id
-        # che la rinomina aveva fatto confluire in questa scheda, altrimenti
-        # la fusione resterebbe in piedi senza piu' motivo
+        # back to the labels from the data: also remove those of the ids that
+        # the rename had merged into this card, otherwise the merge would stay
+        # in place with no reason any more
         for k in [nid] + list(prima.get("alias_ids") or []):
             labels.pop(k, None)
     if not save_annotations(ann):
@@ -124,7 +124,7 @@ def api_node_label():
 
     dopo = current_graph()
     node = next((n for n in dopo["nodes"] if n["id"] == nid), None)
-    if node is None:                               # la scheda e' confluita in un'altra
+    if node is None:                               # the card was merged into another one
         node = next((n for n in dopo["nodes"] if nid in (n.get("alias_ids") or [])), None)
     if node is None:
         return jsonify({"error": "nodo non trovato dopo la modifica"}), 404
@@ -138,16 +138,16 @@ def api_node_label():
 
 @bp.route("/api/node/delete", methods=["POST"])
 def api_node_delete():
-    """Nasconde definitivamente un nodo (i dati di origine restano intatti).
-    Conserva anche le info utili a riconoscerlo nell'elenco dei cancellati."""
+    """Hides a node for good (the source data stay intact).
+    Also keeps the info useful to recognise it in the list of deleted nodes."""
     data = request.get_json(silent=True) or {}
     nid = str(data.get("id") or "").strip()
     if not nid:
         return jsonify({"error": "id mancante"}), 400
     ann = load_annotations()
-    # Tutti gli id confluiti nel nodo (schede di un luogo, alias fusi): si
-    # ricavano dal grafo, non dal client. Senza questo, cancellando un luogo
-    # con due schede ne sparirebbe una sola e il nodo ricomparirebbe.
+    # All the ids merged into the node (cards of a place, merged aliases): they
+    # are taken from the graph, not from the client. Without this, deleting a place
+    # with two cards would remove only one of them and the node would reappear.
     g = current_graph()
     node = next((n for n in g["nodes"] if n["id"] == nid or
                  nid in (n.get("alias_ids") or [])), None)
@@ -155,8 +155,8 @@ def api_node_delete():
     if node:
         group |= {node["id"]} | set(node.get("alias_ids") or [])
     manual = {str(x.get("id")) for x in ann["added"]} & group
-    # un nodo creato a mano non si "nasconde": si elimina davvero dal file,
-    # insieme a collegamenti, note, etichette e modifiche
+    # a node created by hand is not "hidden": it is really deleted from the file,
+    # together with links, notes, labels and edits
     if manual:
         ann["added"] = [x for x in ann["added"] if str(x.get("id")) not in manual]
         ann["links"] = [x for x in ann["links"]
@@ -167,19 +167,19 @@ def api_node_delete():
             ann["edits"].pop(k, None)
             ann.get("targets", {}).pop(k, None)
         data_ids = group - manual
-        # il nodo che resta dopo una fusione e' manuale solo se lo sono tutte
-        # le voci (un nodo dei dati avrebbe la precedenza): allora e' finita
+        # the node left after a merge is manual only if all the entries are
+        # (a data node would take precedence): then it is gone
         if node is None or node.get("manual") or not data_ids:
             if not save_annotations(ann):
                 return jsonify({"error": "salvataggio fallito"}), 500
-            # i JSON importati agganciati al nodo (il target) spariscono con lui
+            # the imported JSON attached to the node (the target) go with it
             n_imp = store.delete_imports_of(group)
             logging.info(f"Nodo manuale eliminato: {nid} ({len(manual)} voci, "
                          f"{n_imp} JSON importati)")
             return jsonify({"ok": True, "id": nid, "manual": True, "removed": len(manual),
                             "imports": n_imp})
-        # nodo dei dati con schede aggiunte a mano: le schede si eliminano,
-        # il nodo dei dati si nasconde (i file di export non si toccano)
+        # data node with cards added by hand: the cards are deleted, the data
+        # node is hidden (the export files are not touched)
         data["alias_ids"] = list(data_ids - {node["id"]})
         nid = node["id"]
 
@@ -194,7 +194,7 @@ def api_node_delete():
     }
     if nid not in have:
         ann["deleted"].append(entry)
-    for a in (data.get("alias_ids") or []):          # anche gli id fusi nel nodo
+    for a in (data.get("alias_ids") or []):          # also the ids merged into the node
         a = str(a)
         if a and a not in have and a != nid:
             ann["deleted"].append(dict(entry, id=a, label=f"{entry['label']} (alias)"))
@@ -207,10 +207,10 @@ def api_node_delete():
 
 @bp.route("/api/node/add", methods=["POST"])
 def api_node_add():
-    """Aggiunge a mano un nodo. Con 'parent' lo collega al nodo della scheda
-    (con nome, frecce e stile del collegamento); senza 'parent' crea un nodo
-    indipendente ("Nuovo nodo"). Gli id seguono le stesse regole del grafo,
-    così un valore già presente NON crea un doppione: viene solo collegato."""
+    """Adds a node by hand. With 'parent' it links it to the node of the card
+    (with name, arrows and style of the link); without 'parent' it creates an
+    independent node ("Nuovo nodo"). The ids follow the same rules as the graph,
+    so a value already present does NOT create a duplicate: it is only linked."""
     data = request.get_json(silent=True) or {}
     parent = str(data.get("parent") or "").strip()
     try:
@@ -219,7 +219,7 @@ def api_node_add():
         return jsonify({"error": str(e)}), 400
 
     ann = load_annotations()
-    # proprieta' del collegamento: oggetto 'edge' (nuovo) o chiavi sciolte (vecchio)
+    # link properties: 'edge' object (new) or loose keys (old)
     esrc = data.get("edge") if isinstance(data.get("edge"), dict) else \
         {"label": data.get("edge_label") or data.get("rel_label"),
          "arrow": data.get("arrow"), "curve": data.get("curve")}
@@ -229,16 +229,16 @@ def api_node_add():
     g = current_graph()
     edge_id = f"e_{_hash(parent)[:8]}_{_hash(nid)[:8]}_{uuid.uuid4().hex[:8]}"
     if ntype in ("place", "name", "vehicle") or ntype in onto.TYPES:
-        # Luogo, persona o veicolo (stessa targa) gia' presente (anche scritto diversamente: "Via G.
+        # Place, person or vehicle (same plate) already present (even written differently: "Via G.
         # Leopardi 1" / "giacomo leopardi 1"; "Rossi Mario" / "Mario Rossi"):
-        # niente nodo nuovo, ma una SCHEDA nuova dentro quello esistente. Si
-        # salva una voce con id proprio ('<id>~xxxxxx') che apply_annotations
-        # e merge_places fondono nel nodo esistente.
+        # no new node, but a new CARD inside the existing one. An entry is saved
+        # with its own id ('<id>~xxxxxx') which apply_annotations and merge_places
+        # merge into the existing node.
         same = (same_place_id(g, value, data) if ntype == "place" else None) or \
             next((n["id"] for n in g["nodes"]
                   if n["id"] == nid or nid in (n.get("alias_ids") or [])), None)
         if same:
-            rid = f"{same}~{uuid.uuid4().hex[:6]}"   # scheda del nodo 'same'
+            rid = f"{same}~{uuid.uuid4().hex[:6]}"   # card of the node 'same'
             entry = new_added_entry(rid, label, platform, ntype, value, data, parent, now)
             edge = None
             if parent:
@@ -259,14 +259,14 @@ def api_node_add():
     edge = None
     if existing_entry is not None or existing_node is not None:
         if not parent:
-            # nodo indipendente gia' presente: niente doppione, si restituisce quello
+            # independent node already present: no duplicate, that one is returned
             node = existing_node or manual_node(existing_entry)
             return jsonify({"ok": True, "id": nid, "label": node.get("label"),
                             "platform": node.get("platform"), "script": "",
                             "node": node, "edge": None, "existed": True})
-        # Il nodo esiste gia' (aggiunto a mano o presente nei dati): si crea un
-        # ulteriore collegamento, con nome, frecce e stile propri. Fra due nodi
-        # possono cosi' esserci piu' collegamenti diversi.
+        # The node already exists (added by hand or present in the data): a further
+        # link is created, with its own name, arrows and style. Between two nodes
+        # there can thus be several different links.
         link_entry = {"id": edge_id, "a": parent, "b": nid, "at": now}
         _store_props(link_entry, props)
         ann["links"].append(link_entry)
@@ -287,14 +287,14 @@ def api_node_add():
         return jsonify({"error": "salvataggio fallito"}), 500
 
     scr = _translit_new_labels([entry["label"]])
-    # il client inserisce il nodo nel grafo senza ricaricare la pagina; se c'e'
-    # una traslitterazione (script non latino) sincronizza per mostrare il nodo latino
+    # the client inserts the node into the graph without reloading the page; if there
+    # is a transliteration (non-Latin script) it syncs to show the Latin node
     return jsonify({"ok": True, "id": nid, "label": entry["label"],
                     "platform": platform, "script": scr,
                     "node": existing_node or manual_node(entry), "edge": edge})
 
 
-# firme dei formati immagine accettati, per non fidarsi dell'estensione
+# signatures of the accepted image formats, so as not to trust the extension
 _IMG_MAGIC = [
     (b"\xff\xd8\xff", ".jpg"), (b"\x89PNG\r\n\x1a\n", ".png"),
     (b"GIF87a", ".gif"), (b"GIF89a", ".gif"), (b"BM", ".bmp"),
@@ -313,8 +313,8 @@ def _sniff_image(blob):
 
 @bp.route("/api/upload", methods=["POST"])
 def api_upload():
-    """Riceve un'immagine (data URL base64) e la salva in data/media/.
-    Ritorna il percorso relativo da usare come valore del nodo foto."""
+    """Receives an image (base64 data URL) and saves it in data/media/.
+    Returns the relative path to use as the value of the photo node."""
     import base64
     data = request.get_json(silent=True) or {}
     raw = str(data.get("data") or "")
@@ -351,10 +351,10 @@ def api_upload():
 
 @bp.route("/api/link/add", methods=["POST"])
 def api_link_add():
-    """Collega nodi con supporto a frecce, etichette, forma della linea e collegamenti multipli."""
+    """Links nodes, with support for arrows, labels, line shape and multiple links."""
     data = request.get_json(silent=True) or {}
     ids = [str(x) for x in (data.get("ids") or []) if str(x).strip()]
-    ids = list(dict.fromkeys(ids))                       # senza duplicati, ordine stabile
+    ids = list(dict.fromkeys(ids))                       # without duplicates, stable order
     if len(ids) < 2:
         return jsonify({"error": "servono almeno due nodi"}), 400
     if len(ids) > 60:
@@ -370,7 +370,7 @@ def api_link_add():
     created, edges = 0, []
 
     if len(ids) == 2 and req_source and req_target and {req_source, req_target} == set(ids):
-        pairs = [(req_source, req_target)]          # verso scelto dall'utente
+        pairs = [(req_source, req_target)]          # direction chosen by the user
     else:
         pairs = [(ids[i], ids[j]) for i in range(len(ids)) for j in range(i + 1, len(ids))]
     for a, b in pairs:
@@ -390,7 +390,7 @@ def api_link_add():
 
 @bp.route("/api/link/delete", methods=["POST"])
 def api_link_delete():
-    """Elimina un collegamento manuale (per id arco o per coppia di nodi)."""
+    """Deletes a manual link (by edge id or by pair of nodes)."""
     data = request.get_json(silent=True) or {}
     eid = str(data.get("id") or data.get("edge_id") or "").strip()
     a, b = str(data.get("a") or "").strip(), str(data.get("b") or "").strip()
@@ -418,12 +418,12 @@ def api_link_delete():
 
 @bp.route("/api/link/update", methods=["POST"])
 def api_link_update():
-    """Modifica un collegamento esistente: nome, frecce, forma, colore, tipo e
-    spessore della linea. Vale per TUTTI i collegamenti:
-    - creati a mano (fra nodi esistenti o insieme a un nodo aggiunto): si
-      aggiorna la loro voce in annotations.json;
-    - provenienti dai dati: lo stile si salva a parte ('edge_styles'), i file
-      di origine non si toccano. Con 'reset' si torna allo stile predefinito."""
+    """Edits an existing link: name, arrows, shape, colour, type and
+    width of the line. Applies to ALL links:
+    - created by hand (between existing nodes or together with an added node): their
+      entry in annotations.json is updated;
+    - coming from the data: the style is saved separately ('edge_styles'), the
+      source files are not touched. With 'reset' it goes back to the default style."""
     data = request.get_json(silent=True) or {}
     eid = str(data.get("id") or "").strip()
     if not eid:
@@ -441,7 +441,7 @@ def api_link_update():
         props = edge_props({})
     if link is not None:
         _store_props(link, props)
-        if data.get("swap"):                           # inverte il verso
+        if data.get("swap"):                           # reverses the direction
             link["a"], link["b"] = link["b"], link["a"]
     elif added is not None:
         _store_props(added, props, "edge_")
@@ -463,10 +463,10 @@ def api_link_update():
 
 @bp.route("/api/node/edit", methods=["POST"])
 def api_node_edit():
-    """Modifica i valori di un nodo: i campi delle schede, i campi aggiunti a
-    mano e l'URL. I file di origine restano intatti: le modifiche stanno in
-    annotations.json ('edits') e si applicano quando si costruisce il grafo.
-    Per i nodi creati a mano si aggiorna anche la loro voce."""
+    """Edits the values of a node: the fields of the cards, the fields added by
+    hand and the URL. The source files stay intact: the edits live in
+    annotations.json ('edits') and are applied when the graph is built.
+    For nodes created by hand their entry is updated too."""
     data = request.get_json(silent=True) or {}
     nid = str(data.get("id") or "").strip()
     if not nid:
@@ -506,9 +506,9 @@ def api_node_edit():
 
 @bp.route("/api/node/target", methods=["POST"])
 def api_node_target():
-    """Rende un nodo qualsiasi un target (o toglie l'evidenza). Per i nodi
-    creati a mano si aggiorna la loro voce; per quelli dei dati la scelta sta
-    nelle annotazioni ('targets') e si applica costruendo il grafo."""
+    """Makes any node a target (or removes the highlight). For nodes created
+    by hand their entry is updated; for those from the data the choice lives
+    in the annotations ('targets') and is applied when building the graph."""
     data = request.get_json(silent=True) or {}
     nid = str(data.get("id") or "").strip()
     if not nid:
@@ -530,7 +530,7 @@ def api_node_target():
 
 @bp.route("/api/manual")
 def api_manual():
-    """Elenco delle modifiche manuali: nodi aggiunti e collegamenti creati."""
+    """List of the manual edits: added nodes and created links."""
     ann = load_annotations()
     added = sorted(ann["added"], key=lambda x: x.get("at") or "", reverse=True)
     links = sorted(ann["links"], key=lambda x: x.get("at") or "", reverse=True)
@@ -550,7 +550,7 @@ def api_manual():
 
 @bp.route("/api/node/remove_manual", methods=["POST"])
 def api_node_remove_manual():
-    """Elimina davvero un nodo aggiunto a mano (e i suoi collegamenti)."""
+    """Really deletes a node added by hand (and its links)."""
     data = request.get_json(silent=True) or {}
     nid = str(data.get("id") or "").strip()
     if not nid:
@@ -572,7 +572,7 @@ def api_node_remove_manual():
 
 @bp.route("/api/deleted")
 def api_deleted():
-    """Elenco dei nodi cancellati, dal più recente."""
+    """List of the deleted nodes, most recent first."""
     ann = load_annotations()
     items = sorted(ann["deleted"], key=lambda x: x.get("at") or "", reverse=True)
     return jsonify({"items": items, "count": len(items)})
@@ -580,9 +580,9 @@ def api_deleted():
 
 @bp.route("/api/node/restore", methods=["POST"])
 def api_node_restore():
-    """Ripristina un nodo ({'id': ...}) oppure tutti ({'all': true}).
-    Restituisce i nodi e gli archi tornati disponibili, così il client può
-    reinserirli nel grafo senza ricaricare la pagina."""
+    """Restores a node ({'id': ...}) or all of them ({'all': true}).
+    Returns the nodes and edges available again, so the client can
+    reinsert them into the graph without reloading the page."""
     data = request.get_json(silent=True) or {}
     ann = load_annotations()
     before = deleted_ids(ann)
@@ -594,7 +594,7 @@ def api_node_restore():
             return jsonify({"error": "id mancante"}), 400
         ann["deleted"] = [x for x in ann["deleted"] if str(x.get("id")) != nid]
     after = deleted_ids(ann)
-    back = before - after                       # id effettivamente ripristinati
+    back = before - after                       # ids actually restored
     if not save_annotations(ann):
         return jsonify({"error": "salvataggio fallito"}), 500
 
@@ -610,7 +610,7 @@ def api_node_restore():
 
 @bp.route("/api/views")
 def api_views_list():
-    """Elenco delle viste salvate (senza il payload pesante), dalla più recente."""
+    """List of the saved views (without the heavy payload), most recent first."""
     if not store.current_case():
         return jsonify({"items": [], "count": 0})
     views = sorted(store.load_views(), key=lambda x: x.get("at") or "", reverse=True)
@@ -621,7 +621,7 @@ def api_views_list():
 
 @bp.route("/api/views/save", methods=["POST"])
 def api_views_save():
-    """Salva (o sovrascrive per nome) una vista. Corpo: {name, view:{...}}."""
+    """Saves (or overwrites by name) a view. Body: {name, view:{...}}."""
     data = request.get_json(silent=True) or {}
     name = re.sub(r"\s+", " ", str(data.get("name") or "").strip())[:80]
     view = data.get("view")
@@ -632,7 +632,7 @@ def api_views_save():
     views = store.load_views()
     at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     count = len(view.get("nodes") or [])
-    # sovrascrive se esiste già una vista con lo stesso nome (confronto senza maiuscole)
+    # overwrites if a view with the same name already exists (case-insensitive comparison)
     existing = next((v for v in views if (v.get("name") or "").casefold() == name.casefold()), None)
     vid = existing["id"] if existing else "view_" + datetime.now().strftime("%Y%m%d%H%M%S%f")
     try:
@@ -647,7 +647,7 @@ def api_views_save():
 
 @bp.route("/api/views/load", methods=["POST"])
 def api_views_load():
-    """Restituisce il payload completo di una vista ({'id': ...})."""
+    """Returns the full payload of a view ({'id': ...})."""
     data = request.get_json(silent=True) or {}
     vid = str(data.get("id") or "").strip()
     v = store.get_view(vid)
@@ -659,7 +659,7 @@ def api_views_load():
 
 @bp.route("/api/views/delete", methods=["POST"])
 def api_views_delete():
-    """Elimina una vista salvata ({'id': ...})."""
+    """Deletes a saved view ({'id': ...})."""
     data = request.get_json(silent=True) or {}
     vid = str(data.get("id") or "").strip()
     if not store.delete_view(vid):

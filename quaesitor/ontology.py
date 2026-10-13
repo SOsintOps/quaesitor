@@ -9,26 +9,26 @@
 # any later version, with the additional terms in the file NOTICE.
 # See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
 
-"""Elementi ontologici di interesse investigativo (oltre a persone, telefoni,
-email, account, luoghi, veicoli... che hanno una gestione propria in app.py).
+"""Ontology items of investigative interest (besides persons, phones,
+emails, accounts, places, vehicles... which are handled separately in app.py).
 
-Ogni tipo descrive in un solo posto:
-    fields   i campi del modulo di inserimento manuale (e della scheda)
-    ident    i campi che identificano l'oggetto: se sono tutti compilati, due
-             inserimenti uguali sono LO STESSO nodo (una scheda in piu');
-             se mancano, ogni inserimento e' un reperto a se' (nodo nuovo)
-    label    come si compone l'etichetta del nodo
-    ai       le istruzioni per l'estrazione con l'AI
-    icon     l'icona (Font Awesome Free, static/vendor/fa)
+Each type describes in a single place:
+    fields   the fields of the manual entry form (and of the card)
+    ident    the fields that identify the object: if all are filled in, two
+             identical entries are THE SAME node (one more card);
+             if they are missing, each entry is an exhibit of its own (new node)
+    label    how the node label is built
+    ai       the instructions for AI extraction
+    icon     the icon (Font Awesome Free, static/vendor/fa)
 
-Tipi di campo: text, number, date, select (options), check.
+Field types: text, number, date, select (options), check.
 """
 # "Quot homines, tot sententiae." (Terence, Phormio)
 # As many opinions as there are men.
 import re
 import unicodedata
 
-# ------------------------------------------------------------ elenchi ---
+# -------------------------------------------------------------- lists ---
 WEAPON_CATEGORIES = [
     "Pistola semiautomatica", "Revolver", "Pistola mitragliatrice", "Fucile da caccia",
     "Fucile a pompa", "Carabina", "Fucile di precisione", "Fucile d'assalto",
@@ -116,7 +116,7 @@ def F(key, label, kind="text", options=None, en=None, ph=""):
             "options": options or [], "ph": ph}
 
 
-# ------------------------------------------------------------ i tipi ---
+# -------------------------------------------------------------- types ---
 TYPES = {
     "weapon": {
         "label": "Arma", "en": "Weapon", "group": "Armi",
@@ -131,9 +131,9 @@ TYPES = {
             F("stato", "Stato", "select", ["Sequestrata", "Detenuta legalmente", "Denunciata rubata",
                                            "Rinvenuta", "Consegnata", "Altro"], "Status"),
         ],
-        # con la matricola l'arma e' univoca: due sequestri della stessa arma sono
-        # lo stesso nodo (la marca spesso non viene scritta: non conta).
-        # Senza matricola (o abrasa) ogni inserimento e' un reperto a se'.
+        # with the serial number the weapon is unique: two seizures of the same weapon
+        # are the same node (the make is often not written down: it does not count).
+        # Without a serial number (or with it removed) each entry is an exhibit of its own.
         "ident": ["matricola"],
         "label_fmt": ["categoria", "marca", "modello", "calibro:cal. {}", "matricola:matr. {}"],
         "value": "modello",
@@ -177,7 +177,7 @@ TYPES = {
             F("confezionamento", "Confezionamento", en="Packaging", ph="es. 10 involucri in cellophane"),
             F("descrizione", "Descrizione", en="Description"),
         ],
-        # ogni sequestro di sostanza e' un reperto a se'
+        # every seizure of a substance is an exhibit of its own
         "ident": [], "label_fmt": ["sostanza", "quantita+unita"], "value": "sostanza",
         "ai": 'drug: narcotic drugs / seizures. fields: sostanza (one of the list), quantita (number), '
               'unita (g, kg, mg, dosi, pasticche, piante, ml, francobolli, confezioni), '
@@ -299,7 +299,7 @@ TYPES = {
             F("valuta", "Valuta", "select", CURRENCIES, "Currency"),
             F("descrizione", "Descrizione / causale", en="Description"),
         ],
-        # una fattura e' univoca per emittente + numero
+        # an invoice is unique by issuer + number
         "ident": ["emittente", "numero"],
         "label_fmt": ["tipo", "numero:n. {}", "data:del {date}", "importo+valuta"], "value": "numero",
         "ai": 'findoc: financial and commercial documents (invoices, receipts, bank statements, '
@@ -350,7 +350,7 @@ TYPES = {
             F("piva", "Partita IVA / codice fiscale", en="VAT / tax number"),
             F("sede", "Sede", en="Registered office"),
         ],
-        # con la partita IVA e' univoca; senza, lo e' il nome
+        # with the VAT number it is unique; without it, the name is
         "ident": ["piva"], "ident_alt": ["nome"], "label_fmt": ["nome", "piva:P.IVA {}"], "value": "nome",
         "norm": {"piva": "compact"},
         "ai": 'organization: companies, associations, criminal groups/clans. fields: nome, tipo, '
@@ -409,7 +409,7 @@ TYPES = {
 from .generated.ontology_ftm import FTM_TYPES
 TYPES.update(FTM_TYPES)
 
-# icona per sostanza (piu' riconoscibile della pillola generica)
+# icon per substance (more recognisable than the generic pill)
 DRUG_ICONS = {
     "Hashish": "cannabis", "Marijuana": "cannabis", "Olio di cannabis": "cannabis",
     "Piante di cannabis": "cannabis", "Cannabinoidi sintetici": "cannabis",
@@ -457,7 +457,7 @@ DEVICE_ICONS = {"PC portatile": "laptop", "PC fisso": "desktop",
                 "Chiavetta USB / memory card": "usb", "Router / modem": "router",
                 "Dispositivo GPS": "location-crosshairs", "Criptofonino": "user-lock"}
 
-# icone dei tipi gia' esistenti (Font Awesome Free)
+# icons of the pre-existing types (Font Awesome Free)
 BASE_ICONS = {
     "target": "user-secret", "name": "user", "phone": "phone", "email": "envelope",
     "username": "at", "generic": "circle-question", "vehicle": "car", "link": "link",
@@ -465,7 +465,7 @@ BASE_ICONS = {
     "domain": "globe", "breach": "shield-halved",
 }
 
-# nomi con cui l'utente o l'AI indicano i tipi (import CSV, AI)
+# names the user or the AI use for the types (CSV import, AI)
 ALIASES = {
     "sighting": {"avvistamento", "sighting", "aereo", "aircraft", "volo", "flight"},
     "weapon": {"arma", "armi", "weapon", "pistola", "fucile", "revolver", "firearm", "gun", "rifle"},
@@ -491,7 +491,7 @@ ALIASES = {
 }
 
 
-# ---------------------------------------------------------- funzioni ---
+# ---------------------------------------------------------- functions ---
 def _fold(s):
     s = unicodedata.normalize("NFKD", str(s or "")).casefold()
     s = "".join(c for c in s if not unicodedata.combining(c))
@@ -502,7 +502,7 @@ def _norm_value(kind, v):
     v = str(v or "").strip()
     if kind == "compact":
         return re.sub(r"[\s.\-/]+", "", v).upper()
-    if kind == "compact_case":                      # indirizzi crypto: maiuscole significative
+    if kind == "compact_case":                      # crypto addresses: case-sensitive
         return re.sub(r"\s+", "", v)
     if kind == "digits":
         return re.sub(r"\D", "", v)
@@ -510,7 +510,7 @@ def _norm_value(kind, v):
 
 
 def type_of(name):
-    """'pistola' / 'Arma' / 'weapon' -> 'weapon' (None se non e' un tipo ontologico)."""
+    """'pistola' / 'Arma' / 'weapon' -> 'weapon' (None if it is not an ontology type)."""
     n = re.sub(r"[^a-z]", "", _fold(name))
     if n in TYPES:
         return n
@@ -529,8 +529,8 @@ def key_is_serial(ntype, key):
 
 
 def clean_fields(ntype, raw):
-    """Solo i campi previsti dal tipo, ripuliti. Le opzioni fuori elenco si
-    tengono (l'utente o l'AI possono scrivere un valore non previsto)."""
+    """Only the fields defined by the type, cleaned up. Options outside the list
+    are kept (the user or the AI may write an unlisted value)."""
     spec = TYPES[ntype]
     out = {}
     raw = raw if isinstance(raw, dict) else {}
@@ -553,7 +553,7 @@ def clean_fields(ntype, raw):
                 float(n)
                 v = n
             except ValueError:
-                pass                                          # si tiene il testo
+                pass                                          # keep the text
         if key_is_serial(ntype, f["key"]) and _SERIAL_GONE.search(v):
             out["matricola_abrasa"] = True                    # "abrasa", "limata"...
             continue
@@ -576,10 +576,10 @@ def _fmt_num(v):
 
 
 def label_of(ntype, fields):
-    """Etichetta del nodo dai campi, secondo 'label_fmt'."""
+    """Node label from the fields, following 'label_fmt'."""
     parts = []
     for item in TYPES[ntype]["label_fmt"]:
-        if ":" in item:                                  # campo:formato
+        if ":" in item:                                  # field:format
             key, fmt = item.split(":", 1)
             v = fields.get(key)
             if not v:
@@ -591,7 +591,7 @@ def label_of(ntype, fields):
                 parts.append(fmt.replace("{date}", d))
             else:
                 pre = fmt.split("{}")[0].strip()
-                # 'RGNR 1234/2026' con formato 'RGNR {}': niente prefisso doppio
+                # 'RGNR 1234/2026' with format 'RGNR {}': no doubled prefix
                 parts.append(str(v) if pre and _fold(str(v)).startswith(_fold(pre)) else fmt.format(v))
         elif "+" in item:                                # quantita+unita, importo+valuta
             a, b = item.split("+", 1)
@@ -603,9 +603,9 @@ def label_of(ntype, fields):
             if v is not True:
                 parts.append(str(v))
         elif not any(f["key"] == item for f in TYPES[ntype]["fields"]):
-            parts.append(item)                           # testo fisso ("Munizioni")
-    # niente ripetizioni: per gli schemi FtM la didascalia puo' ricadere due
-    # volte sullo stesso valore (es. conto senza nome: nome = IBAN = IBAN)
+            parts.append(item)                           # fixed text ("Munizioni")
+    # no repetitions: for FtM schemas the caption may land twice on the
+    # same value (e.g. unnamed account: name = IBAN = IBAN)
     seen, uniq = set(), []
     for p in parts:
         if p and p.casefold() not in seen:
@@ -615,13 +615,13 @@ def label_of(ntype, fields):
     return lab or TYPES[ntype]["label"]
 
 
-# campi identificativi che sono parole (si confrontano senza accenti e maiuscole);
-# gli altri sono codici (matricola, numero, IBAN...): senza spazi e punteggiatura
+# identifying fields that are words (compared ignoring accents and case);
+# the others are codes (serial number, number, IBAN...): no spaces or punctuation
 _WORD_KEYS = {"marca", "banca", "tipo", "comune", "nome", "blockchain"}
 
 
 def ident_of(ntype, fields):
-    """Chiave d'identita' ('' = reperto senza identificativo: nodo nuovo)."""
+    """Identity key ('' = exhibit with no identifier: new node)."""
     spec = TYPES[ntype]
     norm = spec.get("norm", {})
     need = spec.get("ident_min") or spec.get("ident") or []
@@ -655,7 +655,7 @@ def icon_of(ntype, fields):
 
 
 def raw_of(ntype, fields):
-    """Campi leggibili per la scheda: {'Categoria': 'Pistola', ...}."""
+    """Readable fields for the card: {'Categoria': 'Pistola', ...}."""
     out = {}
     for f in TYPES[ntype]["fields"]:
         v = fields.get(f["key"])
@@ -666,7 +666,7 @@ def raw_of(ntype, fields):
 
 
 def ai_rules():
-    """Istruzioni per il prompt dell'AI (una riga per tipo, con gli elenchi)."""
+    """Instructions for the AI prompt (one line per type, with the lists)."""
     lines = ["  For select fields choose the option whose words best match the TEXT "
              "(e.g. \"traffico di stupefacenti\" -> \"Traffico di stupefacenti\", not \"Spaccio\").",
              "  Link labels for items: seized items linked from the person with \"sequestrato\" "
@@ -682,7 +682,7 @@ def ai_rules():
 
 
 def public():
-    """Configurazione per il client (modulo di inserimento, icone, colori)."""
+    """Configuration for the client (entry form, icons, colours)."""
     return {t: {"label": s["label"], "en": s["en"], "group": s["group"], "icon": s["icon"],
                 "color": s["color"], "fields": s["fields"], "order": i}
             for i, (t, s) in enumerate(TYPES.items())}

@@ -24,11 +24,11 @@ from .dictionary import _translit_new_labels, new_added_entry, resolve_node, sam
 from .archive import _store_props, current_graph, edge_props, load_annotations, save_annotations
 
 
-# ======================= IMPORTAZIONE MASSIVA (CSV / EXCEL) =======================
-# Ogni riga descrive un nodo, oppure due nodi e il collegamento fra loro:
-#   nome1, tipo1, collegamento, nome2, tipo2  (+ colonne facoltative)
-# Le intestazioni si riconoscono in italiano e in inglese; senza intestazione
-# si usano le prime cinque colonne in quest'ordine.
+# ============================ BULK IMPORT (CSV / EXCEL) ============================
+# Each row describes a node, or two nodes and the link between them:
+#   name1, type1, link, name2, type2  (+ optional columns)
+# Headers are recognised in Italian and in English; without a header the
+# first five columns are used in this order.
 
 IMPORT_MAX_ROWS = 5000
 
@@ -49,7 +49,7 @@ SOCIAL_PLATFORMS = set(SOCIAL_HOSTS.values()) | {
 
 
 def parse_social_url(raw):
-    """Da un URL di profilo ricava (piattaforma, handle); None se non e' un social."""
+    """From a profile URL derives (platform, handle); None if it is not a social network."""
     from urllib.parse import urlparse, parse_qs, unquote
     s = str(raw or "").strip()
     if not s:
@@ -93,7 +93,7 @@ def _norm(s):
     return re.sub(r"[^a-z0-9]+", "", s.lower())
 
 
-# intestazioni riconosciute (normalizzate: minuscole, senza accenti né spazi)
+# recognised headers (normalised: lower case, no accents or spaces)
 _NODE_COLS = {
     "name": {"nome", "name", "nomenodo", "nodo", "node", "nodename", "valore", "value",
              "identificativo", "id", "entita", "entity"},
@@ -112,7 +112,7 @@ _NODE_COLS = {
     "lat": {"lat", "latitudine", "latitude"},
     "lon": {"lon", "lng", "long", "longitudine", "longitude"},
     "note": {"nota", "note", "notes", "commento", "comment"},
-    "fields": {"campi", "fields", "dati"},            # JSON dei campi di un tipo ontologico
+    "fields": {"campi", "fields", "dati"},            # JSON of the fields of an ontology type
 }
 _SIDE_ALIASES = {"1": {"da", "from", "sorgente", "source", "origine", "partenza"},
                  "2": {"a", "to", "destinazione", "destination", "arrivo", "dest"}}
@@ -151,8 +151,8 @@ def ftm_reserved(name):
 
 
 def map_header(cells):
-    """Mappa le intestazioni: {indice colonna: chiave}. Chiavi come 'name1',
-    'type2', 'url1', 'rel', 'arrow'. None se la riga non sembra un'intestazione."""
+    """Maps the headers: {column index: key}. Keys such as 'name1',
+    'type2', 'url1', 'rel', 'arrow'. None if the row does not look like a header."""
     out, sides = {}, {}
     for i, c in enumerate(cells):
         n = _norm(c)
@@ -176,16 +176,16 @@ def map_header(cells):
         if key is None:
             continue
         if not side:
-            # colonna senza numero: vale per il primo nodo se non e' gia' preso
+            # column without a number: applies to the first node if not already taken
             side = "1" if f"{key}1" not in out.values() else "2"
         out[i] = f"{key}{side}"
-    # «da / from / source» e «a / to / destination» valgono come nome del nodo
-    # solo se quel lato non ha gia' una colonna nome: altrimenti (es. una colonna
-    # "Source" con la provenienza del dato) restano da assegnare a mano
+    # «da / from / source» and «a / to / destination» count as the node name
+    # only if that side does not already have a name column: otherwise (e.g. a
+    # "Source" column with the origin of the data) they are left to assign by hand
     for i, k in sides.items():
         if k not in out.values():
             out[i] = k
-    # la stessa chiave su due colonne: vale la prima, l'altra resta libera
+    # the same key on two columns: the first wins, the other stays free
     seen = set()
     for i in sorted(out):
         if out[i] in seen:
@@ -231,19 +231,19 @@ def _guess_type(value, url):
 
 
 def import_node_spec(row, side):
-    """Dati di un lato della riga -> richiesta per resolve_node (o None)."""
+    """Data of one side of the row -> request for resolve_node (or None)."""
     g = lambda k: str(row.get(f"{k}{side}") or "").strip()
     name, url = g("name"), g("url")
     if not name and not url:
         return None
     t = _norm(g("type"))
     plat = _norm(g("platform"))
-    if t in SOCIAL_PLATFORMS:                     # tipo = nome del social
+    if t in SOCIAL_PLATFORMS:                     # type = name of the social network
         ntype, plat = "account", t
     else:
         ntype = next((k for k, al in _TYPE_ALIASES.items() if t in al), None) if t else None
         if t and ntype is None:
-            ntype = onto.type_of(g("type"))         # arma, stupefacente, assegno...
+            ntype = onto.type_of(g("type"))         # weapon, narcotic, cheque...
         if t and ntype is None:
             raise NodeError(f"tipo di nodo sconosciuto: «{g('type')}»")
         ntype = ntype or _guess_type(name, url)
@@ -334,10 +334,10 @@ def import_edge_props(row):
 
 
 def plan_rows(rows):
-    """Interpreta righe gia' "a dizionario" ({'name1', 'type1', 'rel', ...}):
-    per ognuna i due nodi (id, etichetta, tipo) e il collegamento. Non scrive
-    niente: serve all'anteprima e all'importazione (da file o dall'AI).
-    Un lato puo' indicare direttamente un nodo esistente con 'id1' / 'id2'."""
+    """Interprets rows already "as dictionaries" ({'name1', 'type1', 'rel', ...}):
+    for each, the two nodes (id, label, type) and the link. Writes nothing:
+    it serves the preview and the import (from a file or from the AI).
+    A side can point directly to an existing node with 'id1' / 'id2'."""
     g = current_graph()
     have = {n["id"]: n for n in g["nodes"]}
     plan = []
@@ -347,7 +347,7 @@ def plan_rows(rows):
         try:
             for side in ("1", "2"):
                 fixed = str(row.get(f"id{side}") or "").strip()
-                if fixed:                              # nodo gia' nel grafo
+                if fixed:                              # node already in the graph
                     n = have.get(fixed)
                     if n is None:
                         raise NodeError("il nodo di partenza non esiste piu'")
@@ -374,18 +374,18 @@ def plan_rows(rows):
     return plan
 
 
-# colonne che l'utente puo' assegnare nella procedura guidata (oltre a
-# "extra1:<nome>" / "extra2:<nome>", che finiscono nella scheda del nodo)
+# columns the user can assign in the wizard (besides
+# "extra1:<name>" / "extra2:<name>", which end up in the node's card)
 IMPORT_NODE_KEYS = ("name", "type", "label", "url", "platform", "text", "cognome", "nascita",
                     "colore", "flag", "address", "civico", "lat", "lon", "note")
 IMPORT_EDGE_KEYS = ("rel", "arrow", "curve", "color", "lstyle", "width", "ftm", "ftm_props")
 
 
 def plan_import(table, mapping=None, has_header=None, defaults=None):
-    """Righe lette da un file (liste di celle) -> piano di importazione.
-    Senza 'mapping' le colonne si riconoscono dalle intestazioni (o, senza
-    intestazione, nell'ordine fisso nome1, tipo1, collegamento, nome2, tipo2);
-    con 'mapping' ({indice colonna: chiave}) vale la scelta dell'utente."""
+    """Rows read from a file (lists of cells) -> import plan.
+    Without 'mapping' the columns are recognised from the headers (or, with no
+    header, in the fixed order name1, type1, link, name2, type2);
+    with 'mapping' ({column index: key}) the user's choice applies."""
     if not table:
         raise NodeError("il file e' vuoto")
     defaults = defaults or {}
@@ -396,11 +396,11 @@ def plan_import(table, mapping=None, has_header=None, defaults=None):
     else:
         header = map_header(table[0])
         has_header = bool(header)
-        if not header:                      # senza intestazione: ordine fisso
+        if not header:                      # no header: fixed order
             header = dict(enumerate(["name1", "type1", "rel", "name2", "type2"]))
     if "name1" not in header.values():
         raise NodeError("serve una colonna con il nome (o il valore) del nodo 1")
-    first = 2 if has_header else 1          # numero della prima riga di dati
+    first = 2 if has_header else 1          # number of the first data row
     body = table[1:] if has_header else table
     if len(body) > IMPORT_MAX_ROWS:
         raise NodeError(f"troppe righe (massimo {IMPORT_MAX_ROWS})")
@@ -409,7 +409,7 @@ def plan_import(table, mapping=None, has_header=None, defaults=None):
         row = {}
         for c, k in header.items():
             v = cells[c] if c < len(cells) else ""
-            if k.startswith(("extra1:", "extra2:")):          # campo della scheda
+            if k.startswith(("extra1:", "extra2:")):          # card field
                 side, _, name = k.partition(":")
                 if str(v).strip() and name.strip():
                     row.setdefault(side, {})[name.strip()[:120]] = str(v).strip()
@@ -426,8 +426,8 @@ def plan_import(table, mapping=None, has_header=None, defaults=None):
 
 
 def _merge_entry(entry, n, spec):
-    """Re-import: aggiorna la voce esistente di un nodo (campi, colonne libere,
-    etichetta) invece di aggiungere una scheda."""
+    """Re-import: updates the existing entry of a node (fields, free columns,
+    label) instead of adding a card."""
     changed = False
     if n["ntype"] in onto.TYPES and spec.get("fields"):
         cur = dict(entry.get("fields") or {})
@@ -453,7 +453,7 @@ def _merge_entry(entry, n, spec):
 
 
 def _ftm_id_of(spec):
-    """Id Follow the Money di una riga importata, se c'e'."""
+    """Follow the Money id of an imported row, if any."""
     f = spec.get("fields") if isinstance(spec.get("fields"), dict) else {}
     if f.get("ftmId"):
         return str(f["ftmId"])
@@ -462,7 +462,7 @@ def _ftm_id_of(spec):
 
 
 def _ftm_schema_of(spec, ntype):
-    """Schema FtM di una riga importata: dal tipo nativo o dalla scheda."""
+    """FtM schema of an imported row: from the native type or from the card."""
     sc = ftm.FTM_SCHEMA_OF.get(ntype)
     if sc:
         return sc
@@ -471,25 +471,25 @@ def _ftm_schema_of(spec, ntype):
 
 
 def commit_plan(plan, skip=(), update=False, ftm_dataset=None):
-    """Scrive in annotations.json i nodi e i collegamenti del piano. Righe gia'
-    importate non creano doppioni (stesso nodo = stesso id; stesso collegamento
-    con lo stesso nome fra gli stessi nodi = saltato).
-    update=True (re-import Follow the Money): un nodo gia' presente viene
-    AGGIORNATO (campi, colonne libere, etichetta) invece di ricevere una scheda
-    in piu'; ftm_dataset: nome del dataset registrato con gli id FtM."""
+    """Writes the plan's nodes and links to annotations.json. Rows already
+    imported create no duplicates (same node = same id; same link with the
+    same name between the same nodes = skipped).
+    update=True (Follow the Money re-import): a node already present is
+    UPDATED (fields, free columns, label) instead of receiving one more
+    card; ftm_dataset: name of the dataset recorded with the FtM ids."""
     ann = load_annotations()
     by_id = {str(x.get("id")): x for x in ann["added"]}
     updated, ftm_pairs = 0, []
-    known = store.ftm_map() if update else {}       # id FtM gia' nel caso -> nodo
+    known = store.ftm_map() if update else {}       # FtM id already in the case -> node
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     g0 = current_graph()
     have = {n["id"] for n in g0["nodes"]}
     added_ids = {str(x.get("id")) for x in ann["added"]}
-    in_commit, remap = set(), {}            # luoghi gia' trattati in questo import
+    in_commit, remap = set(), {}            # places already handled in this import
     link_keys = {(str(l.get("a")), str(l.get("b")), str(l.get("label") or ""))
                  for l in ann["links"]}
-    # anche i collegamenti nati con un nodo aggiunto a mano (voce 'added' con
-    # 'parent'): altrimenti un re-import li creerebbe una seconda volta
+    # also the links created with a node added by hand ('added' entry with
+    # 'parent'): otherwise a re-import would create them a second time
     for x in ann["added"]:
         if x.get("parent"):
             link_keys.add((str(x["parent"]), str(x.get("id")), str(x.get("edge_label") or "")))
@@ -506,17 +506,17 @@ def commit_plan(plan, skip=(), update=False, ftm_dataset=None):
             if known and spec:
                 fid = _ftm_id_of(spec)
                 if fid and known.get(fid) and known[fid] != nid and (known[fid] in have or known[fid] in by_id):
-                    remap[nid] = known[fid]          # stessa entita' FtM, nodo gia' nel caso
+                    remap[nid] = known[fid]          # same FtM entity, node already in the case
                     nid = known[fid]
-            # stessa riga ripetuta (l'AI cita lo stesso nodo in piu' collegamenti):
-            # conta una volta sola; dati diversi (due righe con la stessa targa)
-            # sono schede diverse
+            # same row repeated (the AI mentions the same node in several links):
+            # it counts once; different data (two rows with the same number plate)
+            # are different cards
             firma = (nid, json.dumps(spec, sort_keys=True, ensure_ascii=False) if spec else "")
             if (n["ntype"] in ("place", "vehicle") or n["ntype"] in onto.TYPES)                     and spec and firma not in in_commit:
                 in_commit.add(firma)
                 same = (same_place_id(g0, spec["value"], spec) if n["ntype"] == "place" else None)                     or remap.get(nid) or (nid if nid in have else None)
                 if same and update and same in by_id:
-                    # re-import: stesso nodo, dati aggiornati, nessuna scheda in piu'
+                    # re-import: same node, updated data, no extra card
                     remap[nid] = same
                     if _merge_entry(by_id[same], n, spec):
                         updated += 1
@@ -528,8 +528,8 @@ def commit_plan(plan, skip=(), update=False, ftm_dataset=None):
                     continue
                 if same:
                     remap[nid] = same
-                    # luogo / veicolo gia' presente: una scheda in piu' nel nodo
-                    # esistente (voce con id proprio '<id>~xxxxxx')
+                    # place / vehicle already present: one more card in the
+                    # existing node (entry with its own id '<id>~xxxxxx')
                     ann["added"].append(new_added_entry(
                         f"{same}~{uuid.uuid4().hex[:6]}", n["label"], n["platform"],
                         n["ntype"], spec["value"], spec, "", now))
@@ -575,7 +575,7 @@ def commit_plan(plan, skip=(), update=False, ftm_dataset=None):
         raise NodeError("salvataggio fallito")
     if ftm_pairs:
         store.ftm_set(ftm_pairs)
-    if made_nodes:                               # importazione e nodi proposti dall'AI
+    if made_nodes:                               # import and nodes proposed by the AI
         _translit_new_labels([x.get("label") for x in ann["added"]
                               if str(x.get("id")) in set(touched)])
     return {"ok": True, "nodes": made_nodes, "links": made_links, "updated": updated,
@@ -584,13 +584,13 @@ def commit_plan(plan, skip=(), update=False, ftm_dataset=None):
 
 
 def _plan_json(plan):
-    """Piano per il client (senza i dati grezzi interni)."""
+    """Plan for the client (without the internal raw data)."""
     return [{k: v for k, v in it.items() if k != "raw"} for it in plan]
 
 
 def _ftm_mapping(header):
-    """Mappatura delle colonne prodotte da ftm.rows_from_entities: quelle
-    riconosciute dall'intestazione, le altre come campi liberi del nodo 1 o 2."""
+    """Mapping of the columns produced by ftm.rows_from_entities: those
+    recognised from the header, the others as free fields of node 1 or 2."""
     auto = map_header(header) or {}
     out = {}
     for i, name in enumerate(header):
@@ -600,7 +600,7 @@ def _ftm_mapping(header):
             continue
         name = str(name)
         side = "2" if name.endswith("2") else "1"
-        # la chiave della scheda e' il nome senza il suffisso del lato, cosi' lo
-        # stesso valore ha la stessa chiave da nodo 1 o da nodo 2 (re-import stabile)
+        # the card key is the name without the side suffix, so the same value
+        # has the same key from node 1 or from node 2 (stable re-import)
         out[i] = f"extra{side}:{name[:-1] if name[-1:] in '12' else name}"
     return out

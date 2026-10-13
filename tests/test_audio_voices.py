@@ -4,10 +4,10 @@ import pytest
 pytest.importorskip("numpy")
 pytest.importorskip("scipy")
 
-"""`voices.py`: catalogo, impronte per parlante, confronto e gruppi, senza modelli né audio.
+"""`voices.py`: catalogue, voiceprints per speaker, comparison and groups, with no models or audio.
 
-Gli embedding sono sintetici (`_fake_embeddings` di test_diarize): quello che si verifica
-qui è la logica, non il modello. Il modello si collauda a mano sul campione (ROADMAP).
+The embeddings are synthetic (`_fake_embeddings` of test_diarize): what is checked here is
+the logic, not the model. The model is tested by hand on the sample (ROADMAP).
 """
 import numpy as np
 import pytest
@@ -29,7 +29,7 @@ def test_il_catalogo_e_coerente():
 
 
 def test_l_url_di_cam_plus_plus_e_codificato():
-    """GitHub risponde 404 a un `+` nudo nel nome dell'asset."""
+    """GitHub answers 404 to a bare `+` in the asset name."""
     assert V.model_url("wcam").endswith("wespeaker_en_voxceleb_CAM%2B%2B_LM.onnx")
     assert "+" not in V.model_url("wcam").rsplit("/", 1)[1]
     assert V.model_url("wr34").endswith("/wespeaker_en_voxceleb_resnet34_LM.onnx")
@@ -61,7 +61,7 @@ def test_centroidi_per_parlante_con_il_minimo_di_parlato():
     embs, truth = _fake_embeddings(n_per=6, k=2)
     wins = [(i * 1.5, i * 1.5 + 3.0) for i in range(12)]
     labels = list(truth)
-    labels[11] = 2                                   # un terzo parlante con una sola finestra
+    labels[11] = 2                                   # a third speaker with a single window
     out = V.centroidi_per_parlante(embs, labels, wins)
     assert set(out) == {"PARLANTE 1", "PARLANTE 2", "PARLANTE 3"}
     p1 = out["PARLANTE 1"]
@@ -70,7 +70,7 @@ def test_centroidi_per_parlante_con_il_minimo_di_parlato():
     p3 = out["PARLANTE 3"]
     assert not p3["ok"] and p3["centroid"] is None and "insufficiente" in p3["why"]
     assert p3["affidabilita"] == "bassa"
-    # il centroide somiglia alle proprie finestre piu' che a quelle dell'altro
+    # the centroid resembles its own windows more than those of the other one
     mie = embs[np.array(labels) == 0] @ p1["centroid"]
     altre = embs[np.array(labels) == 1] @ p1["centroid"]
     assert mie.min() > altre.max()
@@ -108,7 +108,7 @@ def test_il_punteggio_e_un_coseno_e_la_coorte_lo_normalizza():
     assert V.punteggio(a, b) == pytest.approx(float(a @ b), abs=1e-5)
     coorte = rng.normal(size=(40, 256)); coorte /= np.linalg.norm(coorte, axis=1, keepdims=True)
     normalizzato = V.punteggio(a, b, coorte=coorte)
-    assert normalizzato > 3          # una voce simile spicca sopra le voci estranee
+    assert normalizzato > 3          # a similar voice stands out above the unrelated voices
     assert V.punteggio(a, b, coorte=coorte[:1]) == pytest.approx(float(a @ b), abs=1e-5)
 
 
@@ -129,8 +129,8 @@ def test_i_candidati_sono_ordinati_e_isolati_per_famiglia():
     simile = me + 0.3 * rng.normal(size=256); simile /= np.linalg.norm(simile)
     lontano = rng.normal(size=256); lontano /= np.linalg.norm(lontano)
     note = [_voce("1", "IVANA", simile), _voce("2", "HOON", lontano, secondi=8.0),
-            _voce("3", "GEMELLA", me.copy(), family="wcam"),            # identica, altra famiglia
-            _voce("1", "IVANA", me.copy(), secondi=70.0)]                # seconda impronta, migliore
+            _voce("3", "GEMELLA", me.copy(), family="wcam"),            # identical, other family
+            _voce("1", "IVANA", me.copy(), secondi=70.0)]                # second voiceprint, better
     c = V.candidati_parlante(me, "wr34", note)
     assert [x["eid"] for x in c] == ["1"]
     assert c[0]["score"] == pytest.approx(1.0, abs=1e-3) and c[0]["livello"] == "probabile"
@@ -147,7 +147,7 @@ def test_raggruppa_per_similarita_senza_catene():
         assert len({truth[i] for i in g}) == 1
     assert V.raggruppa(np.zeros((0, 256)), 0.6) == []
     assert V.raggruppa(embs[:1], 0.6) == [[0]]
-    # due voci diverse non si uniscono anche se una terza somiglia a entrambe a meta'
+    # two different voices do not merge even if a third half-resembles both
     a = embs[0]; b = embs[4]
     ponte = a + b; ponte /= np.linalg.norm(ponte)
     M = np.vstack([a, b, ponte])
@@ -156,18 +156,18 @@ def test_raggruppa_per_similarita_senza_catene():
 
 
 def test_coppie_sopra_soglia_a_blocchi_come_la_matrice_intera():
-    """Le coppie calcolate a blocchi coincidono, in insieme e in ordine, con quelle della
-    matrice N x N che `recluster` teneva in memoria fino al 2026-09-13."""
+    """The pairs computed in blocks match, as a set and in order, those of the
+    N x N matrix that `recluster` kept in memory until 2026-09-13."""
     embs, _ = _fake_embeddings(n_per=5, k=4)
     S = embs @ embs.T
     n = len(embs)
     attese = sorted(((-float(S[i, j]), i, j) for i in range(n) for j in range(i + 1, n)
                      if S[i, j] >= 0.3))
-    for blocco in (1, 3, 7, 64):                    # bordi dei blocchi in posizioni diverse
+    for blocco in (1, 3, 7, 64):                    # block edges at different positions
         ii, jj, ss = V.coppie_sopra_soglia(embs, 0.3, blocco=blocco)
         assert [(i, j) for _, i, j in attese] == list(zip(ii.tolist(), jj.tolist()))
         assert np.allclose(ss, [-s for s, _, _ in attese], atol=1e-5)
         assert (ii < jj).all()
-    ii, jj, ss = V.coppie_sopra_soglia(embs, 2.0)   # nessuna coppia sopra soglia
+    ii, jj, ss = V.coppie_sopra_soglia(embs, 2.0)   # no pair above the threshold
     assert len(ii) == len(jj) == len(ss) == 0
     assert all(len(x) == 0 for x in V.coppie_sopra_soglia(np.zeros((0, 8)), 0.5))

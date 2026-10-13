@@ -23,10 +23,10 @@ from ..labels import _cache
 bp = Blueprint("cases", __name__)
 
 
-# ============================== CASI (FASCICOLI) ==============================
-# Ogni caso ha il suo database (store.py): nodi, schede, collegamenti, note,
-# viste e JSON importati. Dizionario di traslitterazione e indice dei
-# documenti sono comuni a tutti i casi.
+# ============================== CASES (DOSSIERS) ==============================
+# Each case has its own database (store.py): nodes, cards, links, notes, views
+# and imported JSON. The transliteration dictionary and the document index are
+# shared by all cases.
 def _case_name(data, key="name"):
     return re.sub(r"\s+", " ", str(data.get(key) or "")).strip()[:120]
 
@@ -76,7 +76,7 @@ def api_cases_switch():
 
 @bp.route("/api/cases/delete", methods=["POST"])
 def api_cases_delete():
-    """Elimina il caso e TUTTO il suo contenuto (il suo database)."""
+    """Deletes the case and ALL its content (its database)."""
     data = request.get_json(silent=True) or {}
     cid = str(data.get("id") or "")
     if not store.get_case(cid):
@@ -84,8 +84,8 @@ def api_cases_delete():
     was_current = cid == store.current_case()
     store.delete_case(cid)
     if was_current:
-        # si passa a un altro caso; se era l'ultimo non ne resta nessuno aperto
-        # (l'interfaccia chiede di crearne uno)
+        # switch to another case; if it was the last one, none stays open
+        # (the interface asks to create one)
         altri = store.list_cases()
         if altri:
             store.open_case(altri[0]["id"])
@@ -96,8 +96,8 @@ def api_cases_delete():
 
 @bp.route("/api/cases/merge", methods=["POST"])
 def api_cases_merge():
-    """{ids: [...], name, delete_sources: bool} -> nuovo caso con il contenuto
-    di tutti; i nodi uguali diventano uno (le differenze come schede in piu')."""
+    """{ids: [...], name, delete_sources: bool} -> new case with the content of
+    all of them; identical nodes become one (the differences as extra cards)."""
     data = request.get_json(silent=True) or {}
     ids = [str(x) for x in (data.get("ids") or []) if store.get_case(str(x))]
     ids = list(dict.fromkeys(ids))

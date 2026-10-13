@@ -9,17 +9,17 @@
  * any later version, with the additional terms in the file NOTICE.
  * See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
  */
-/* ================= TEMA =================
-   Stessa palette di OSInt Tracker: sfondi scuri, verde #4ade80 per gli
-   elementi attivi, azzurro #7B95DD per la seconda parola del logo.
-   L'area del grafo resta BIANCA (vedi #graph). */
+/* ================= THEME =================
+   Same palette as OSInt Tracker: dark backgrounds, green #4ade80 for
+   active elements, light blue #7B95DD for the second word of the logo.
+   The graph area stays WHITE (see #graph). */
 :root {
-  --bg: #1a1a1a;        /* sfondo dei campi e dei riquadri interni */
-  --panel: #2a2a2a;     /* barra laterale e finestre */
-  --panel2: #3a3a3a;    /* pulsanti secondari, voci di elenco */
-  --panel3: #4a4a4a;    /* passaggio del mouse */
-  --line: #3a3a3a;      /* separatori */
-  --bd: #4a4a4a;        /* bordi dei campi */
+  --bg: #1a1a1a;        /* background of fields and inner boxes */
+  --panel: #2a2a2a;     /* sidebar and windows */
+  --panel2: #3a3a3a;    /* secondary buttons, list items */
+  --panel3: #4a4a4a;    /* mouse hover */
+  --line: #3a3a3a;      /* separators */
+  --bd: #4a4a4a;        /* field borders */
   --bg2: #333333;
   --tx: #ffffff;
   --tx2: #aaaaaa;
@@ -50,7 +50,7 @@ a:hover { text-decoration: underline; }
 ::-webkit-scrollbar-track { background: var(--bg); }
 ::-webkit-scrollbar-thumb { background: var(--panel3); border-radius: 3px; }
 
-/* ================= BARRA LATERALE ================= */
+/* ================= SIDEBAR ================= */
 #side {
   width: 320px;
   min-width: 320px;
@@ -65,7 +65,7 @@ a:hover { text-decoration: underline; }
   z-index: 10;
 }
 
-/* ================= LOGO, CREDITI E LINGUA ================= */
+/* ================= LOGO, CREDITS AND LANGUAGE ================= */
 #app-logo {
   display: flex; align-items: center; gap: 10px;
   padding: 16px 0 0; flex-shrink: 0;
@@ -82,8 +82,8 @@ a:hover { text-decoration: underline; }
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 #credits a { color: var(--acc); }
-/* attribuzione all'autore originale (NOTICE 1(b)): va a capo invece di essere
-   troncata dall'ellissi di #credits, così resta sempre leggibile per intero */
+/* attribution to the original author (NOTICE 1(b)): wraps instead of being
+   truncated by the #credits ellipsis, so it always stays fully readable */
 #credits-orig { margin-top: 2px; font-size: 10px; white-space: normal; overflow-wrap: anywhere; }
 #creditsLink {
   background: none; border: 0; padding: 0; margin: 0; width: auto;
@@ -92,7 +92,7 @@ a:hover { text-decoration: underline; }
 #creditsLink:hover { background: none; border: 0; color: var(--acc); text-decoration: underline; }
 #brand { font-weight: 700; font-size: 16px; color: var(--tx); }
 
-/* ================= RICERCA & RISULTATI ================= */
+/* ================= SEARCH & RESULTS ================= */
 .search-container { position: relative; }
 .search-row { display: flex; gap: 6px; }
 
@@ -165,12 +165,12 @@ a:hover { text-decoration: underline; }
 }
 #search-results li.res-foot:hover { color: var(--acc); background: var(--panel3); }
 
-/* icone dei nodi (tratto scuro) su sfondo scuro: riquadro bianco */
+/* node icons (dark stroke) on a dark background: white box */
 #search-results li img, #sellist li img, .chip img, .imp-n img {
   background: #fff; border-radius: 3px; padding: 1px;
 }
 
-/* ================= STRUMENTI ================= */
+/* ================= TOOLS ================= */
 .tools {
   display: flex;
   gap: 6px;
@@ -197,8 +197,8 @@ select {
 }
 select:focus { outline: none; border-color: var(--acc); }
 
-/* Pulsanti: quelli normali sono grigi (secondari), quelli principali verdi
-   con testo nero come in OSInt Tracker, quelli pericolosi rossi. */
+/* Buttons: normal ones are grey (secondary), primary ones green
+   with black text as in OSInt Tracker, dangerous ones red. */
 button {
   background: var(--panel2);
   border: 1px solid transparent;
@@ -242,7 +242,7 @@ button.primary:hover, #findpath:not(:disabled):hover, #linknodes:not(:disabled):
   margin-bottom: 8px;
 }
 
-/* ================= AGGIUNTA NODO E COLLEGAMENTO ================= */
+/* ================= ADD NODE AND LINK ================= */
 #addmodal, #linkmodal, #edgemodal, #editmodal, #impmodal, #aimodal, #casemodal {
   position: fixed; inset: 0;
   background: rgba(0, 0, 0, .7);
@@ -302,7 +302,7 @@ button.primary:hover, #findpath:not(:disabled):hover, #linknodes:not(:disabled):
 }
 #addmodal-body textarea:focus { border-color: var(--acc); outline: none; }
 
-/* Controlli specifici per i collegamenti: frecce, forme, anteprima */
+/* Link-specific controls: arrows, shapes, preview */
 .af-divider {
   height: 1px; background: var(--line); margin: 10px 0 6px;
 }
@@ -320,10 +320,10 @@ button.primary:hover, #findpath:not(:disabled):hover, #linknodes:not(:disabled):
   width: 15px !important; height: 15px !important; margin: 0;
   cursor: pointer; accent-color: var(--acc);
 }
-/* Anteprima del collegamento: i due nodi veri e la linea come apparirà nel
-   grafo (che è bianco, quindi anche l'anteprima lo è). Le due metà sono
-   cliccabili e mettono/tolgono la punta della freccia verso il nodo
-   corrispondente (vedi buildEdgeProps in app.js). */
+/* Link preview: the two real nodes and the line as it will appear in the
+   graph (which is white, so the preview is too). The two halves are
+   clickable and add/remove the arrowhead towards the corresponding
+   node (see buildEdgeProps in app.js). */
 .af-prev-head { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; }
 .af-prev-head .af-lb { margin: 0; }
 .af-prev-head .af-hint { font-weight: 400; }
@@ -373,7 +373,7 @@ button.primary:hover, #findpath:not(:disabled):hover, #linknodes:not(:disabled):
   margin-left: 6px;
 }
 
-/* fonti documentali */
+/* document sources */
 .src-row { display: flex; gap: 6px; margin-bottom: 6px; }
 .src-row input { flex: 1; min-width: 0; }
 #srcQuery, #srcQuery2, #viewName {
@@ -392,7 +392,7 @@ button.primary:hover, #findpath:not(:disabled):hover, #linknodes:not(:disabled):
 .src-ocr { padding: 1px 6px; border-radius: 8px; background: var(--panel2); color: var(--tx2); font-size: 11px; }
 .src-ocr.on { background: var(--acc-dim); color: var(--acc); }
 
-/* ricerca libera nelle fonti (modal dedicato) */
+/* free-text search in the sources (dedicated modal) */
 .src-search { margin-top: 8px; }
 .src-search input { flex: 1; min-width: 0; }
 #srcmodal { position: fixed; inset: 0; background: rgba(0,0,0,.7);
@@ -410,7 +410,7 @@ button.primary:hover, #findpath:not(:disabled):hover, #linknodes:not(:disabled):
 .src-modal-search input { flex: 1; min-width: 0; }
 #srcmodal-res { padding: 12px 16px; overflow: auto; }
 
-/* chip dei termini (ricerca da chiave scheda) */
+/* term chips (search from card key) */
 .src-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
 .src-chip { display: inline-flex; align-items: center; gap: 5px; padding: 3px 10px;
   border: 1px solid var(--bd); border-radius: 14px; background: var(--bg2);
@@ -421,7 +421,7 @@ button.primary:hover, #findpath:not(:disabled):hover, #linknodes:not(:disabled):
   padding: 0 5px; border-radius: 8px; }
 .src-chip.on .src-chip-n { background: rgba(74,222,128,.2); }
 
-/* risultati ricerca nelle fonti (scheda nodo) */
+/* source search results (node card) */
 #modal-src { border-top: 1px solid var(--line); padding: 10px 16px; max-height: 45vh;
   overflow: auto; flex: 0 0 auto; }
 .src-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
@@ -443,7 +443,7 @@ button.primary:hover, #findpath:not(:disabled):hover, #linknodes:not(:disabled):
 .src-thumb { display: inline-block; margin-top: 6px; }
 .src-thumb img { max-height: 120px; max-width: 100%; border-radius: 6px; border: 1px solid var(--bd); }
 
-/* viste salvate */
+/* saved views */
 .view-save { display: flex; gap: 6px; margin-bottom: 6px; }
 .view-save input { flex: 1; min-width: 0; }
 .view-load { display: flex; gap: 6px; align-items: center; }
@@ -457,15 +457,15 @@ button.danger:hover, .mini.danger:hover:not(:disabled), .dl-btn.danger:hover {
 }
 .mini:disabled { opacity: .45; cursor: default; }
 
-/* coordinate affiancate */
+/* side-by-side coordinates */
 .af-coords { display: flex; gap: 10px; }
 .af-coords > div { flex: 1; min-width: 0; }
-/* tipo di via (tendina) · nome della via (largo) · civico (stretto) */
+/* street type (drop-down) · street name (wide) · house number (narrow) */
 .af-addr > .af-topo { flex: 0 0 118px; }
 .af-addr > .af-topo select { width: 100%; }
 .af-addr > div:nth-child(2) { flex: 3; }
 
-/* area immagine: clic, trascinamento o incolla */
+/* image area: click, drag or paste */
 #add-drop {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 8px; min-height: 96px; padding: 12px;
@@ -481,7 +481,7 @@ button.danger:hover, .mini.danger:hover:not(:disabled), .dl-btn.danger:hover {
   border-radius: 6px; border: 1px solid var(--bd); background: #fff;
 }
 
-/* filtro del pannello modifiche manuali */
+/* manual edits panel filter */
 #manmodal-tools {
   display: flex; gap: 8px; align-items: center;
   padding: 10px 16px; border-bottom: 1px solid var(--line);
@@ -500,25 +500,25 @@ button.danger:hover, .mini.danger:hover:not(:disabled), .dl-btn.danger:hover {
   padding: 8px 0 2px;
 }
 
-/* ================= SUPPORTO RTL (arabo) =================
-   Il verso RTL riguarda SOLO i testi: il pannello resta a sinistra e l'area del
-   grafo invariata, altrimenti le coordinate di Cytoscape non corrisponderebbero
-   più al cursore. Per questo #side conserva il bordo a destra. */
+/* ================= RTL SUPPORT (Arabic) =================
+   RTL direction affects ONLY the texts: the panel stays on the left and the graph
+   area unchanged, otherwise the Cytoscape coordinates would no longer match
+   the cursor. That is why #side keeps its border on the right. */
 body.rtl #side { border-right: 2px solid var(--line); border-left: none; }
 body.rtl button.mini, body.rtl #modal-close, body.rtl #delmodal-close,
 body.rtl #manmodal-close, body.rtl #addmodal-close { margin-left: 0; margin-right: auto; }
 body.rtl ul.g-list { padding: 0 15px 0 0; }
 body.rtl .dl-btn, body.rtl #man-showall, body.rtl .g-go { direction: ltr; }
-/* i valori tecnici (URL, id, handle, recapiti) restano leggibili da sinistra a destra */
+/* technical values (URLs, ids, handles, contact details) stay readable left to right */
 body.rtl .mn-url, body.rtl .af-prev code, body.rtl ul.g-list a,
 body.rtl .dl-meta, body.rtl .d-grid > div:nth-child(even) {
   direction: ltr; text-align: right; unicode-bidi: embed;
 }
 body.rtl #credits { direction: ltr; text-align: right; }
-/* il grafo non eredita mai il verso RTL */
+/* the graph never inherits the RTL direction */
 #graph, body.rtl #graph { direction: ltr; }
 
-/* ================= PANNELLO MODIFICHE MANUALI ================= */
+/* ================= MANUAL EDITS PANEL ================= */
 #manmodal {
   position: fixed; inset: 0;
   background: rgba(0, 0, 0, .7);
@@ -552,7 +552,7 @@ body.rtl #credits { direction: ltr; text-align: right; }
 .dl-lab.mn-link { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
 .dl-lab.mn-link i { font-style: normal; color: var(--acc); }
 
-/* ================= PANNELLO NODI CANCELLATI ================= */
+/* ================= DELETED NODES PANEL ================= */
 #delmodal {
   position: fixed; inset: 0;
   background: rgba(0, 0, 0, .7);
@@ -595,9 +595,9 @@ body.rtl #credits { direction: ltr; text-align: right; }
 .dl-tg.dl-none { font-style: italic; opacity: .7; }
 .dl-btn { flex: 0 0 auto; font-size: 11px; padding: 5px 9px; }
 
-/* ================= VALORI LUNGHI NELLE SCHEDE ================= */
-/* Un tempo venivano scartati: ora si mostrano accorciati ed espandibili,
-   così ciò che la ricerca trova è sempre visibile anche nella scheda. */
+/* ================= LONG VALUES IN CARDS ================= */
+/* They used to be discarded: now they are shown shortened and expandable,
+   so whatever the search finds is always visible in the card as well. */
 .lv {
   display: block; max-height: 4.6em; overflow: hidden;
   white-space: pre-wrap; word-break: break-word;
@@ -612,8 +612,8 @@ button.lv-more {
 }
 button.lv-more:hover { color: var(--acc2); background: none; }
 
-/* ================= COPIA CON UN CLICK ================= */
-/* Ogni valore copiabile: si evidenzia al passaggio e conferma con un segno. */
+/* ================= ONE-CLICK COPY ================= */
+/* Every copyable value: highlights on hover and confirms with a tick. */
 .cp { cursor: copy; border-radius: 4px; transition: background .12s; }
 .cp:hover { background: var(--acc-dim); box-shadow: 0 0 0 2px var(--acc-dim); }
 .cp.copied,
@@ -622,11 +622,11 @@ button.lv-more:hover { color: var(--acc2); background: none; }
   content: ' ✓'; color: var(--acc); font-weight: 700;
 }
 #modal-title.cp:hover { background: var(--acc-dim); }
-/* nella griglia dei dati grezzi la cella occupa tutta la larghezza */
+/* in the raw data grid the cell takes the full width */
 .d-grid > div.cp { padding: 0 3px; margin: 0 -3px; }
 
-/* ================= NOTA UTENTE ================= */
-/* gialla come la nota di OSInt Tracker: testo scuro su fondo ambra */
+/* ================= USER NOTE ================= */
+/* yellow like the OSInt Tracker note: dark text on an amber background */
 .d-note {
   background: #fbbf24;
   border: 1px solid #f59e0b;
@@ -640,7 +640,7 @@ button.lv-more:hover { color: var(--acc2); background: none; }
 }
 .d-note b { display: block; font-size: 11px; text-transform: uppercase; margin-bottom: 4px; }
 
-/* ---- etichetta cambiata a mano: si mostra quella dei dati di origine ---- */
+/* ---- label changed by hand: the one from the source data is shown ---- */
 .d-ren {
   display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px;
   background: var(--bg2);
@@ -656,7 +656,7 @@ button.lv-more:hover { color: var(--acc2); background: none; }
 }
 .d-ren span { font-weight: 600; word-break: break-word; }
 
-/* ================= RIEPILOGO RAGGRUPPATO ================= */
+/* ================= GROUPED SUMMARY ================= */
 .g-sum .g-blk { margin-bottom: 10px; }
 .g-cat {
   font-size: 10px; font-weight: 700; letter-spacing: .06em;
@@ -692,7 +692,7 @@ ul.g-list li {
 ul.g-list li:last-child { border-bottom: none; }
 .g-name { font-weight: 600; color: var(--tx); }
 
-/* pulsante "vai al nodo": discreto, compare al passaggio del mouse */
+/* "go to node" button: unobtrusive, appears on mouse hover */
 .g-go {
   border: none; background: none; padding: 0 2px;
   font-size: 11px; line-height: 1; color: var(--tx2);
@@ -702,7 +702,7 @@ ul.g-list li:hover .g-go { opacity: 1; }
 .g-go:hover { color: var(--acc); background: none; }
 ul.g-list a { font-size: 11px; word-break: break-all; }
 
-/* foto: miniatura cliccabile */
+/* photo: clickable thumbnail */
 ul.g-list li.g-photo { align-items: center; gap: 8px; padding: 5px 0; }
 .g-thumb {
   width: 54px; height: 54px; flex: 0 0 auto;
@@ -712,7 +712,7 @@ ul.g-list li.g-photo { align-items: center; gap: 8px; padding: 5px 0; }
 }
 .g-thumb:hover { border-color: var(--acc); }
 
-/* traslitterazione: originale -> latino */
+/* transliteration: original -> Latin */
 ul.g-list li.g-tr { gap: 2px 8px; }
 .g-orig { font-weight: 600; font-size: 13px; }
 .g-arrow { color: var(--tx2); }
@@ -722,7 +722,7 @@ ul.g-list li.g-tr { gap: 2px 8px; }
   background: var(--panel2); border-radius: 999px; padding: 1px 6px;
 }
 
-/* ================= FILTRI CATEGORIA ================= */
+/* ================= CATEGORY FILTERS ================= */
 .cat-head { display: flex; align-items: center; }
 .cat-head button { text-transform: none; font-weight: 600; letter-spacing: 0; }
 .cat-filters { display: flex; flex-wrap: wrap; gap: 6px; }
@@ -747,14 +747,14 @@ ul.g-list li.g-tr { gap: 2px 8px; }
   padding: 1px 6px;
   font-size: 10px;
 }
-/* acceso = colore della categoria (variabile --cat impostata da app.js) */
+/* on = category colour (variable --cat set by app.js) */
 .cat-btn.on { background: var(--cat, var(--acc)); border-color: var(--cat, var(--acc)); color: #fff; font-weight: 600; }
 .cat-btn.on:hover { filter: brightness(1.15); }
 .cat-btn.on .cat-dot { background: #fff !important; }
 .cat-btn.on .cat-n { color: #fff; background: rgba(0,0,0,.28); }
 .cat-btn.off { opacity: .55; }
 .cat-btn.off:hover { opacity: .85; }
-/* il pulsante Applica si accende quando c'è una selezione da applicare */
+/* the Apply button lights up when there is a selection to apply */
 #catApply { margin-top: 8px; width: 100%; }
 #catApply:disabled { opacity: .45; cursor: default; color: var(--tx2); }
 #catApply:not(:disabled) { background: var(--acc); border-color: var(--acc); color: #000; font-weight: 700; }
@@ -762,7 +762,7 @@ ul.g-list li.g-tr { gap: 2px 8px; }
 .cat-btn.off .cat-lb { text-decoration: line-through; }
 .cat-btn.off .cat-dot { filter: grayscale(1); }
 
-/* ================= SELEZIONE ================= */
+/* ================= SELECTION ================= */
 #selbox {
   border: 0;
   border-bottom: 1px solid var(--line);
@@ -814,7 +814,7 @@ button.mini { margin-left: auto; padding: 2px 6px; font-size: 11px; }
 .p-row:hover { border-color: var(--acc); background: var(--panel3); color: var(--tx); }
 .p-more { font-size: 10px; text-align: center; padding: 2px; }
 
-/* ================= INFO & STATO ================= */
+/* ================= INFO & STATUS ================= */
 #hint {
   font-size: 11px;
   color: var(--tx2);
@@ -837,11 +837,11 @@ button.mini { margin-left: auto; padding: 2px 6px; font-size: 11px; }
 #legend i.lg-seed { background: #fff; border: 2px solid #dc2626; box-sizing: border-box; }
 
 #stat { font-size: 11px; color: var(--tx2); padding-bottom: 4px; }
-/* L'area del grafo resta bianca: etichette, icone e colori dei nodi sono
-   pensati per il fondo chiaro (e così l'esportazione in PDF). */
+/* The graph area stays white: node labels, icons and colours are
+   designed for a light background (and so is the PDF export). */
 #graph { flex: 1; height: 100vh; background: #ffffff; }
 
-/* ================= MENU CONTESTUALE ================= */
+/* ================= CONTEXT MENU ================= */
 #ctxmenu {
   position: fixed; z-index: 250; min-width: 160px;
   background: var(--panel); border: 1px solid var(--acc); border-radius: 6px;
@@ -875,7 +875,7 @@ button.mini { margin-left: auto; padding: 2px 6px; font-size: 11px; }
 #tip i { color: var(--tx2); font-size: 10px; font-style: normal; }
 #tip small { display: block; color: var(--tx2); font-size: 10px; text-transform: uppercase; margin-bottom: 2px; }
 #tip u { display: block; color: #93c5fd; font-size: 10px; text-decoration: none; margin-top: 3px; }
-/* nota del nodo dentro il tooltip: gialla come nella scheda */
+/* node note inside the tooltip: yellow as in the card */
 .tip-note {
   margin-top: 5px; padding: 5px 7px;
   background: #fbbf24; color: #1a1a1a;
@@ -887,7 +887,7 @@ button.mini { margin-left: auto; padding: 2px 6px; font-size: 11px; }
 .tip-note b { display: block; color: #7c2d12 !important; font-size: 9px;
               text-transform: uppercase; margin-bottom: 2px; }
 
-/* ================= MODALE ================= */
+/* ================= MODAL ================= */
 #modal {
   position: fixed;
   inset: 0;
@@ -1021,7 +1021,7 @@ button.mini { margin-left: auto; padding: 2px 6px; font-size: 11px; }
 }
 
 
-/* ================= LIGHTBOX IMMAGINI ================= */
+/* ================= IMAGE LIGHTBOX ================= */
 #lightbox {
   position: fixed;
   inset: 0;
@@ -1057,7 +1057,7 @@ button.mini { margin-left: auto; padding: 2px 6px; font-size: 11px; }
 #lb-close:hover { background: var(--acc2); color: #000; }
 #lb-open { color: #93c5fd; font-size: 12px; cursor: pointer; }
 
-/* miniature dentro le schede */
+/* thumbnails inside the cards */
 .d-grid img.thumb {
   width: 90px; height: 90px;
   object-fit: cover;
@@ -1072,11 +1072,11 @@ button.mini { margin-left: auto; padding: 2px 6px; font-size: 11px; }
 .chip.static { cursor: default; background: var(--bg); }
 .chip.static:hover { border-color: var(--bd); color: inherit; }
 
-/* pulsante mostra/nascondi resto */
+/* show/hide rest button */
 #pathonly[hidden] { display: none; }
 #pathonly.on { background: var(--acc); border-color: var(--acc); color: #000; }
 
-/* ================= CREDITI (finestra con i recapiti) ================= */
+/* ================= CREDITS (window with contact details) ================= */
 #credmodal {
   position: fixed; inset: 0;
   background: rgba(0, 0, 0, .7);
@@ -1121,16 +1121,16 @@ body.rtl #credmodal-close { right: auto; left: 9px; }
 .credmodal-orig-list { list-style: none; margin: 0; padding: 0; }
 .credmodal-orig-list li { display: flex; align-items: center; gap: 8px; padding: 3px 1px; font-size: 11px; }
 .credmodal-orig-list a { word-break: break-all; }
-/* i recapiti sono sempre in caratteri latini: restano da sinistra a destra */
+/* contact details are always in Latin script: they stay left to right */
 body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-align: left; }
 
-/* messaggio di guasto grave (es. librerie del grafo non caricate) */
+/* fatal error message (e.g. graph libraries not loaded) */
 #stat.fatal {
   background: rgba(239, 68, 68, .15); border: 1px solid var(--danger); border-radius: 6px;
   color: #fca5a5; padding: 8px 10px; font-weight: 600;
 }
 
-/* ================= PROPRIETÀ DEL COLLEGAMENTO (condivise) ================= */
+/* ================= LINK PROPERTIES (shared) ================= */
 #edgemodal-box, #editmodal-box { width: min(560px, 100%); }
 #editmodal-box { width: min(720px, 100%); }
 .af-hint { font-size: 11px; color: var(--tx2); line-height: 1.45; }
@@ -1155,7 +1155,7 @@ body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-a
 .edg-others button.cur { border-color: var(--acc); background: var(--acc-dim); }
 #edgemodal-foot .danger, #editmodal-foot .danger { margin-right: auto; }
 
-/* ================= MODIFICA DEI VALORI DEL NODO ================= */
+/* ================= NODE VALUE EDITING ================= */
 .ed-sec { border: 1px solid var(--line); border-radius: 8px; padding: 10px; background: var(--bg); }
 .ed-sec h4 { margin: 0 0 8px; font-size: 12px; color: var(--acc); }
 .ed-row { display: grid; grid-template-columns: minmax(90px, 32%) 1fr auto; gap: 6px; align-items: start; margin-bottom: 6px; }
@@ -1175,7 +1175,7 @@ body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-a
 .ep-bend-ctl input[type="range"] { flex: 1; padding: 0 !important; border: 0 !important; background: none !important; accent-color: var(--acc); }
 .ep-bend-val { font-size: 11px; font-variant-numeric: tabular-nums; color: var(--tx2); min-width: 48px; text-align: right; }
 
-/* ================= IMPORTAZIONE CSV / EXCEL ================= */
+/* ================= CSV / EXCEL IMPORT ================= */
 #impmodal-box { width: min(860px, 100%); }
 .imp-help { font-size: 12px; color: var(--tx2); line-height: 1.5; display: flex; flex-direction: column; gap: 4px; }
 .imp-help button { align-self: flex-start; margin-top: 4px; margin-left: 0; }
@@ -1200,7 +1200,7 @@ body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-a
 .imp-none { color: var(--tx2); }
 .imp-fail { color: #fca5a5; }
 
-/* ---- messaggi di esito nelle finestre ---- */
+/* ---- outcome messages in the windows ---- */
 .jm-msg { font-size: 12px; min-height: 16px; }
 .jm-msg.err { color: #fca5a5; }
 .af-check { display: flex; align-items: center; gap: 6px; font-size: 12px; cursor: pointer;
@@ -1209,7 +1209,7 @@ body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-a
 .af-person2 { align-items: flex-end; }
 .af-target { display: flex; align-items: flex-end; }
 
-/* ================= AI: TESTO LIBERO -> NODI ================= */
+/* ================= AI: FREE TEXT -> NODES ================= */
 #add-form { display: flex; flex-direction: column; gap: 6px; }
 #add-form[hidden] { display: none; }
 #add-ai-sec { display: flex; flex-direction: column; gap: 10px; }
@@ -1225,7 +1225,7 @@ body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-a
 .ai-toggle.on { box-shadow: 0 0 0 3px rgba(167, 139, 250, .4); }
 .ai-toggle.off { filter: grayscale(1); opacity: .6; }
 
-/* bordo multicolore che scorre, con alone sfumato (stile "AI attiva") */
+/* scrolling multicolour border, with a soft glow ("AI active" style) */
 .ai-glow {
   position: relative; border-radius: 12px; padding: 2px; isolation: isolate;
   background: linear-gradient(90deg, #ff5f6d, #ffc371, #47e891, #3fa9f5, #a66cff,
@@ -1244,10 +1244,10 @@ body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-a
   border: 0; border-radius: 10px; padding: 12px 14px; outline: none;
   font: inherit; font-size: 13px; line-height: 1.5; color: var(--tx); background: var(--bg);
 }
-/* apertura: un lampo di colore che si allarga e poi si calma */
+/* opening: a flash of colour that spreads and then settles */
 .ai-glow.intro::before { animation: aiFlow 1.2s linear infinite, aiIntro 1.6s ease-out 1; }
 .ai-glow.intro { animation-duration: 1.2s; }
-/* analisi in corso: scorre più veloce e pulsa */
+/* analysis in progress: scrolls faster and pulses */
 .ai-glow.busy, .ai-glow.busy::before { animation-duration: 1.1s; }
 .ai-glow.busy::before { opacity: .85; animation: aiFlow 1.1s linear infinite, aiPulse 1.4s ease-in-out infinite; }
 .ai-glow.busy textarea { color: var(--tx2); }
@@ -1278,7 +1278,7 @@ body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-a
 .ai-btn:hover { color: #fff; }
 .ai-btn:disabled { opacity: .55; cursor: default; }
 
-/* barra laterale e pannello di configurazione */
+/* sidebar and configuration panel */
 .ai-side { display: flex; align-items: center; gap: 8px; }
 .ai-side-st { font-size: 10.5px; color: var(--tx2); margin-top: 4px; word-break: break-all; }
 .ai-side-st.ok::before { content: "● "; color: var(--acc); }
@@ -1300,24 +1300,24 @@ body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-a
 .aic-test { font-size: 12px; min-height: 16px; }
 .aic-test.ok { color: var(--acc); }
 .aic-test.err { color: #fca5a5; }
-/* le regole generiche dei campi delle finestre non devono toccare l'interruttore e l'area AI */
+/* the generic window field rules must not affect the switch and the AI area */
 #aimodal-body .sw input, .ai-side .sw input { width: 0; height: 0; padding: 0; border: 0; }
 #addmodal-body .ai-glow textarea {
   border: 0; border-radius: 10px; background: var(--bg); padding: 12px 14px; font-size: 13px; line-height: 1.5;
 }
 
-/* ---- campi degli elementi investigativi (armi, stupefacenti, valori...) ---- */
+/* ---- fields of investigative items (weapons, drugs, valuables...) ---- */
 .af-onto { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
 .af-onto[hidden] { display: none; }
 .af-onto .af-wide { grid-column: 1 / -1; }
 .af-onto select, .af-onto input:not([type=checkbox]) { width: 100%; }
 
-/* ---- stile di tutti i collegamenti ---- */
+/* ---- style of all links ---- */
 .gs-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
 .gs-row .af-lb { margin: 0; flex: 0 0 74px; color: var(--tx2); }
 .gs-row select { flex: 1; min-width: 0; }
 
-/* ---- caso (fascicolo) corrente ---- */
+/* ---- current case (case file) ---- */
 .case-box select { width: 100%; font-size: 13px; font-weight: 600; padding: 6px 8px; }
 .case-desc { font-size: 11px; color: var(--tx2); margin-top: 4px; white-space: pre-line; }
 .case-desc:empty { display: none; }
@@ -1331,9 +1331,9 @@ body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-a
   border: 1px solid var(--bd); border-radius: 4px; padding: 6px 10px; background: var(--bg); }
 .cm-list .af-check { padding: 3px 0; }
 
-/* ================= GRIGLIA DEI PULSANTI NELLA BARRA LATERALE =================
-   Due pulsanti per riga, di uguale larghezza, che riempiono tutto il pannello.
-   L'ultimo pulsante di un gruppo dispari occupa la riga intera. */
+/* ================= SIDEBAR BUTTON GRID =================
+   Two buttons per row, of equal width, filling the whole panel.
+   The last button of an odd-sized group takes the full row. */
 .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .btn-grid button {
   width: 100%; margin: 0; padding: 8px 6px; font-size: 12px;
@@ -1341,24 +1341,24 @@ body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-a
 }
 .btn-grid button[hidden] { display: none; }
 #lyUntangle, #reloadData, #fit, #pathonly { grid-column: 1 / -1; }
-/* quando il pulsante nascosto che li precede compare, tornano a mezza riga */
+/* when the hidden button before them appears, they go back to half a row */
 #aiTranslit:not([hidden]) + #reloadData, #showHidden:not([hidden]) + #fit { grid-column: auto; }
 
-/* ================= FINESTRE TRASCINABILI ================= */
+/* ================= DRAGGABLE WINDOWS ================= */
 .draggable { cursor: move; user-select: none; touch-action: none; }
 .draggable.dragging { cursor: grabbing; }
 .draggable button, .draggable input, .draggable select { cursor: pointer; }
 
-/* ================= NESSUN CASO APERTO ================= */
+/* ================= NO CASE OPEN ================= */
 .case-box.no-case .case-desc { color: #fbbf24; font-style: italic; }
 .case-box.no-case select { border-color: #fbbf24; color: #fbbf24; }
 
-/* ================= DOWNLOAD DI TESSERACT (OCR) ================= */
+/* ================= TESSERACT (OCR) DOWNLOAD ================= */
 .src-ocr-job { font-size: 11px; color: var(--tx2); margin-top: 5px; }
 .src-ocr-job.err { color: #fca5a5; }
 .src-ocr-btn { display: block; width: 100%; margin-top: 6px; padding: 7px 8px; font-size: 12px; }
 
-/* ================= LICENZE ================= */
+/* ================= LICENCES ================= */
 #help-links { font-size: 11px; margin-top: -8px; display: flex; gap: 14px; flex-wrap: wrap; }
 #help-links a { color: var(--acc); font-weight: 700; }
 #licmodal {
@@ -1403,7 +1403,7 @@ body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-a
   #lic-list { width: 100%; flex: 0 0 35%; border-right: 0; border-bottom: 1px solid var(--line); }
 }
 
-/* ================= IMPORTAZIONE GUIDATA (passi) ================= */
+/* ================= GUIDED IMPORT (steps) ================= */
 .imp-steps { display: flex; gap: 6px; margin-bottom: 4px; }
 .imp-step {
   flex: 1; display: flex; align-items: center; gap: 8px; padding: 6px 10px;
@@ -1430,7 +1430,7 @@ body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-a
 #impmodal-back { margin-right: auto; }
 
 
-/* ================= DIZIONARIO DI TRASLITTERAZIONE ================= */
+/* ================= TRANSLITERATION DICTIONARY ================= */
 #dictmodal {
   position: fixed; inset: 0;
   background: rgba(0, 0, 0, .7);
@@ -1498,7 +1498,7 @@ body.rtl #credmodal-list, body.rtl .credmodal-orig-list { direction: ltr; text-a
 body.rtl .dict-val, body.rtl .dict-src, body.rtl .dict-script { direction: ltr; }
 
 
-/* ================= IMPORTAZIONE FOLLOW THE MONEY ================= */
+/* ================= FOLLOW THE MONEY IMPORT ================= */
 #ftmmodal { position: fixed; inset: 0; background: rgba(0, 0, 0, .7); display: flex;
   align-items: center; justify-content: center; z-index: 325; padding: 20px; }
 #ftmmodal[hidden] { display: none; }
@@ -1530,7 +1530,7 @@ body.rtl .dict-val, body.rtl .dict-src, body.rtl .dict-script { direction: ltr; 
 .ftm-bar { height: 10px; border-radius: 999px; background: var(--panel3); overflow: hidden; }
 #ftm-bar-fill { height: 100%; width: 0; background: var(--acc); transition: width .3s; }
 
-/* relazioni Follow the Money sui collegamenti */
+/* Follow the Money relations on links */
 .ep-ftm { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; margin: 4px 0 8px; }
 .ep-ftm[hidden] { display: none; }
 .ep-ftm input { width: 100%; }

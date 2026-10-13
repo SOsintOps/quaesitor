@@ -1,15 +1,15 @@
 # -*- coding: utf-8 -*-
-"""Converte entita' Follow the Money (JSON lines: id, schema, properties) nel
-CSV a due nodi per riga che l'importazione guidata di OsintGraph gia' legge
-(nome1, tipo1, collegamento, nome2, tipo2 + colonne libere -> campi scheda).
+"""Converts Follow the Money entities (JSON lines: id, schema, properties) into the
+two-nodes-per-row CSV that the OsintGraph guided import already reads
+(nome1, tipo1, collegamento, nome2, tipo2 + free columns -> record fields).
 
-Uso: python ftm_to_csv.py <schema dir> <entities.jsonl> <out.csv>
+Usage: python ftm_to_csv.py <schema dir> <entities.jsonl> <out.csv>
 
-Nessuna modifica a OsintGraph: le proprieta' FtM che non hanno una colonna
-nativa finiscono nelle colonne libere (extra), i tipi FtM sono tradotti nei
-tipi di OsintGraph; gli schemi-arco (edge: source/target) diventano
-collegamenti con l'etichetta dell'arco e le loro proprieta' (es. percentuale)
-nel nome del collegamento."""
+No change to OsintGraph: the FtM properties that have no native column
+end up in the free columns (extra), the FtM types are translated into
+OsintGraph types; the edge schemata (edge: source/target) become
+links with the edge label and their properties (e.g. percentage)
+in the link name."""
 # "Pares cum paribus facillime congregantur." (Cicero, De Senectute)
 # Like gathers most easily with like.
 import sys, os, csv, json, yaml
@@ -26,7 +26,7 @@ def ancestors(n, seen=None):
         if p not in seen: seen.append(p); ancestors(p, seen)
     return seen
 
-# schema FtM -> tipo OsintGraph (alias riconosciuti dall'import: ontology.ALIASES e tipi base)
+# FtM schema -> OsintGraph type (aliases recognised by the import: ontology.ALIASES and base types)
 TYPE = {"Person": "person", "Company": "organization", "Organization": "organization",
         "PublicBody": "organization", "LegalEntity": "organization", "Address": "place",
         "Vehicle": "vehicle", "Airplane": "vehicle", "Vessel": "vehicle", "Email": "email",
@@ -34,8 +34,8 @@ TYPE = {"Person": "person", "Company": "organization", "Organization": "organiza
         "Passport": "document", "Identification": "document", "RealEstate": "property",
         "Event": "event", "Contract": "findoc", "CourtCase": "legaldoc", "Note": "text",
         "HyperText": "link", "Image": "photo", "Security": "valuable", "Asset": "valuable"}
-# per gli schemi senza equivalente (Sanction, License, Position...) si usa 'text'
-# con i campi nelle colonne libere: resta leggibile nella scheda
+# for the schemata without an equivalent (Sanction, License, Position...) 'text' is used
+# with the fields in the free columns: it stays readable in the record
 
 def otype(schema):
     for s in [schema] + ancestors(schema):
@@ -55,7 +55,7 @@ def caption(e):
     return e["id"]
 
 def props_of(e):
-    """proprieta' scalari (non entity) -> colonne libere"""
+    """scalar properties (not entity) -> free columns"""
     out = {}
     allp = {}
     for a in reversed(ancestors(e["schema"])): allp.update(raw[a].get("properties", {}) or {})
@@ -84,8 +84,8 @@ for e in edges:
     for k, v in props_of(b).items(): r[f"{k}2"] = v; extra_cols.add(f"{k}2")
     r["ftm_schema1"] = a["schema"]; r["ftm_schema2"] = b["schema"]; r["ftm_edge"] = e["schema"]
     rows.append(r); linked.update((src, dst))
-# entita'-nodo non toccate da archi: una riga con il solo nodo 1; le proprieta'
-# di tipo entity (es. Passport.holder, Sanction.entity) diventano collegamenti
+# node entities not touched by edges: a row with node 1 only; the properties
+# of type entity (e.g. Passport.holder, Sanction.entity) become links
 for e in ents.values():
     if raw[e["schema"]].get("edge"): continue
     r = {"name1": caption(e), "type1": otype(e["schema"]), "ftm_schema1": e["schema"]}

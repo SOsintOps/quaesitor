@@ -9,22 +9,22 @@
 # any later version, with the additional terms in the file NOTICE.
 # See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
 
-"""Scarica Tesseract OCR in una cartella LOCALE del progetto (tools/tesseract),
-senza installarlo nel sistema. Serve all'OCR delle immagini nelle fonti.
+"""Download Tesseract OCR into a LOCAL project folder (tools/tesseract),
+without installing it system-wide. Used for OCR of the images in the sources.
 
-    Windows:  scarica l'installer ufficiale UB-Mannheim e lo estrae in locale
-              (installazione silenziosa nella sola cartella tools/tesseract).
-    Linux/Mac: Tesseract si installa dal gestore pacchetti; lo script te lo dice.
+    Windows:  downloads the official UB-Mannheim installer and extracts it locally
+              (silent install into the tools/tesseract folder only).
+    Linux/Mac: Tesseract is installed from the package manager; the script says so.
 
-Uso:
+Usage:
     .venv\\Scripts\\python.exe -m quaesitor.setup_tesseract   (Windows)
-    python -m quaesitor.setup_tesseract --url <URL_installer.exe>      (versione diversa)
+    python -m quaesitor.setup_tesseract --url <URL_installer.exe>      (different version)
 
-Dopo il download l'app trova Tesseract da sola (cerca in tools/tesseract) e
-attiva l'OCR: nella sezione Fonti comparirà "OCR attivo".
+After the download the app finds Tesseract by itself (it looks in tools/tesseract)
+and enables OCR: the Sources section will show "OCR active".
 
-Lo stesso download si puo' avviare dall'interfaccia (pulsante «Scarica
-Tesseract» nella sezione Fonti): app.py usa setup_windows() di questo modulo.
+The same download can be started from the interface («Download Tesseract»
+button in the Sources section): app.py uses setup_windows() from this module.
 """
 # "Errare humanum est, perseverare autem diabolicum." (attributed to Seneca)
 # To err is human; to persist in error is diabolical.
@@ -42,8 +42,8 @@ except ImportError:                       # run as a file, not with -m
     ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DEST = os.path.join(ROOT, "tools", "tesseract")
 
-# Installer ufficiale UB-Mannheim (build Windows 64 bit). Puoi indicarne un
-# altro con --url se preferisci una versione diversa.
+# Official UB-Mannheim installer (Windows 64-bit build). You can give another
+# one with --url if you prefer a different version.
 DEFAULT_URL = os.environ.get("TESSERACT_URL") or (
     "https://digi.bib.uni-mannheim.de/tesseract/"
     "tesseract-ocr-w64-setup-5.3.3.20231005.exe")
@@ -58,8 +58,8 @@ def _arg(name, default=None):
 
 
 def download(url, dst, progress=None):
-    """Scarica 'url' in 'dst'. 'progress(fatti, totale)' se dato, altrimenti
-    stampa l'avanzamento sul terminale."""
+    """Download 'url' into 'dst'. Calls 'progress(done, total)' if given,
+    otherwise prints the progress to the terminal."""
     if progress is None:
         print(f"Scarico:\n  {url}")
     req = urllib.request.Request(url, headers={
@@ -92,10 +92,10 @@ def _find_7zip():
 
 
 def setup_windows(url, dest=DEST, progress=None, stage=None):
-    """Scarica ed estrae Tesseract in 'dest'. Ritorna il percorso di
-    tesseract.exe; solleva RuntimeError se alla fine non c'e'.
-    'progress(fatti, totale)' e 'stage(nome)' ("download", "extract", "verify")
-    servono all'interfaccia; senza, si stampa sul terminale."""
+    """Download and extract Tesseract into 'dest'. Returns the path of
+    tesseract.exe; raises RuntimeError if it is not there at the end.
+    'progress(done, total)' and 'stage(name)' ("download", "extract", "verify")
+    are for the interface; without them, output goes to the terminal."""
     quiet = progress is not None or stage is not None
     say = (lambda *a, **k: None) if quiet else print
     tell = stage or (lambda name: None)
@@ -110,13 +110,13 @@ def setup_windows(url, dest=DEST, progress=None, stage=None):
     tell("extract")
     sevenzip = _find_7zip()
     if sevenzip:
-        # ESTRAZIONE (senza privilegi admin): l'installer NSIS è un archivio,
-        # 7-Zip ne estrae i file direttamente nella cartella locale.
+        # EXTRACTION (no admin privileges): the NSIS installer is an archive,
+        # 7-Zip extracts its files directly into the local folder.
         say(f"Estraggo con 7-Zip in:\n  {dest}")
         subprocess.run([sevenzip, "x", tmp, f"-o{dest}", "-y"],
                        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     else:
-        # niente 7-Zip: si prova l'installer silenzioso (può chiedere l'admin)
+        # no 7-Zip: try the silent installer (it may ask for admin rights)
         say("7-Zip non trovato: uso l'installer silenzioso "
             "(potrebbe chiedere privilegi di amministratore)…")
         subprocess.run([tmp, "/S", f"/D={dest}"])

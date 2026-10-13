@@ -9,27 +9,27 @@
 # any later version, with the additional terms in the file NOTICE.
 # See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
 
-"""Adattatore per le risposte dell'API Epieos (api.epieos.com).
+"""Adapter for the responses of the Epieos API (api.epieos.com).
 
-Una ricerca Epieos (email o telefono) risponde con {"result": {<modulo>: {...}}}:
-un oggetto per ogni servizio interrogato, con campi propri (foto, nome, nick,
-id, profilo, email, telefoni, violazioni...). Questo modulo lo trasforma nei
-RECORD che il motore degli export OSINT (app.py: handle_record) gia' capisce:
+An Epieos search (email or phone) answers with {"result": {<module>: {...}}}:
+one object per queried service, with its own fields (photo, name, nick,
+id, profile, email, phones, breaches...). This module turns it into the
+RECORDS that the OSINT export engine (app.py: handle_record) already understands:
 
-    collection   il servizio (-> piattaforma del nodo account)
-    schema       "epieos:<modulo>"
-    category_id  "checker" per i moduli che descrivono l'identificativo cercato
-                 (hibp, holehe, phonechecker, protonmail, adobe...) e non un account
+    collection   the service (-> platform of the account node)
+    schema       "epieos:<module>"
+    category_id  "checker" for the modules that describe the searched identifier
+                 (hibp, holehe, phonechecker, protonmail, adobe...) and not an account
     label, names, usernames, identifiers, emails, phones
-    breaches, websites, organizations   (estensioni gestite da handle_record)
-    + tutti i campi originali del modulo (la scheda resta completa; 'photo'
-      diventa l'immagine, gli URL i link, citta'/indirizzi i nodi luogo)
+    breaches, websites, organizations   (extensions handled by handle_record)
+    + all the original fields of the module (the card stays complete; 'photo'
+      becomes the image, URLs the links, cities/addresses the place nodes)
 
-Il contenuto salvato nell'archivio e' la risposta originale con un involucro:
+The content saved in the archive is the original response inside a wrapper:
     {"epieos": {"kind": "email"|"phone", "pack": "osinter", "query": "...",
                 "fetched_at": "...", "credits_left": n, "result": {...}}}
-cosi' la conversione si puo' rifare in qualunque momento senza nuove chiamate.
-Nessuna dipendenza oltre la libreria standard."""
+so the conversion can be redone at any time without new calls.
+No dependency beyond the standard library."""
 # "Fronti nulla fides." (Juvenal, Satires)
 # Put no trust in appearances.
 import json
@@ -44,8 +44,8 @@ MODULES_EMAIL = (
 MODULES_PHONE = ("skype", "phonechecker", "hibp", "foursquare", "substack", "mapstr", "duolingo",
                  "facebook", "chess")
 MODULES = set(MODULES_EMAIL) | set(MODULES_PHONE)
-# moduli che descrivono l'identificativo cercato, non un profilo: la scheda va
-# sul nodo email/telefono (categoria 'checker' di handle_record)
+# modules that describe the searched identifier, not a profile: the card goes
+# on the email/phone node ('checker' category of handle_record)
 CHECKERS = {"hibp", "holehe", "phonechecker", "protonmail", "adobe", "samsung"}
 
 NAME_KEYS = ("name", "full_name", "display_name", "real_name", "realname", "given_name")
@@ -61,7 +61,7 @@ def _is_email(v):
 
 
 def _s(v):
-    """Valore stringa utile ('false', vuoto, None -> '')."""
+    """Meaningful string value ('false', empty, None -> '')."""
     if v is None or isinstance(v, (dict, list)):
         return ""
     v = str(v).strip()
@@ -69,7 +69,7 @@ def _s(v):
 
 
 def is_epieos(obj):
-    """Risposta dell'API ({"result": {...}}) o involucro {"epieos": {...}}."""
+    """API response ({"result": {...}}) or wrapper {"epieos": {...}}."""
     if not isinstance(obj, dict):
         return False
     if isinstance(obj.get("epieos"), dict) and isinstance(obj["epieos"].get("result"), dict):
@@ -114,7 +114,7 @@ def _full_name(d):
 
 
 def _base(module, data, query, kind):
-    """Record generico di un modulo: etichetta, nomi, nick, id, email, telefoni."""
+    """Generic record of a module: label, names, nicks, id, emails, phones."""
     rec = {k: v for k, v in data.items() if k != "query"}
     rec["query"] = query
     rec["collection"] = module
@@ -133,10 +133,10 @@ def _base(module, data, query, kind):
         v = _s(data.get(k)).lstrip("@")
         if v and v not in usernames and "@" not in v:
             usernames.append(v)
-    # Identita' del profilo: l'userid univoco del servizio. Senza id, il nick;
-    # senza nemmeno il nick, il nome. Regola dell'analista (2026-10-09): il
-    # profilo social riporta nome, userid e tutte le caratteristiche nella sua
-    # scheda; non si creano nodi persona dai profili.
+    # Identity of the profile: the unique userid of the service. Without an id, the
+    # nick; without even the nick, the name. Analyst's rule (2026-10-09): the
+    # social profile carries name, userid and all its attributes in its card;
+    # no person nodes are created from profiles.
     idents = []
     for k in ID_KEYS:
         v = _s(data.get(k))
@@ -190,11 +190,11 @@ def _base(module, data, query, kind):
         elif "phone" in k.lower() or PHONE_RE.fullmatch(v):
             phones.append(v)
         elif k.lower() in ("twitter", "facebook", "instagram", "x"):
-            usernames.append(v.lstrip("@"))   # handle social di foursquare
+            usernames.append(v.lstrip("@"))   # foursquare social handle
         elif not v.startswith("http"):
             usernames.append(v.lstrip("@"))
     rec["label"] = label or module
-    # caratteristiche del profilo in chiavi fisse (scheda ed export FtM UserAccount)
+    # profile attributes in fixed keys (card and FtM UserAccount export)
     rec["profile_name"] = _full_name(data)
     rec["profile_username"] = usernames[0] if usernames else ""
     rec["profile_id"] = idents[0].split(":", 1)[1] if idents and idents[0].startswith(f"{module}id:") else ""
@@ -207,11 +207,11 @@ def _base(module, data, query, kind):
     rec["phones"] = list(dict.fromkeys(p for p in phones if p))
     checker = module in CHECKERS or not (names or usernames or idents)
     if checker:
-        # La scheda descrive l'identificativo cercato e si aggancia al suo nodo
-        # (email o telefono); nessun nome-nodo dall'etichetta. Per un telefono
-        # la categoria 'checker' porta la scheda sul nodo del numero; per una
-        # email la scheda va sul nodo email e i telefoni trovati (recupero
-        # account) restano nodi collegati.
+        # The card describes the searched identifier and attaches to its node
+        # (email or phone); no name node from the label. For a phone the
+        # 'checker' category puts the card on the number's node; for an
+        # email the card goes on the email node and the phones found (account
+        # recovery) stay linked nodes.
         rec["label"] = ""
         rec["category_id"] = "checker" if kind == "phone" else "account"
         if kind == "email" and query not in rec["emails"]:
@@ -222,8 +222,8 @@ def _base(module, data, query, kind):
 
 
 def to_records(obj):
-    """Risposta Epieos -> record per handle_record (uno per modulo, piu' quelli
-    derivati: altri account Facebook, account Skype/Flickr, profili Gravatar)."""
+    """Epieos response -> records for handle_record (one per module, plus the
+    derived ones: other Facebook accounts, Skype/Flickr accounts, Gravatar profiles)."""
     meta, result = unwrap(obj)
     query, kind = _s(meta.get("query")), meta.get("kind") or ""
     out = []
@@ -235,7 +235,7 @@ def to_records(obj):
         q = _s(data.get("query")) or query
         if not kind:
             kind = "email" if "@" in q else "phone"
-        # moduli 'trovato/non trovato': niente scheda se non trovato
+        # 'found/not found' modules: no card if not found
         if _s(data.get("found")).lower() == "false" or _s(data.get("exists")).lower() == "false":
             continue
         if module in ("skype", "flickr") and isinstance(data.get("accounts"), list):
@@ -254,7 +254,7 @@ def to_records(obj):
                 if _s(acc.get("profile_url")):
                     sub["profile"] = _s(acc["profile_url"])
                 out.append(_base("gravatar", sub, q, kind))
-                # profili collegati dichiarati sul Gravatar (domain, url, userid)
+                # linked profiles declared on the Gravatar (domain, url, userid)
                 for link in (acc.get("accounts") or []):
                     if not isinstance(link, dict):
                         continue
@@ -308,7 +308,7 @@ def to_records(obj):
 
 
 def summary(obj):
-    """Conteggi per il riepilogo: moduli con risultato e record prodotti."""
+    """Counts for the summary: modules with a result and records produced."""
     meta, result = unwrap(obj)
     found = [m for m, d in result.items() if isinstance(d, dict) and d
              and _s(d.get("found")).lower() != "false" and _s(d.get("exists")).lower() != "false"]

@@ -22,31 +22,31 @@ from .core import _flat, _hash, NodeError
 from .transliteration import WORD_RE
 
 
-# ---------------------------------------------------------------- LUOGHI ---
-# Chiavi che contengono un luogo vero (città, indirizzo, provenienza).
+# ---------------------------------------------------------------- PLACES ---
+# Keys that hold a real place (city, address, origin).
 PLACE_KEYS = {"location", "locations", "address", "addresses", "last_address",
               "hometown", "city", "town", "street", "birthplace", "residence"}
-# Sottoalberi da NON esplorare: contengono il paese dell'OPERATORE telefonico,
-# non del soggetto. Compare in centinaia di schede e creerebbe un nodo unico
-# collegato a tutto (es. «Libyan Arab Jamahiriya»), inutile e fuorviante.
+# Subtrees NOT to explore: they hold the country of the phone CARRIER, not of
+# the subject. It appears in hundreds of cards and would create a single node
+# linked to everything (e.g. «Libyan Arab Jamahiriya»), useless and misleading.
 PLACE_SKIP_SUBTREE = {"original_network_details", "current_network_details",
                       "network_details", "sea", "seacomcousub", "seawik",
                       "cheact", "gcon", "raw"}
-# valori che sembrano luoghi ma non lo sono
+# values that look like places but are not
 PLACE_STOP = {"true", "false", "none", "null", "n/a", "na", "unknown",
               "available", "not_applicable", "home", "work", "other"}
-# Sottoinsieme di PLACE_KEYS che contiene un recapito preciso (non una citta).
+# Subset of PLACE_KEYS that holds a precise address (not a city).
 ADDRESS_KEYS = {"address", "addresses", "last_address", "street", "residence"}
-# Parole che rivelano un indirizzo vero e proprio (via, civico, palazzina...).
-# Solo parole intere e non ambigue: le sigle (st, rd, dr...) sono in STREET_ABBR
-# perche' da sole comparirebbero anche in nomi di citta' ("St. Petersburg").
+# Words that reveal an actual address (street, house number, building...).
+# Only whole, unambiguous words: abbreviations (st, rd, dr...) are in STREET_ABBR
+# because on their own they would also match city names ("St. Petersburg").
 STREET_RE = re.compile(
     r"(?i)(?:^|[\s,.-])(via|viale|vicolo|piazza|piazzale|corso|largo|strada|"
     r"contrada|borgo|street|road|avenue|boulevard|lane|drive|square|highway|"
     r"route|rue|calle|avenida|carrera|strasse|straße|platz|sharia|tariq|"
     r"zanqat|zenkat|block|building|apartment|floor|interno|civico|piano)"
     r"(?:[\s,.]|$)")
-# Sigle di indirizzo: valgono solo se nell'etichetta c'e' anche un numero civico.
+# Address abbreviations: they count only if the label also has a house number.
 STREET_ABBR = re.compile(
     r"(?i)(?:^|[\s,.-])(v\.le|p\.zza|st|str|rd|ave|blvd|ln|dr|sq|hwy|rte|apt|"
     r"bldg|km|n|no|nr)(?:[\s,.]|$)")
@@ -61,18 +61,18 @@ def _valid_coord(lat, lon):
         return None
     if not (-90 <= la <= 90) or not (-180 <= lo <= 180):
         return None
-    if la == 0 and lo == 0:                       # coordinata nulla: non è un luogo
+    if la == 0 and lo == 0:                       # null coordinate: not a place
         return None
     return f"{la:.6f}".rstrip("0").rstrip("."), f"{lo:.6f}".rstrip("0").rstrip(".")
 
 
 def collect_places(o, out=None, key=""):
-    """Estrae dai dati grezzi di una scheda i luoghi citati.
-    Ritorna una lista di {'label': ..., 'lat': ..., 'lon': ...} senza duplicati."""
+    """Extracts the places mentioned in the raw data of a card.
+    Returns a list of {'label': ..., 'lat': ..., 'lon': ...} without duplicates."""
     if out is None:
         out = []
     if isinstance(o, dict):
-        # un oggetto con latitudine e longitudine è un luogo, con la sua etichetta
+        # an object with latitude and longitude is a place, with its label
         pair = _valid_coord(o.get("latitude", o.get("lat")),
                             o.get("longitude", o.get("lon", o.get("lng"))))
         if pair:
@@ -111,11 +111,11 @@ def collect_places(o, out=None, key=""):
 
 
 def place_is_address(label, lat=None, lon=None, key=""):
-    """True se il luogo e' un RECAPITO (indirizzo o punto sulla mappa), non una
-    generica citta/regione. Solo un recapito puo' collegare fra loro schede
-    diverse: "Tripoli" o "Libya" ricorrono in centinaia di schede e creerebbero
-    un nodo-calamita che unisce persone che non c'entrano nulla."""
-    if lat and lon:                       # un punto sulla mappa e' gia' preciso
+    """True if the place is an ADDRESS (street address or point on the map), not a
+    generic city/region. Only an address can link different cards together:
+    "Tripoli" or "Libya" recur in hundreds of cards and would create a magnet
+    node joining people who have nothing to do with each other."""
+    if lat and lon:                       # a point on the map is already precise
         return True
     s = re.sub(r"\s+", " ", str(label or "")).strip()
     if len(s) < 4:
@@ -126,18 +126,18 @@ def place_is_address(label, lat=None, lon=None, key=""):
     if has_num and STREET_ABBR.search(s):  # "12 Green St", "Blvd 7, apt 3"
         return True
     if str(key or "").lower() in ADDRESS_KEYS:
-        # campo 'address': vale come recapito solo se ha un civico e piu' parti
+        # 'address' field: counts as an address only with a house number and several parts
         return has_num and len(s.split()) >= 2
     return False
 
 
-# ------------------------------------------------ PERSONE: nome e nascita ---
-# Una persona e' identificata da nome e cognome + data di nascita (facoltativa):
-#   con la data   -> person:<nome normalizzato>|AAAA-MM-GG   (nodo univoco)
-#   senza la data -> name:<nome normalizzato>
-# Il nome normalizzato non dipende dall'ordine ("Rossi Mario" = "Mario Rossi").
-# Un nodo con il solo nome si collega con un tratteggio alle persone con lo
-# stesso nome e una data di nascita (link_persons).
+# ------------------------------------------------ PEOPLE: name and birth ---
+# A person is identified by first name and surname + date of birth (optional):
+#   with the date    -> person:<normalised name>|YYYY-MM-DD   (unique node)
+#   without the date -> name:<normalised name>
+# The normalised name does not depend on order ("Rossi Mario" = "Mario Rossi").
+# A name-only node is linked with a dashed line to the people with the same
+# name and a date of birth (link_persons).
 _BIRTH_FORMATS = ("%Y-%m-%d", "%d/%m/%Y", "%d.%m.%Y", "%d-%m-%Y", "%d/%m/%y", "%Y/%m/%d")
 
 
@@ -146,7 +146,7 @@ def person_key(full):
 
 
 def parse_birth(value):
-    """'12/03/1980', '1980-03-12', '12.03.1980' -> '1980-03-12'; '' se vuota."""
+    """'12/03/1980', '1980-03-12', '12.03.1980' -> '1980-03-12'; '' if empty."""
     v = re.sub(r"\s+", "", str(value or ""))
     if not v:
         return ""
@@ -176,8 +176,8 @@ def person_label(full, birth=""):
 
 
 def link_persons(g):
-    """Tratteggio 'stesso nome' fra un nodo con il solo nome e le persone con
-    lo stesso nome e una data di nascita."""
+    """Dashed 'same name' link between a name-only node and the people with
+    the same name and a date of birth."""
     datate, solo_nome = {}, {}
     for n in g["nodes"]:
         nid = n["id"]
@@ -197,11 +197,11 @@ def link_persons(g):
     return g
 
 
-# ------------------------------------------- INDIRIZZI: citta' / via / civico ---
-# Due luoghi con citta', via e civico uguali sono lo STESSO luogo (un nodo solo);
-# con citta' e via uguali ma civico diverso si collegano con un tratteggio.
-# Il confronto si fa su una forma normalizzata, cosi' "Via S. Stefano nr. 55"
-# e "via Santo Stefano 55" coincidono.
+# ---------------------------------- ADDRESSES: city / street / house number ---
+# Two places with the same city, street and house number are the SAME place (one
+# node); same city and street but a different house number get a dashed link.
+# The comparison uses a normalised form, so "Via S. Stefano nr. 55"
+# and "via Santo Stefano 55" match.
 _ABBR_VIA = [
     (r"v\.?\s*le", "viale"), (r"p\.?\s*zz?a", "piazza"), (r"p\.?\s*le", "piazzale"),
     (r"c\.?\s*so", "corso"), (r"l\.?\s*go", "largo"), (r"v\.?\s*lo", "vicolo"),
@@ -210,22 +210,22 @@ _ABBR_VIA = [
     (r"blvd", "boulevard"), (r"sq", "square"), (r"v", "via"),
 ]
 _ABBR_RE = [(re.compile(rf"^{a}(?:\.|\s|$)\s*", re.I), f"{b} ") for a, b in _ABBR_VIA]
-# "S." / "S" / "San" / "Santo" / "Santa" davanti a un nome: si confrontano uguali
+# "S." / "S" / "San" / "Santo" / "Santa" before a name: they compare as equal
 _SANTO_RE = re.compile(r"\b(s|ss|san|santo|santa|sant)\b\.?\s*'?\s*", re.I)
-# civico in fondo ("Via Roma 12", "Via Roma, n. 12/b") o in testa ("12 Main St")
+# house number at the end ("Via Roma 12", "Via Roma, n. 12/b") or at the start ("12 Main St")
 _CIVICO_FINE = re.compile(
     r"^(.*?\D)[\s,]*(?:\b(?:n|nr|no|num|numero|civico)\b\.?\s*)?"
     r"(\d{1,5}(?:\s*[/-]?\s*[a-z]\b|\s*/\s*\d{1,4})?)\s*$", re.I)
 _CIVICO_INIZIO = re.compile(r"^(\d{1,5}[a-z]?)[\s,]+(\D.*)$", re.I)
 
 
-_LATIN_DIACRITICS = _rx.compile(r"[\u0300-\u036F]")   # solo i diacritici latini/cirillici/greci
+_LATIN_DIACRITICS = _rx.compile(r"[\u0300-\u036F]")   # only Latin/Cyrillic/Greek diacritics
 
 
 def _fold(s):
-    """minuscole, senza accenti latini, spazi compattati. I segni combinanti
-    delle scritture indiane, thai e giapponese (vocali, virama, dakuten) sono
-    parte della parola e restano: toglierli spezzava e confondeva i nomi."""
+    """Lower case, no Latin accents, collapsed spaces. The combining marks of
+    Indic, Thai and Japanese scripts (vowel signs, virama, dakuten) are part of
+    the word and stay: removing them broke names apart and mixed them up."""
     s = unicodedata.normalize("NFKD", str(s or "")).casefold()
     s = _LATIN_DIACRITICS.sub("", s)
     s = unicodedata.normalize("NFC", s)
@@ -247,8 +247,8 @@ def split_civico(address):
     return a, ""
 
 
-# Tipi di via (toponimi): nel modulo si scelgono dalla tendina e NON contano nel
-# confronto, cosi' "Via Giacomo Leopardi" e "Giacomo Leopardi" sono la stessa via.
+# Street types: in the form they are picked from the drop-down and do NOT count in
+# the comparison, so "Via Giacomo Leopardi" and "Giacomo Leopardi" are the same street.
 STREET_TYPES = [
     "via", "viale", "piazza", "piazzale", "piazzetta", "corso", "largo", "vicolo",
     "vico", "strada", "stradone", "contrada", "localita", "frazione", "borgo",
@@ -263,8 +263,8 @@ _TYPE_TAIL = re.compile(r"\s*\b(?:street|road|avenue|lane|drive|square|way|place
 
 
 def norm_street(street):
-    """Chiave di confronto di una via: abbreviazioni sciolte, 'S.' = 'San',
-    senza il tipo di via (via, piazza, street...), che non conta."""
+    """Comparison key of a street: abbreviations expanded, 'S.' = 'San',
+    without the street type (via, piazza, street...), which does not count."""
     s = re.sub(r"\s+", " ", str(street or "")).strip()
     for rx, full in _ABBR_RE:
         if rx.match(s):
@@ -273,7 +273,7 @@ def norm_street(street):
     s = _SANTO_RE.sub("san ", s)
     s = _fold(s)
     nome = _TYPE_TAIL.sub("", _TYPE_HEAD.sub("", s)).strip()
-    return nome or s                       # "Piazza" da sola resta com'e'
+    return nome or s                       # "Piazza" on its own stays as it is
 
 
 def _initials(street_key):
@@ -281,7 +281,7 @@ def _initials(street_key):
 
 
 def streets_match(a, b):
-    """Stessa via a meno delle iniziali: 'g leopardi' ~ 'giacomo leopardi'."""
+    """Same street up to initials: 'g leopardi' ~ 'giacomo leopardi'."""
     wa, wb = a.split(), b.split()
     if len(wa) != len(wb):
         return False
@@ -297,10 +297,10 @@ def streets_match(a, b):
 
 
 def canon_streets(keys):
-    """{(citta', via): via canonica} per un insieme di chiavi (citta', via).
-    Una via con iniziali ('g leopardi') diventa la via completa compatibile
-    della stessa citta' ('giacomo leopardi'), ma solo se questa e' UNICA:
-    con 'giacomo leopardi' e 'giovanni leopardi' l'iniziale resta com'e'."""
+    """{(city, street): canonical street} for a set of (city, street) keys.
+    A street with initials ('g leopardi') becomes the compatible full street
+    of the same city ('giacomo leopardi'), but only if that one is UNIQUE:
+    with 'giacomo leopardi' and 'giovanni leopardi' the initial stays as it is."""
     per_city = {}
     for c, s in keys:
         per_city.setdefault(c, set()).add(s)
@@ -323,15 +323,15 @@ def norm_civico(civico):
 
 
 def norm_city(city):
-    # si tolgono CAP e sigla di provincia: "25100 Brescia (BS)" -> "brescia"
+    # postcode and province code are removed: "25100 Brescia (BS)" -> "brescia"
     c = re.sub(r"\(\s*[A-Za-z]{2}\s*\)|\b\d{4,6}\b", " ", str(city or ""))
     return _fold(c)
 
 
 def place_parts(node):
-    """(citta', via, civico) di un nodo luogo, None se non ha una via.
-    Nodi aggiunti a mano: campi citta'/indirizzo/civico. Nodi dai dati:
-    etichetta libera 'Via Roma 12, Brescia' (o 'Brescia — Via Roma 12')."""
+    """(city, street, house number) of a place node, None if it has no street.
+    Nodes added by hand: fields citta/indirizzo/civico. Nodes from the data:
+    free label 'Via Roma 12, Brescia' (or 'Brescia — Via Roma 12')."""
     raw = {}
     for r in node.get("records") or []:
         if isinstance(r.get("raw"), dict) and r.get("collection") == "aggiunto a mano":
@@ -341,11 +341,11 @@ def place_parts(node):
     if not city:
         parts = [p.strip() for p in re.split(r"\s+[—–]\s+|,", str(node.get("label") or ""))
                  if p.strip()]
-        # la via: la parte con una parola da indirizzo (via, piazza, street...)
+        # the street: the part with an address word (via, piazza, street...)
         via = next((p for p in parts if STREET_RE.search(" " + p + " ")), "")
         if not via:
             return None
-        # la citta': la prima altra parte che, tolto il CAP, non ha numeri
+        # the city: the first other part that, once the postcode is removed, has no digits
         altri = [re.sub(r"\b\d{4,6}\b", "", p).strip() for p in parts if p != via]
         city = next((p for p in altri if p and not re.search(r"\d", p)), "")
         addr = via
@@ -357,8 +357,8 @@ def place_parts(node):
 
 
 def merge_places(g):
-    """Unisce i luoghi con citta', via e civico uguali e collega con un
-    tratteggio quelli con citta' e via uguali ma civico diverso."""
+    """Merges the places with the same city, street and house number and links
+    with a dashed line those with the same city and street but another number."""
     parts = {}
     for n in g["nodes"]:
         if n.get("ntype") == "place":
@@ -367,11 +367,11 @@ def merge_places(g):
                 parts[n["id"]] = p
     if not parts:
         return g
-    # 'Via G. Leopardi' e 'Via Giacomo Leopardi' della stessa citta': stessa via
+    # 'Via G. Leopardi' and 'Via Giacomo Leopardi' in the same city: same street
     canon = canon_streets({(c, s) for c, s, _ in parts.values()})
     parts = {nid: (c, canon[(c, s)], v) for nid, (c, s, v) in parts.items()}
 
-    # 1) stesso indirizzo completo -> un nodo solo
+    # 1) same full address -> a single node
     full = {}
     for nid, (c, s, v) in parts.items():
         if v:
@@ -381,9 +381,9 @@ def merge_places(g):
     for ids in full.values():
         if len(ids) < 2:
             continue
-        # il nodo che resta deve essere STABILE (le note, le posizioni e i
-        # collegamenti sono legati al suo id): prima quello dei dati, poi una
-        # voce originale (non una scheda aggiunta, id con '~'), poi la piu' vecchia
+        # the node that stays must be STABLE (notes, positions and links are
+        # tied to its id): first the one from the data, then an original entry
+        # (not an added card, id with '~'), then the oldest
         def _at(i):
             recs = by_id[i].get("records") or [{}]
             return str((recs[0].get("raw") or {}).get("aggiunto_il") or "")
@@ -430,17 +430,17 @@ def merge_places(g):
         seen.add(key)
         edges.append(e)
 
-    # 2) stessa citta' e stessa via, civico diverso -> tratteggio
+    # 2) same city and same street, different house number -> dashed link
     streets = {}
     for nid, (c, s, v) in parts.items():
         if nid in alias:
             continue
-        streets.setdefault((c, s), {}).setdefault(v, nid)   # un nodo per civico
+        streets.setdefault((c, s), {}).setdefault(v, nid)   # one node per house number
     for group in streets.values():
         ids = [group[v] for v in sorted(group, key=lambda x: (len(x), x))]
         if len(ids) < 2:
             continue
-        # fino a 6 civici tutti con tutti, oltre una catena in ordine di civico
+        # up to 6 house numbers all with all, beyond that a chain in house-number order
         pairs = ([(a, b) for i, a in enumerate(ids) for b in ids[i + 1:]]
                  if len(ids) <= 6 else list(zip(ids, ids[1:])))
         for a, b in pairs:
@@ -450,7 +450,7 @@ def merge_places(g):
     return {"nodes": nodes, "edges": edges}
 
 
-# etichette che nelle rubriche non sono nomi di persona
+# labels that in address books are not personal names
 NAME_STOP = {
     "unknown", "sconosciuto", "no name", "noname", "null", "none", "n/a", "na",
     "spam", "telemarketing", "private", "privato", "anonimo", "anonymous",

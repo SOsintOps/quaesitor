@@ -9,22 +9,22 @@
 # any later version, with the additional terms in the file NOTICE.
 # See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
 
-"""Traduzioni dei tipi investigativi (ontology.py): nomi dei tipi, gruppi,
-campi, esempi e voci delle tendine.
+"""Translations of the investigative types (ontology.py): type names, groups,
+fields, examples and drop-down entries.
 
-Il VALORE salvato resta sempre quello italiano (e' l'identita' del dato: serve
-al confronto fra nodi, all'AI e alla ricerca); si traduce solo cio' che si
-mostra. Le voci universali (valute, calibri, marchi come Visa o Bitcoin) non
-compaiono: restano come sono.
+The saved VALUE always stays the Italian one (it is the identity of the data: it
+serves node comparison, the AI and search); only what is shown gets translated.
+Universal entries (currencies, calibres, brands such as Visa or Bitcoin) do not
+appear: they stay as they are.
 
-Ogni riga: italiano -> (inglese, francese, tedesco, spagnolo, arabo).
+Each row: Italian -> (English, French, German, Spanish, Arabic).
 """
 # "Nemo solus satis sapit." (Plautus, Miles Gloriosus)
 # No one is wise enough on his own.
 LANGS = ("en", "fr", "de", "es", "ar")
 
 ROWS = {
-    # ------------------------------------------------------------- tipi
+    # ------------------------------------------------------------ types
     "Arma": ("Weapon", "Arme", "Waffe", "Arma", "سلاح"),
     "Esplosivo / ordigno": ("Explosive / device", "Explosif / engin", "Sprengstoff / Sprengkörper",
                             "Explosivo / artefacto", "متفجرات / عبوة"),
@@ -53,7 +53,7 @@ ROWS = {
     "Evento / reato": ("Event / offence", "Événement / infraction", "Ereignis / Straftat", "Evento / delito",
                        "حدث / جريمة"),
     "Immobile": ("Real estate", "Bien immobilier", "Immobilie", "Inmueble", "عقار"),
-    # ----------------------------------------------------------- gruppi
+    # ----------------------------------------------------------- groups
     "Armi": ("Weapons", "Armes", "Waffen", "Armas", "أسلحة"),
     "Stupefacenti": ("Drugs", "Stupéfiants", "Betäubungsmittel", "Estupefacientes", "مخدرات"),
     "Valori": ("Valuables", "Valeurs", "Wertsachen", "Valores", "مقتنيات ثمينة"),
@@ -66,7 +66,7 @@ ROWS = {
     "Immobili": ("Real estate", "Biens immobiliers", "Immobilien", "Inmuebles", "عقارات"),
     "Elementi investigativi": ("Investigative items", "Éléments d'enquête", "Ermittlungsobjekte",
                                "Elementos de investigación", "عناصر التحقيق"),
-    # ------------------------------------------------------------ campi
+    # ----------------------------------------------------------- fields
     "Categoria": ("Category", "Catégorie", "Kategorie", "Categoría", "الفئة"),
     "Marca": ("Make", "Marque", "Marke", "Marca", "الماركة"),
     "Modello": ("Model", "Modèle", "Modell", "Modelo", "الطراز"),
@@ -149,7 +149,7 @@ ROWS = {
     "Indirizzo": ("Address", "Adresse", "Adresse", "Dirección", "العنوان"),
     "Dati catastali (foglio / particella / sub)": ("Land registry data", "Données cadastrales",
                                                    "Katasterdaten", "Datos catastrales", "بيانات السجل العقاري"),
-    # ---------------------------------------------------------- esempi
+    # -------------------------------------------------------- examples
     "es. Beretta": ("e.g. Beretta", "ex. Beretta", "z. B. Beretta", "p. ej. Beretta", "مثال: Beretta"),
     "es. 92FS": ("e.g. 92FS", "ex. 92FS", "z. B. 92FS", "p. ej. 92FS", "مثال: 92FS"),
     "numero di matricola": ("serial number", "numéro de série", "Seriennummer", "número de serie", "الرقم التسلسلي"),
@@ -171,7 +171,7 @@ ROWS = {
                                                "p. ej. Fiscalía de Nápoles", "مثال: النيابة العامة في نابولي"),
     "es. ufficiale di PG": ("e.g. police officer", "ex. officier de police judiciaire", "z. B. Kriminalbeamter",
                             "p. ej. agente de policía judicial", "مثال: ضابط الشرطة القضائية"),
-    # ---------------------------------------------------- voci: armi
+    # ---------------------------------------------- entries: weapons
     "Pistola semiautomatica": ("Semi-automatic pistol", "Pistolet semi-automatique", "Halbautomatische Pistole",
                                "Pistola semiautomática", "مسدس نصف آلي"),
     "Revolver": ("Revolver", "Revolver", "Revolver", "Revólver", "مسدس دوار"),
@@ -206,7 +206,7 @@ ROWS = {
                           "مبلغ عن سرقته"),
     "Rinvenuta": ("Found", "Retrouvée", "Aufgefunden", "Hallada", "عثر عليه"),
     "Consegnata": ("Handed over", "Remise", "Abgegeben", "Entregada", "تم تسليمه"),
-    # ------------------------------------------------ voci: esplosivi
+    # -------------------------------------------- entries: explosives
     "Dinamite": ("Dynamite", "Dynamite", "Dynamit", "Dinamita", "ديناميت"),
     "TNT (tritolo)": ("TNT", "TNT (tolite)", "TNT", "TNT (trilita)", "TNT"),
     "Esplosivo plastico (C4 / Semtex)": ("Plastic explosive (C4 / Semtex)", "Explosif plastique (C4 / Semtex)",
@@ -230,7 +230,7 @@ ROWS = {
                                       "Illegale Pyrotechnik", "Pirotecnia ilegal", "ألعاب نارية غير قانونية"),
     "pezzi": ("pieces", "pièces", "Stück", "piezas", "قطع"),
     "metri": ("metres", "mètres", "Meter", "metros", "أمتار"),
-    # ---------------------------------------------- voci: stupefacenti
+    # -------------------------------------------------- entries: drugs
     "Cocaina": ("Cocaine", "Cocaïne", "Kokain", "Cocaína", "كوكايين"),
     "Crack": ("Crack", "Crack", "Crack", "Crack", "كراك"),
     "Eroina": ("Heroin", "Héroïne", "Heroin", "Heroína", "هيروين"),
@@ -276,7 +276,7 @@ ROWS = {
     "piante": ("plants", "plants", "Pflanzen", "plantas", "نباتات"),
     "francobolli": ("blotters", "buvards", "Trips", "secantes", "ورقات"),
     "confezioni": ("packs", "paquets", "Packungen", "paquetes", "عبوات"),
-    # ------------------------------------------ voci: valori e finanza
+    # ---------------------------------- entries: valuables and finance
     "Assegno bancario": ("Bank cheque", "Chèque bancaire", "Bankscheck", "Cheque bancario", "شيك مصرفي"),
     "Assegno circolare": ("Cashier's cheque", "Chèque de banque", "Bankbestätigter Scheck", "Cheque de caja",
                           "شيك مصدق"),
@@ -294,7 +294,7 @@ ROWS = {
     "Buoni fruttiferi": ("Savings bonds", "Bons d'épargne", "Sparbriefe", "Bonos de ahorro", "سندات ادخار"),
     "Beni di lusso": ("Luxury goods", "Produits de luxe", "Luxusgüter", "Bienes de lujo", "سلع فاخرة"),
     "Carta prepagata": ("Prepaid card", "Carte prépayée", "Prepaid-Karte", "Tarjeta prepago", "بطاقة مسبقة الدفع"),
-    # ------------------------------------------------ voci: documenti
+    # --------------------------------------------- entries: documents
     "Carta d'identità": ("Identity card", "Carte d'identité", "Personalausweis", "Documento de identidad",
                          "بطاقة الهوية"),
     "Passaporto": ("Passport", "Passeport", "Reisepass", "Pasaporte", "جواز سفر"),
@@ -378,7 +378,7 @@ ROWS = {
                                  "إنابة قضائية دولية"),
     "Relazione di servizio": ("Service report", "Rapport de service", "Dienstbericht", "Informe de servicio",
                               "تقرير خدمة"),
-    # ------------------------------------------------ voci: dispositivi
+    # ------------------------------------------------- entries: devices
     "Smartphone": ("Smartphone", "Smartphone", "Smartphone", "Smartphone", "هاتف ذكي"),
     "Cellulare": ("Mobile phone", "Téléphone portable", "Handy", "Teléfono móvil", "هاتف محمول"),
     "Tablet": ("Tablet", "Tablette", "Tablet", "Tableta", "جهاز لوحي"),
@@ -391,7 +391,7 @@ ROWS = {
     "Router / modem": ("Router / modem", "Routeur / modem", "Router / Modem", "Router / módem", "موجه / مودم"),
     "Dispositivo GPS": ("GPS device", "Appareil GPS", "GPS-Gerät", "Dispositivo GPS", "جهاز GPS"),
     "Criptofonino": ("Encrypted phone", "Téléphone crypté", "Kryptohandy", "Teléfono cifrado", "هاتف مشفر"),
-    # ------------------------------------------- voci: organizzazioni
+    # ----------------------------------------- entries: organisations
     "Società di capitali": ("Limited company", "Société de capitaux", "Kapitalgesellschaft", "Sociedad de capital",
                             "شركة أموال"),
     "Società di persone": ("Partnership", "Société de personnes", "Personengesellschaft", "Sociedad de personas",
@@ -405,7 +405,7 @@ ROWS = {
                      "عشيرة / عائلة مافيا"),
     "Organizzazione terroristica": ("Terrorist organization", "Organisation terroriste", "Terrororganisation",
                                     "Organización terrorista", "منظمة إرهابية"),
-    # ------------------------------------------------- voci: reati
+    # ------------------------------------------- entries: offences
     "Spaccio di stupefacenti": ("Drug dealing", "Trafic de stupéfiants (revente)", "Drogenhandel (Kleinhandel)",
                                 "Menudeo de drogas", "ترويج المخدرات"),
     "Traffico di stupefacenti": ("Drug trafficking", "Trafic de stupéfiants", "Drogenhandel",
@@ -459,7 +459,7 @@ ROWS = {
     "Arresto / fermo": ("Arrest", "Arrestation / garde à vue", "Festnahme", "Detención", "قبض / توقيف"),
     "Perquisizione / sequestro": ("Search / seizure", "Perquisition / saisie", "Durchsuchung / Beschlagnahme",
                                   "Registro / incautación", "تفتيش / حجز"),
-    # ------------------------------------------------- voci: immobili
+    # ------------------------------------------- entries: real estate
     "Appartamento": ("Flat", "Appartement", "Wohnung", "Piso", "شقة"),
     "Villa / casa indipendente": ("Detached house", "Maison individuelle", "Einfamilienhaus", "Chalet / casa",
                                   "فيلا / منزل مستقل"),
@@ -472,8 +472,8 @@ ROWS = {
 }
 
 
-# tipi Follow the Money (ontology_ftm.py): traduzioni dai cataloghi di FtM,
-# senza sovrascrivere le righe gia' presenti
+# Follow the Money types (generated/ontology_ftm.py): translations from the FtM
+# catalogues, without overwriting the rows already present
 try:
     from .generated.ontology_ftm import FTM_I18N as _FTM_I18N
     for _it, _tr in _FTM_I18N.items():
@@ -483,5 +483,5 @@ except ImportError:
 
 
 def table():
-    """{lingua: {testo italiano: traduzione}} per il client."""
+    """{language: {Italian text: translation}} for the client."""
     return {lang: {it: tr[i] for it, tr in ROWS.items()} for i, lang in enumerate(LANGS)}

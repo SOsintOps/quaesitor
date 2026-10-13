@@ -29,26 +29,26 @@ from .identifiers import build_graph
 from .labels import _cache, data_signature, relabel
 
 
-# ==================== ARCHIVIO (SQLite) ====================
-# Tutto cio' che l'utente crea o importa sta in data/osintgraph.db (vedi
-# store.py): nodi aggiunti a mano e schede, collegamenti, note, etichette,
-# nodi nascosti, viste salvate, dizionario di traslitterazione, JSON importati
-# da app terze e indice dei documenti. Su disco restano solo le immagini
-# caricate (data/media) e la configurazione dell'AI (chatbot.conf).
+# ==================== ARCHIVE (SQLite) ====================
+# Everything the user creates or imports lives in data/osintgraph.db (see
+# store.py): manually added nodes and cards, links, notes, labels,
+# hidden nodes, saved views, transliteration dictionary, JSON imported
+# from third-party apps and the document index. Only the uploaded images
+# (data/media) and the AI configuration (chatbot.conf) remain on disk.
 store.init(DATA_DIR)
 logging.info(f"Archivio: {store.path() or 'nessun caso aperto'} (caso {store.current_case()})")
 
-# Indice delle fonti (documenti indicizzati): nel database, chiave 'sources_index'.
+# Sources index (indexed documents): in the database, key 'sources_index'.
 SOURCES_BLOB = "sources_index"
-# cartella fonti predefinita: 'sources' ACCANTO all'eseguibile (tutto portabile;
-# 'fonti' nelle installazioni precedenti alla 1.8.0, vedi sources.sources_folder).
-# La creo subito così l'utente la trova e ci mette dentro i documenti.
+# default sources folder: 'sources' NEXT TO the executable (fully portable;
+# 'fonti' in installations before 1.8.0, see sources.sources_folder).
+# Created right away so the user finds it and puts the documents in it.
 SOURCES_DEFAULT = _src.sources_folder(BASE_DIR)
 try:
     os.makedirs(SOURCES_DEFAULT, exist_ok=True)
 except OSError as _e:
     logging.warning(f"Impossibile creare la cartella fonti {SOURCES_DEFAULT}: {_e}")
-_ocr_ok = _src.configure_ocr(BASE_DIR)   # cerca un Tesseract locale (tools/tesseract)
+_ocr_ok = _src.configure_ocr(BASE_DIR)   # look for a local Tesseract (tools/tesseract)
 logging.info(f"OCR {'attivo' if _ocr_ok else 'non disponibile'} "
              f"(cerco Tesseract in {os.path.join(BASE_DIR, 'tools', 'tesseract')}; lingue: {_src.OCR_LANG or 'predefinita'})")
 _sources_cache = {"idx": None}
@@ -59,7 +59,7 @@ def sources_index():
         try:
             _sources_cache["idx"] = store.get_blob(SOURCES_BLOB)
         except store.NoCaseError:
-            return None                           # nessun caso aperto: nessun indice
+            return None                           # no case open: no index
     return _sources_cache["idx"]
 
 
@@ -68,8 +68,8 @@ def _save_sources_index(index):
 
 
 def _clean_labels(raw):
-    """{'labels': {id: {label, orig, at}}} - accetta anche la forma breve
-    {id: 'nuova etichetta'} usata dai file scritti a mano."""
+    """{'labels': {id: {label, orig, at}}} - also accepts the short form
+    {id: 'new label'} used by hand-written files."""
     out = {}
     for k, v in (raw or {}).items():
         if isinstance(v, str):
@@ -87,10 +87,10 @@ def _clean_labels(raw):
 
 
 def load_annotations():
-    """Annotazioni dell'utente, dal database:
-    {'added': [...], 'links': [...], 'deleted': [...], 'notes': {id: testo},
+    """User annotations, from the database:
+    {'added': [...], 'links': [...], 'deleted': [...], 'notes': {id: text},
      'labels': {id: {...}}, 'edits': {id: {...}}, 'edge_styles': {id: {...}}}.
-    Si salvano con save_annotations, che scrive solo le differenze."""
+    Saved with save_annotations, which writes only the differences."""
     try:
         ann = store.load_annotations()
     except Exception as e:
@@ -114,7 +114,7 @@ def save_annotations(ann):
 
 
 def manual_node(a, note=None):
-    """Nodo del grafo corrispondente a una voce aggiunta a mano."""
+    """Graph node corresponding to a manually added entry."""
     nid = str(a.get("id"))
     ntype = a.get("ntype") or "generic"
     raw = {k: v for k, v in (("valore", a.get("value") if ntype not in onto.TYPES else None),
@@ -128,20 +128,20 @@ def manual_node(a, note=None):
                              ("latitudine", a.get("lat")), ("longitudine", a.get("lon")),
                              ("url", a.get("url")), ("testo", a.get("text")),
                              ("aggiunto_il", a.get("at"))) if v}
-    # colonne libere di un file importato: nella scheda con il nome della colonna
+    # free columns of an imported file: in the card under the column name
     extra = a.get("extra") if isinstance(a.get("extra"), dict) else {}
     for k, v in extra.items():
         if v and k not in raw:
             raw[k] = v
-    # foto aggiunta a mano: URL servito da /media/
+    # manually added photo: URL served from /media/
     img = None
     if ntype == "photo" and a.get("value"):
         img = "/media/" + quote(str(a["value"]).replace("\\", "/").lstrip("/"))
     fields = a.get("fields") if isinstance(a.get("fields"), dict) else {}
     if ntype in onto.TYPES and fields:
-        raw.update(onto.raw_of(ntype, fields))      # i campi leggibili nella scheda
+        raw.update(onto.raw_of(ntype, fields))      # the readable fields in the card
     if a.get("target"):
-        ntype = "target"                  # persona evidenziata come target
+        ntype = "target"                  # person highlighted as target
     node = {
         "id": nid, "label": a.get("label") or nid,
         "ntype": ntype,
@@ -152,29 +152,29 @@ def manual_node(a, note=None):
         "aliases": [], "alias_ids": [], "merged": 1, "cards": 1, "manual": True,
     }
     if a.get("url"):
-        node["url"] = a["url"]        # apribile con Alt+Click
+        node["url"] = a["url"]        # opens with Alt+Click
     if note:
         node["note"] = note
     if ntype in onto.TYPES:
-        node["ficon"] = onto.icon_of(ntype, fields)   # es. cannabis, siringa, passaporto
+        node["ficon"] = onto.icon_of(ntype, fields)   # e.g. cannabis, syringe, passport
     return node
 
 
 EDGE_ARROWS = {"none", "target", "source", "both"}
-# tutte le forme di linea di Cytoscape adatte a un collegamento con frecce
-# (resta fuori solo 'haystack', che le frecce non le disegna)
+# all Cytoscape line shapes suitable for a link with arrows
+# (only 'haystack' is left out, as it does not draw arrows)
 EDGE_CURVES = {"bezier", "straight", "unbundled-bezier", "segments",
                "round-segments", "taxi", "round-taxi", "straight-triangle"}
-# forme con uno snodo / una curvatura regolabile ('bend', in pixel)
+# shapes with an adjustable joint / curvature ('bend', in pixels)
 BEND_CURVES = {"unbundled-bezier", "segments", "round-segments"}
 DEFAULT_BEND = 40
 EDGE_LSTYLES = {"solid", "dashed", "dotted"}
 
 
 def edge_props(src, prefix=""):
-    """Proprieta' grafiche di un collegamento, validate.
-    'src' e' la richiesta o una voce di annotations.json; 'prefix' serve per le
-    voci 'added', dove le chiavi sono edge_label / edge_color / ... ."""
+    """Visual properties of a link, validated.
+    'src' is the request or an annotations.json entry; 'prefix' is for the
+    'added' entries, where the keys are edge_label / edge_color / ... ."""
     g = lambda k: src.get(prefix + k) if prefix and (prefix + k) in src else src.get(k)
     label = re.sub(r"\s+", " ", str(src.get(prefix + "label") or "")).strip()[:300]
     arrow = str(g("arrow") or "none").strip().lower()
@@ -189,7 +189,7 @@ def edge_props(src, prefix=""):
         bend = int(round(float(g("bend"))))
     except (TypeError, ValueError):
         bend = DEFAULT_BEND
-    # relazione Follow the Money: schema-arco + proprieta' (solo quelle previste)
+    # Follow the Money relation: edge schema + properties (only the expected ones)
     fschema = str(g("ftm") or "").strip()
     fprops = g("ftm_props")
     if isinstance(fprops, str) and fprops.strip():
@@ -218,7 +218,7 @@ def edge_props(src, prefix=""):
 
 
 def _store_props(entry, props, prefix=""):
-    """Scrive le proprieta' in una voce di annotations.json (senza chiavi vuote)."""
+    """Write the properties into an annotations.json entry (no empty keys)."""
     entry[prefix + "label"] = props["label"]
     for k in ("arrow", "curve"):
         entry[k] = props[k]
@@ -253,8 +253,8 @@ def manual_edge(parent, nid, rel=None, label="", arrow="none", curve="bezier",
 
 
 def _edge_with_props(e, p):
-    """Copia dell'arco con le proprieta' grafiche: solo quelle impostate, cosi'
-    lo stile predefinito (o quello del tipo di relazione) resta valido."""
+    """Copy of the edge with the visual properties: only those set, so the
+    default style (or that of the relation type) stays in effect."""
     e = dict(e)
     for k in ("label", "arrow", "curve", "color", "lstyle", "width", "bend", "ftm", "ftm_props"):
         e.pop(k, None)
@@ -283,10 +283,9 @@ EXTRA_COLLECTION = "campi aggiunti"
 
 
 def _set_path(raw, path, value):
-    """Imposta (o toglie, con value=None) il valore indicato dal percorso
-    'a.b[0].c' usato dalle schede. Se il percorso non si risolve (chiave con
-    un punto nel nome, struttura diversa) si lavora sulla chiave di primo
-    livello scritta per intero."""
+    """Set (or remove, with value=None) the value at the path 'a.b[0].c'
+    used by the cards. If the path does not resolve (key with a dot in its
+    name, different structure) the full path is used as a top-level key."""
     toks = [(m.group(1), m.group(2)) for m in _PATH_TOK.finditer(path)]
     cur = raw
     try:
@@ -313,10 +312,10 @@ def _set_path(raw, path, value):
 
 
 def apply_node_edits(g, edits):
-    """Valori delle schede modificati a mano (annotations.json -> 'edits').
-    I file di origine non si toccano: le modifiche si applicano a una copia.
-    Formato: {id: {"fields": {"<n. scheda>|<percorso>": valore o null},
-                   "extra": {campo: valore}, "url": "..."}}"""
+    """Card values edited by hand (annotations.json -> 'edits').
+    The source files are not touched: the edits are applied to a copy.
+    Format: {id: {"fields": {"<card no.>|<path>": value or null},
+                  "extra": {field: value}, "url": "..."}}"""
     if not edits:
         return
     for i, n in enumerate(g["nodes"]):
@@ -350,9 +349,9 @@ def apply_node_edits(g, edits):
 
 
 def apply_targets(g, targets):
-    """Spunta «Evidenzia come target» cambiata a mano nella modifica del nodo:
-    True = il nodo diventa un target (qualunque sia il suo tipo), False = non
-    lo e' piu' (un target dei dati di origine torna una persona)."""
+    """«Highlight as target» checkbox changed by hand in the node editor:
+    True = the node becomes a target (whatever its type), False = it no
+    longer is (a target from the source data goes back to being a person)."""
     if not targets:
         return g
     for i, n in enumerate(g["nodes"]):
@@ -367,8 +366,8 @@ def apply_targets(g, targets):
 
 
 def apply_annotations(graph):
-    """Applica note e cancellazioni al grafo in cache, senza ricostruirlo.
-    Ritorna una copia: la cache resta il grafo 'puro' dei dati di origine."""
+    """Apply notes and deletions to the cached graph, without rebuilding it.
+    Returns a copy: the cache stays the 'pure' graph of the source data."""
     ann = load_annotations()
     notes, deleted = ann["notes"], deleted_ids(ann)
     labels = ann.get("labels") or {}
@@ -377,7 +376,7 @@ def apply_annotations(graph):
     for n in graph["nodes"]:
         if n["id"] in deleted:
             continue
-        # un nodo fuso resta valido se l'id cancellato era solo un suo alias
+        # a merged node stays valid if the deleted id was only one of its aliases
         if deleted and any(a in deleted for a in (n.get("alias_ids") or [])):
             n = dict(n)
             n["alias_ids"] = [a for a in n["alias_ids"] if a not in deleted]
@@ -387,20 +386,20 @@ def apply_annotations(graph):
             n["note"] = note
         nodes.append(n)
 
-    # nodi aggiunti a mano dalle schede
+    # nodes added by hand from the cards
     by_id = {n["id"]: n for n in nodes}
     pos = {n["id"]: i for i, n in enumerate(nodes)}
     manual_edges = []
-    scheda_di = {}                  # id di una scheda aggiunta -> id del suo nodo
+    scheda_di = {}                  # id of an added card -> id of its node
     for a in ann.get("added", []):
         nid = str(a.get("id") or "")
         if not nid or nid in deleted:
             continue
-        # scheda in piu' di un nodo esistente: id '<id del nodo>~xxxxxx'
+        # extra card of an existing node: id '<node id>~xxxxxx'
         base = nid.split("~")[0] if "~" in nid else nid
         if base in by_id:
-            # il nodo c'e' gia' (dai JSON importati o da una voce precedente):
-            # la voce diventa una SCHEDA in piu' di quel nodo
+            # the node already exists (from the imported JSON or an earlier entry):
+            # the entry becomes an extra CARD of that node
             mine = manual_node(a)
             node = dict(by_id[base])
             node["records"] = list(node.get("records") or []) + mine["records"]
@@ -411,8 +410,8 @@ def apply_annotations(graph):
                 node["merged"] = (node.get("merged") or 1) + 1
                 scheda_di[nid] = base
             else:
-                # la voce manuale da' nome e tipo al nodo (il nodo "dei dati" con
-                # lo stesso id e' l'aggancio di un JSON importato)
+                # the manual entry gives the node its name and type (the "data" node
+                # with the same id is the anchor of an imported JSON)
                 node["label"] = mine["label"]
                 node["ntype"], node["platform"] = mine["ntype"], mine["platform"]
             if mine["ntype"] == "target":
@@ -433,7 +432,7 @@ def apply_annotations(graph):
                 parent, nid, a.get("rel"), edge_id=a.get("edge_id"),
                 props=edge_props(a, "edge_")))
 
-    # collegamenti creati a mano fra nodi esistenti
+    # links created by hand between existing nodes
     for l in ann.get("links", []):
         a, b = str(l.get("a") or ""), str(l.get("b") or "")
         a, b = scheda_di.get(a, a), scheda_di.get(b, b)
@@ -453,8 +452,8 @@ def apply_annotations(graph):
     for e in manual_edges:
         eid = e["id"]
         if eid in have:
-            # id gia' usato (vecchi collegamenti senza id proprio): suffisso
-            # DETERMINISTICO, cosi' l'arco mantiene lo stesso id a ogni lettura
+            # id already used (old links without their own id): DETERMINISTIC
+            # suffix, so the edge keeps the same id on every read
             k = 2
             while f"{eid}_m{k}" in have:
                 k += 1
@@ -462,19 +461,19 @@ def apply_annotations(graph):
             e["id"] = eid
         have.add(eid)
         edges.append(e)
-    # etichette rinominate a mano (e fusione delle schede che ne risulta)
+    # labels renamed by hand (and the resulting merge of cards)
     g = relabel({"nodes": nodes, "edges": edges}, labels)
     apply_node_edits(g, ann.get("edits") or {})
     apply_targets(g, ann.get("targets") or {})
-    # stesso indirizzo (citta', via, civico) = un nodo; stessa via = tratteggio
+    # same address (city, street, house number) = one node; same street = dashed line
     g = merge_places(g)
-    # solo nome e cognome ~ stessa persona con la data di nascita: tratteggio
+    # first name and surname only ~ same person with the date of birth: dashed line
     g = link_persons(g)
 
-    # Traslitterazione dei nodi aggiunti a mano: non passano da build_graph,
-    # quindi un nome in alfabeto non latino non avrebbe il suo nodo latino.
-    # Offline (solo ICU/dizionario) per essere immediata e senza toccare i
-    # file; il raffinamento col chatbot avviene alla ricarica o col pulsante.
+    # Transliteration of manually added nodes: they do not go through build_graph,
+    # so a name in a non-Latin alphabet would not get its Latin node.
+    # Offline (ICU/dictionary only) to be immediate and without touching the
+    # files; refinement with the chatbot happens on reload or with the button.
     manual_ids = {n["id"] for n in g["nodes"] if n.get("manual")}
     if manual_ids:
         add_translit(g, only=manual_ids, offline=True)
@@ -516,8 +515,8 @@ def mark_evidence(g):
 
 
 def current_graph():
-    """Grafo completo (dati + annotazioni), ricostruito solo se i dati sono cambiati.
-    Senza un caso aperto il grafo e' vuoto e lo segnala ('no_case')."""
+    """Full graph (data + annotations), rebuilt only if the data have changed.
+    With no case open the graph is empty and says so ('no_case')."""
     if not store.current_case():
         return {"nodes": [], "edges": [], "no_case": True}
     key = data_signature()
@@ -528,7 +527,7 @@ def current_graph():
 
 
 def _sources_folder():
-    """The folder of the sources the search reads now (default: 'fonti')."""
+    """The folder of the sources the search reads now (default: 'sources')."""
     idx = sources_index()
     return _src.resolved_folder(idx, BASE_DIR, SOURCES_DEFAULT) if idx else SOURCES_DEFAULT
 

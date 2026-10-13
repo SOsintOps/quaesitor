@@ -60,9 +60,9 @@
 </header>
 <main id="main"></main>
 <script>
-/* ------------------------------------------------------------------ testi --
-   M[lingua] = { title, sub, toc, kbd: {k, a}, sections: [{id, h, body}] }
-   Le immagini sono condivise: l'interfaccia nelle schermate e' in italiano. */
+/* ------------------------------------------------------------------ texts --
+   M[language] = { title, sub, toc, kbd: {k, a}, sections: [{id, h, body}] }
+   The images are shared: the interface in the screenshots is in Italian. */
 const IMG = {
   first: 'img/01-primo-avvio.jpg', over: 'img/02-panoramica.jpg', search: 'img/03-ricerca.jpg',
   card: 'img/04-scheda-nodo.jpg', add: 'img/05-nuovo-nodo.jpg', edge: 'img/06-modifica-collegamento.jpg',
@@ -71,10 +71,10 @@ const IMG = {
   ai: 'img/13-configurazione-ai.jpg', lic: 'img/14-licenze.jpg', caseEdit: 'img/15-modifica-caso.jpg',
   manual: 'img/16-modifiche-manuali.jpg', sideTop: 'img/17-pannello-alto.png', sideBottom: 'img/18-pannello-basso.png'
 };
-// Le figure del manuale originale mostravano l'interfaccia di OSInt Graph e sono
-// state tolte da Quaesitor (nome e logo diversi); le didascalie restano come
-// testo finche' non ci saranno le schermate di Quaesitor. IMG e' la mappa dei
-// vecchi file, conservata per rimettere le figure al loro posto.
+// The figures of the original manual showed the OSInt Graph interface and were
+// removed from Quaesitor (different name and logo); the captions stay as text
+// until Quaesitor has its own screenshots. IMG maps the old files, kept so the
+// figures can go back in their place.
 const fig = (src, cap, cls = '') => `<p class="figcap ${cls}"><i>${cap}</i></p>`;
 
 const M = {};
@@ -174,7 +174,7 @@ ${fig(IMG.imp3, 'Passo 3: anteprima e importazione.')}
    { id: 'views', h: '12. Viste salvate', body: `
 <p>Una <b>vista</b> è la fotografia del grafo com'è ora: nodi visibili, espansi, posizioni, zoom e selezione. Scrivi un nome e premi <b>Salva vista</b>; la tendina elenca le viste del caso, <b>Apri</b> la ripristina e 🗑 la elimina. Le viste servono a riprendere un ragionamento o a preparare la schermata da esportare.</p>` },
    { id: 'sources', h: '13. Fonti documentali e OCR', body: `
-<p>Metti i documenti (PDF, Word, Excel, CSV, testo, immagini) nella cartella <code>fonti</code> accanto al programma e premi <b>Scansiona</b>: il contenuto viene indicizzato nel programma. Da quel momento <b>Cerca nelle fonti</b>, nel pannello o nella scheda di un nodo, trova in quali documenti compaiono un termine o i valori del nodo (numeri, nomi, email), con il brano di contesto e il link per aprire il file.</p>
+<p>Metti i documenti (PDF, Word, Excel, CSV, testo, immagini) nella cartella <code>sources</code> accanto al programma e premi <b>Scansiona</b>: il contenuto viene indicizzato nel programma. Da quel momento <b>Cerca nelle fonti</b>, nel pannello o nella scheda di un nodo, trova in quali documenti compaiono un termine o i valori del nodo (numeri, nomi, email), con il brano di contesto e il link per aprire il file.</p>
 <p>Le <b>immagini</b> (foto di documenti, screenshot) si leggono con l'<b>OCR</b> di Tesseract. Se la riga di stato dice «OCR non disponibile», su Windows basta il pulsante <b>Scarica Tesseract (OCR)</b>: il programma scarica l'installer ufficiale (circa 50 MB), lo estrae nella cartella <code>tools/tesseract</code> accanto al programma e attiva l'OCR senza riavviare. Su Linux e Mac si installa Tesseract dal gestore pacchetti.</p>` },
    { id: 'ai', h: '14. Intelligenza artificiale', body: `
 <p>Il programma può usare un <b>chatbot</b> (un server compatibile Ollama oppure con API OpenAI, locale o remoto) per due cose: <b>creare nodi da un testo libero</b> e <b>traslitterare</b> in caratteri latini i nomi scritti in altri alfabeti. L'AI è facoltativa: con l'interruttore <b>AI attiva</b> spento il programma non si collega a nulla e usa solo la traslitterazione locale.</p>
@@ -200,7 +200,7 @@ ${fig(IMG.lic, 'Finestra delle licenze: a sinistra i componenti, a destra il tes
 <tr><td><code>examples/</code></td><td>File CSV di esempio per l'importazione.</td></tr>
 <tr><td><code>LICENSE</code>, <code>NOTICE</code>, <code>THIRD-PARTY-NOTICES.md</code></td><td>Licenza del programma, termini aggiuntivi e licenze dei componenti.</td></tr>
 </table>
-<p>Il programma è portabile: la cartella si può copiare su un altro PC con tutti i dati. Per il backup è sufficiente copiare la cartella <code>data</code> (e <code>fonti</code>, se serve).</p>` },
+<p>Il programma è portabile: la cartella si può copiare su un altro PC con tutti i dati. Per il backup è sufficiente copiare la cartella <code>data</code> (e <code>sources</code>, se serve).</p>` },
   ]
 };
 
@@ -299,7 +299,7 @@ ${fig(IMG.imp3, 'Step 3: preview and import.')}
    { id: 'views', h: '12. Saved views', body: `
 <p>A <b>view</b> is a snapshot of the graph as it is now: visible and expanded nodes, positions, zoom and selection. Type a name and press <b>Save view</b>; the drop-down lists the case's views, <b>Open</b> restores one and 🗑 deletes it. Views are useful to resume a line of reasoning or to prepare the screen to export.</p>` },
    { id: 'sources', h: '13. Document sources and OCR', body: `
-<p>Put the documents (PDF, Word, Excel, CSV, text, images) in the <code>fonti</code> folder next to the program and press <b>Scan</b>: their content is indexed inside the program. From then on <b>Search in sources</b>, in the panel or in a node's card, finds in which documents a term or the node's values (numbers, names, emails) appear, with the context snippet and a link to open the file.</p>
+<p>Put the documents (PDF, Word, Excel, CSV, text, images) in the <code>sources</code> folder next to the program and press <b>Scan</b>: their content is indexed inside the program. From then on <b>Search in sources</b>, in the panel or in a node's card, finds in which documents a term or the node's values (numbers, names, emails) appear, with the context snippet and a link to open the file.</p>
 <p><b>Images</b> (photos of documents, screenshots) are read with Tesseract <b>OCR</b>. If the status line says “OCR not available”, on Windows the <b>Download Tesseract (OCR)</b> button is enough: the program downloads the official installer (about 50 MB), extracts it into the <code>tools/tesseract</code> folder next to the program and enables OCR without restarting. On Linux and Mac install Tesseract from the package manager.</p>` },
    { id: 'ai', h: '14. Artificial intelligence', body: `
 <p>The program can use a <b>chatbot</b> (an Ollama-compatible server or one with an OpenAI API, local or remote) for two things: <b>creating nodes from free text</b> and <b>transliterating</b> into Latin characters the names written in other alphabets. The AI is optional: with the <b>AI active</b> switch off the program connects to nothing and uses only local transliteration.</p>
@@ -325,7 +325,7 @@ ${fig(IMG.lic, 'Licences window: components on the left, text on the right.')}` 
 <tr><td><code>examples/</code></td><td>Sample CSV files for the import.</td></tr>
 <tr><td><code>LICENSE</code>, <code>NOTICE</code>, <code>THIRD-PARTY-NOTICES.md</code></td><td>Program licence, additional terms and component licences.</td></tr>
 </table>
-<p>The program is portable: the folder can be copied to another PC with all its data. For a backup it is enough to copy the <code>data</code> folder (and <code>fonti</code>, if needed).</p>` },
+<p>The program is portable: the folder can be copied to another PC with all its data. For a backup it is enough to copy the <code>data</code> folder (and <code>sources</code>, if needed).</p>` },
   ]
 };
 
@@ -424,7 +424,7 @@ ${fig(IMG.imp3, 'Étape 3 : aperçu et importation.')}
    { id: 'views', h: '12. Vues enregistrées', body: `
 <p>Une <b>vue</b> est l'instantané du graphe tel qu'il est : nœuds visibles et développés, positions, zoom et sélection. Tapez un nom et appuyez sur <b>Enregistrer la vue</b> ; la liste présente les vues du dossier, <b>Ouvrir</b> en restaure une et 🗑 la supprime. Les vues servent à reprendre un raisonnement ou à préparer l'écran à exporter.</p>` },
    { id: 'sources', h: '13. Sources documentaires et OCR', body: `
-<p>Placez les documents (PDF, Word, Excel, CSV, texte, images) dans le dossier <code>fonti</code> à côté du programme et appuyez sur <b>Analyser</b> : leur contenu est indexé dans le programme. Dès lors, <b>Chercher dans les sources</b>, dans le panneau ou dans la fiche d'un nœud, trouve dans quels documents apparaissent un terme ou les valeurs du nœud (numéros, noms, e-mails), avec l'extrait de contexte et le lien pour ouvrir le fichier.</p>
+<p>Placez les documents (PDF, Word, Excel, CSV, texte, images) dans le dossier <code>sources</code> à côté du programme et appuyez sur <b>Analyser</b> : leur contenu est indexé dans le programme. Dès lors, <b>Chercher dans les sources</b>, dans le panneau ou dans la fiche d'un nœud, trouve dans quels documents apparaissent un terme ou les valeurs du nœud (numéros, noms, e-mails), avec l'extrait de contexte et le lien pour ouvrir le fichier.</p>
 <p>Les <b>images</b> (photos de documents, captures d'écran) sont lues avec l'<b>OCR</b> Tesseract. Si la ligne d'état indique « OCR non disponible », sous Windows le bouton <b>Télécharger Tesseract (OCR)</b> suffit : le programme télécharge l'installateur officiel (environ 50 Mo), l'extrait dans le dossier <code>tools/tesseract</code> à côté du programme et active l'OCR sans redémarrer. Sous Linux et Mac, installez Tesseract avec le gestionnaire de paquets.</p>` },
    { id: 'ai', h: '14. Intelligence artificielle', body: `
 <p>Le programme peut utiliser un <b>chatbot</b> (serveur compatible Ollama ou à API OpenAI, local ou distant) pour deux choses : <b>créer des nœuds à partir d'un texte libre</b> et <b>translittérer</b> en caractères latins les noms écrits dans d'autres alphabets. L'IA est facultative : avec l'interrupteur <b>IA active</b> éteint, le programme ne se connecte à rien et n'utilise que la translittération locale.</p>
@@ -450,7 +450,7 @@ ${fig(IMG.lic, 'Fenêtre des licences : composants à gauche, texte à droite.')
 <tr><td><code>examples/</code></td><td>Fichiers CSV d'exemple pour l'importation.</td></tr>
 <tr><td><code>LICENSE</code>, <code>NOTICE</code>, <code>THIRD-PARTY-NOTICES.md</code></td><td>Licence du programme, termes additionnels et licences des composants.</td></tr>
 </table>
-<p>Le programme est portable : le dossier peut être copié sur un autre PC avec toutes ses données. Pour une sauvegarde il suffit de copier le dossier <code>data</code> (et <code>fonti</code>, si besoin).</p>` },
+<p>Le programme est portable : le dossier peut être copié sur un autre PC avec toutes ses données. Pour une sauvegarde il suffit de copier le dossier <code>data</code> (et <code>sources</code>, si besoin).</p>` },
   ]
 };
 
@@ -549,7 +549,7 @@ ${fig(IMG.imp3, 'Schritt 3: Vorschau und Import.')}
    { id: 'views', h: '12. Gespeicherte Ansichten', body: `
 <p>Eine <b>Ansicht</b> ist eine Momentaufnahme des Graphen: sichtbare und erweiterte Knoten, Positionen, Zoom und Auswahl. Geben Sie einen Namen ein und drücken Sie <b>Ansicht speichern</b>; die Liste zeigt die Ansichten des Falls, <b>Öffnen</b> stellt eine wieder her und 🗑 löscht sie. Ansichten helfen, einen Gedankengang wieder aufzunehmen oder den Bildschirm für den Export vorzubereiten.</p>` },
    { id: 'sources', h: '13. Dokumentquellen und OCR', body: `
-<p>Legen Sie die Dokumente (PDF, Word, Excel, CSV, Text, Bilder) in den Ordner <code>fonti</code> neben dem Programm und drücken Sie <b>Scannen</b>: Ihr Inhalt wird im Programm indiziert. Von da an findet <b>In Quellen suchen</b>, im Panel oder in der Karte eines Knotens, in welchen Dokumenten ein Begriff oder die Werte des Knotens (Nummern, Namen, E-Mails) vorkommen, mit Kontextausschnitt und Link zum Öffnen der Datei.</p>
+<p>Legen Sie die Dokumente (PDF, Word, Excel, CSV, Text, Bilder) in den Ordner <code>sources</code> neben dem Programm und drücken Sie <b>Scannen</b>: Ihr Inhalt wird im Programm indiziert. Von da an findet <b>In Quellen suchen</b>, im Panel oder in der Karte eines Knotens, in welchen Dokumenten ein Begriff oder die Werte des Knotens (Nummern, Namen, E-Mails) vorkommen, mit Kontextausschnitt und Link zum Öffnen der Datei.</p>
 <p><b>Bilder</b> (Fotos von Dokumenten, Screenshots) werden mit der <b>OCR</b> von Tesseract gelesen. Meldet die Statuszeile „OCR nicht verfügbar“, genügt unter Windows die Schaltfläche <b>Tesseract herunterladen (OCR)</b>: Das Programm lädt den offiziellen Installer (ca. 50 MB), entpackt ihn in den Ordner <code>tools/tesseract</code> neben dem Programm und aktiviert die OCR ohne Neustart. Unter Linux und Mac installieren Sie Tesseract über die Paketverwaltung.</p>` },
    { id: 'ai', h: '14. Künstliche Intelligenz', body: `
 <p>Das Programm kann einen <b>Chatbot</b> (Ollama-kompatibler Server oder einer mit OpenAI-API, lokal oder entfernt) für zwei Dinge nutzen: <b>Knoten aus Freitext erstellen</b> und Namen aus anderen Alphabeten in lateinische Zeichen <b>transliterieren</b>. Die KI ist optional: Ist der Schalter <b>KI aktiv</b> aus, verbindet sich das Programm mit nichts und nutzt nur die lokale Transliteration.</p>
@@ -575,7 +575,7 @@ ${fig(IMG.lic, 'Lizenzfenster: links die Komponenten, rechts der Text.')}` },
 <tr><td><code>examples/</code></td><td>Beispiel-CSV-Dateien für den Import.</td></tr>
 <tr><td><code>LICENSE</code>, <code>NOTICE</code>, <code>THIRD-PARTY-NOTICES.md</code></td><td>Programmlizenz, Zusatzbedingungen und Lizenzen der Komponenten.</td></tr>
 </table>
-<p>Das Programm ist portabel: Der Ordner kann mit allen Daten auf einen anderen PC kopiert werden. Für eine Sicherung genügt es, den Ordner <code>data</code> (und bei Bedarf <code>fonti</code>) zu kopieren.</p>` },
+<p>Das Programm ist portabel: Der Ordner kann mit allen Daten auf einen anderen PC kopiert werden. Für eine Sicherung genügt es, den Ordner <code>data</code> (und bei Bedarf <code>sources</code>) zu kopieren.</p>` },
   ]
 };
 
@@ -674,7 +674,7 @@ ${fig(IMG.imp3, 'Paso 3: vista previa e importación.')}
    { id: 'views', h: '12. Vistas guardadas', body: `
 <p>Una <b>vista</b> es la fotografía del grafo tal como está: nodos visibles y expandidos, posiciones, zoom y selección. Escribe un nombre y pulsa <b>Guardar vista</b>; el desplegable lista las vistas del caso, <b>Abrir</b> la restaura y 🗑 la elimina. Las vistas sirven para retomar un razonamiento o preparar la pantalla que se va a exportar.</p>` },
    { id: 'sources', h: '13. Fuentes documentales y OCR', body: `
-<p>Pon los documentos (PDF, Word, Excel, CSV, texto, imágenes) en la carpeta <code>fonti</code> junto al programa y pulsa <b>Escanear</b>: su contenido se indexa en el programa. Desde entonces <b>Buscar en las fuentes</b>, en el panel o en la ficha de un nodo, encuentra en qué documentos aparecen un término o los valores del nodo (números, nombres, correos), con el fragmento de contexto y el enlace para abrir el archivo.</p>
+<p>Pon los documentos (PDF, Word, Excel, CSV, texto, imágenes) en la carpeta <code>sources</code> junto al programa y pulsa <b>Escanear</b>: su contenido se indexa en el programa. Desde entonces <b>Buscar en las fuentes</b>, en el panel o en la ficha de un nodo, encuentra en qué documentos aparecen un término o los valores del nodo (números, nombres, correos), con el fragmento de contexto y el enlace para abrir el archivo.</p>
 <p>Las <b>imágenes</b> (fotos de documentos, capturas) se leen con el <b>OCR</b> de Tesseract. Si la línea de estado dice «OCR no disponible», en Windows basta el botón <b>Descargar Tesseract (OCR)</b>: el programa descarga el instalador oficial (unos 50 MB), lo extrae en la carpeta <code>tools/tesseract</code> junto al programa y activa el OCR sin reiniciar. En Linux y Mac se instala Tesseract desde el gestor de paquetes.</p>` },
    { id: 'ai', h: '14. Inteligencia artificial', body: `
 <p>El programa puede usar un <b>chatbot</b> (un servidor compatible con Ollama o con API de OpenAI, local o remoto) para dos cosas: <b>crear nodos a partir de texto libre</b> y <b>transliterar</b> a caracteres latinos los nombres escritos en otros alfabetos. La IA es opcional: con el interruptor <b>IA activa</b> apagado el programa no se conecta a nada y usa solo la transliteración local.</p>
@@ -700,7 +700,7 @@ ${fig(IMG.lic, 'Ventana de licencias: a la izquierda los componentes, a la derec
 <tr><td><code>examples/</code></td><td>Archivos CSV de ejemplo para la importación.</td></tr>
 <tr><td><code>LICENSE</code>, <code>NOTICE</code>, <code>THIRD-PARTY-NOTICES.md</code></td><td>Licencia del programa, términos adicionales y licencias de los componentes.</td></tr>
 </table>
-<p>El programa es portable: la carpeta se puede copiar a otro PC con todos los datos. Para el respaldo basta copiar la carpeta <code>data</code> (y <code>fonti</code>, si hace falta).</p>` },
+<p>El programa es portable: la carpeta se puede copiar a otro PC con todos los datos. Para el respaldo basta copiar la carpeta <code>data</code> (y <code>sources</code>, si hace falta).</p>` },
   ]
 };
 
@@ -799,7 +799,7 @@ ${fig(IMG.imp3, 'الخطوة 3: المعاينة والاستيراد.')}
    { id: 'views', h: '12. طرق العرض المحفوظة', body: `
 <p><b>طريقة العرض</b> لقطة للرسم كما هو الآن: العقد الظاهرة والموسّعة والمواضع والتكبير والتحديد. اكتب اسماً واضغط <b>حفظ طريقة العرض</b>؛ تعرض القائمة طرق عرض القضية، <b>فتح</b> يستعيد إحداها و🗑 يحذفها. تفيد طرق العرض لاستئناف خط تفكير أو تجهيز الشاشة للتصدير.</p>` },
    { id: 'sources', h: '13. المصادر الوثائقية والتعرف الضوئي', body: `
-<p>ضع الوثائق (PDF وWord وExcel وCSV ونصوص وصور) في مجلد <code>fonti</code> بجوار البرنامج واضغط <b>مسح</b>: يُفهرس محتواها داخل البرنامج. من حينها يعثر <b>البحث في المصادر</b>، في اللوحة أو في بطاقة عقدة، على الوثائق التي يظهر فيها مصطلح أو قيم العقدة (أرقام، أسماء، بريد)، مع مقتطف السياق ورابط لفتح الملف.</p>
+<p>ضع الوثائق (PDF وWord وExcel وCSV ونصوص وصور) في مجلد <code>sources</code> بجوار البرنامج واضغط <b>مسح</b>: يُفهرس محتواها داخل البرنامج. من حينها يعثر <b>البحث في المصادر</b>، في اللوحة أو في بطاقة عقدة، على الوثائق التي يظهر فيها مصطلح أو قيم العقدة (أرقام، أسماء، بريد)، مع مقتطف السياق ورابط لفتح الملف.</p>
 <p>تُقرأ <b>الصور</b> (صور الوثائق، لقطات الشاشة) بواسطة <b>التعرف الضوئي</b> Tesseract. إذا ذكر سطر الحالة «التعرف الضوئي غير متاح»، يكفي في Windows زر <b>تنزيل Tesseract (OCR)</b>: ينزّل البرنامج المثبّت الرسمي (نحو 50 ميغابايت) ويستخرجه في مجلد <code>tools/tesseract</code> بجوار البرنامج ويفعّل التعرف الضوئي دون إعادة تشغيل. في Linux وMac يُثبَّت Tesseract من مدير الحزم.</p>` },
    { id: 'ai', h: '14. الذكاء الاصطناعي', body: `
 <p>يمكن للبرنامج استخدام <b>روبوت محادثة</b> (خادم متوافق مع Ollama أو بواجهة OpenAI، محلي أو بعيد) لأمرين: <b>إنشاء عقد من نص حر</b> و<b>نقحرة</b> الأسماء المكتوبة بأبجديات أخرى إلى الحروف اللاتينية. الذكاء الاصطناعي اختياري: مع إطفاء مفتاح <b>الذكاء الاصطناعي مفعّل</b> لا يتصل البرنامج بشيء ويستخدم النقحرة المحلية فقط.</p>
@@ -825,7 +825,7 @@ ${fig(IMG.lic, 'نافذة التراخيص: المكوّنات على اليس�
 <tr><td><code>examples/</code></td><td>ملفات CSV نموذجية للاستيراد.</td></tr>
 <tr><td><code>LICENSE</code>, <code>NOTICE</code>, <code>THIRD-PARTY-NOTICES.md</code></td><td>ترخيص البرنامج والشروط الإضافية وتراخيص المكوّنات.</td></tr>
 </table>
-<p>البرنامج محمول: يمكن نسخ المجلد إلى حاسوب آخر بكل بياناته. وللنسخ الاحتياطي يكفي نسخ مجلد <code>data</code> (و<code>fonti</code> عند الحاجة).</p>` },
+<p>البرنامج محمول: يمكن نسخ المجلد إلى حاسوب آخر بكل بياناته. وللنسخ الاحتياطي يكفي نسخ مجلد <code>data</code> (و<code>sources</code> عند الحاجة).</p>` },
   ]
 };
 

@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
-"""Costruisce dalla specifica OpenAPI di Epieos due risposte di esempio
-(email e telefono) con TUTTI i moduli valorizzati, per i test e la
-documentazione. Uso: python make_sample.py <openapi.json> <cartella di uscita>"""
+"""Builds from the Epieos OpenAPI specification two sample responses
+(email and phone) with ALL the modules filled in, for the tests and the
+documentation. Usage: python make_sample.py <openapi.json> <output folder>"""
 # "Vulpem pilum mutare, non mores." (Suetonius, Vespasian)
 # The fox changes its fur, not its habits.
 import json, sys, os
 
 spec = json.load(open(sys.argv[1], encoding="utf-8"))
 OUT = sys.argv[2]
-FIX = {  # valori plausibili per chiave (altrimenti '<chiave>_x')
+FIX = {  # plausible values per key (otherwise '<key>_x')
     "query": None, "photo": "https://img.example.com/avatar.jpg", "name": "John Doe", "full_name": "John Doe",
     "display_name": "John Doe", "real_name": "John Doe", "realname": "John Doe", "given_name": "John",
     "family_name": "Doe", "first_name": "John", "last_name": "Doe", "username": "johndoe", "login": "johndoe",

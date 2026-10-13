@@ -9,49 +9,49 @@
 # any later version, with the additional terms in the file NOTICE.
 # See the files LICENSE and NOTICE for details. Distributed WITHOUT ANY WARRANTY.
 
-"""Compila app.py (il server di Quaesitor, package quaesitor/) in un unico eseguibile onefile
-con PyInstaller e prepara in dist/ la cartella pronta da distribuire.
+"""Builds app.py (the Quaesitor server, package quaesitor/) into a single onefile executable
+with PyInstaller and prepares in dist/ the folder ready to be distributed.
 
-Avvialo con lo STESSO interprete del progetto (il venv), perché usa le librerie
-installate lì:
+Run it with the SAME interpreter as the project (the venv), because it uses the libraries
+installed there:
 
     Windows:   .venv\\Scripts\\python.exe -m pip install -r requirements.txt --group build
                .venv\\Scripts\\python.exe scripts\\build_app.py
     Linux:     .venv/bin/python scripts/build_app.py
 
-Cosa fa:
-  * incorpora nell'eseguibile le risorse dell'app: quaesitor/templates/,
-    quaesitor/static/ (pagina, script, stili, logo, icone e i testi delle
-    licenze) e quaesitor/generated/ (lo schema Follow the Money);
-  * usa quaesitor/static/icon.ico come icona dell'eseguibile (Windows);
-  * controlla che le librerie necessarie siano installate (requirements.txt)
-    e include i motori di traslitterazione PyICU e anyascii se presenti;
-  * NON incorpora i dati: la cartella data/ (casi), chatbot.conf e la
-    cartella tools/tesseract restano ESTERNI, accanto all'eseguibile. Al
-    primo avvio il programma crea data/ e chiede di creare un caso;
-  * copia accanto all'eseguibile i file che vanno distribuiti con lui:
+What it does:
+  * embeds the app's resources in the executable: quaesitor/templates/,
+    quaesitor/static/ (page, scripts, styles, logo, icons and the licence
+    texts) and quaesitor/generated/ (the Follow the Money schema);
+  * uses quaesitor/static/icon.ico as the executable's icon (Windows);
+  * checks that the required libraries are installed (requirements.txt)
+    and includes the PyICU and anyascii transliteration engines if present;
+  * does NOT embed the data: the data/ folder (cases), chatbot.conf and the
+    tools/tesseract folder stay EXTERNAL, next to the executable. On the
+    first start the program creates data/ and asks to create a case;
+  * copies next to the executable the files that must be distributed with it:
     LICENSE, NOTICE, THIRD-PARTY-NOTICES.md e chatbot.conf.example.
 
-Opzioni:
-  --name NOME   nome dell'eseguibile (default: Quaesitor)
-  --noconsole   nasconde la finestra console (solo browser). Di default la
-                console resta visibile: mostra l'indirizzo, i log ed è il modo
-                per fermare il server (Ctrl+C o chiudendo la finestra).
-  --keep        non cancella build/ e il file .spec al termine
+Options:
+  --name NAME   name of the executable (default: Quaesitor)
+  --noconsole   hides the console window (browser only). By default the
+                console stays visible: it shows the address, the logs and is the way
+                to stop the server (Ctrl+C or closing the window).
+  --keep        does not delete build/ and the .spec file at the end
 
-Risultato:  dist/Quaesitor.exe  (Windows)   /   dist/Quaesitor  (Linux)
+Result:     dist/Quaesitor.exe  (Windows)   /   dist/Quaesitor  (Linux)
             + LICENSE, NOTICE, THIRD-PARTY-NOTICES.md, chatbot.conf.example
 
-Uso dell'eseguibile:
-  fai doppio clic (o lancialo da terminale): parte il server e si apre il
-  browser su http://127.0.0.1:5000. I dati vengono salvati in data/ accanto
-  all'eseguibile. Tesseract (OCR) si scarica dall'app, sezione «Fonti».
+Using the executable:
+  double-click it (or launch it from a terminal): the server starts and the
+  browser opens on http://127.0.0.1:5000. The data are saved in data/ next to
+  the executable. Tesseract (OCR) is downloaded from the app, section «Fonti».
 
-AI (facoltativa):
-  il chatbot si configura dall'app (pannello «Intelligenza artificiale») e
-  la configurazione sta in chatbot.conf, accanto all'eseguibile (vedi
-  chatbot.conf.example). Con l'interruttore «AI attiva» spento l'app non si
-  collega a niente e usa soltanto la traslitterazione locale.
+AI (optional):
+  the chatbot is configured from the app (panel «Intelligenza artificiale») and
+  the configuration is kept in chatbot.conf, next to the executable (see
+  chatbot.conf.example). With the «AI attiva» switch off the app does not
+  connect to anything and only uses the local transliteration.
 """
 # "Concordia res parvae crescunt, discordia maximae dilabuntur." (Sallust, Bellum Iugurthinum)
 # Through concord small things grow; through discord the greatest fall apart.
@@ -61,21 +61,21 @@ import shutil
 import subprocess
 import sys
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # la radice del repository
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))   # the repository root
 SRC = os.path.join(ROOT, "app.py")
-SEP = os.pathsep                      # ';' su Windows, ':' su Linux/Mac
+SEP = os.pathsep                      # ';' on Windows, ':' on Linux/Mac
 ICON = os.path.join(ROOT, "quaesitor", "static", "icon.ico")
 
-# file da distribuire ACCANTO all'eseguibile
+# files to distribute NEXT TO the executable
 DIST_FILES = ["LICENSE", "NOTICE", "THIRD-PARTY-NOTICES.md", "chatbot.conf.example", "services.conf.example"]
 
-# librerie necessarie (requirements.txt): modulo da importare -> pacchetto pip
+# required libraries (requirements.txt): module to import -> pip package
 REQUIRED = {
     "flask": "Flask", "anyascii": "anyascii", "pdfminer": "pdfminer.six",
     "pypdf": "pypdf", "docx": "python-docx", "openpyxl": "openpyxl", "xlrd": "xlrd",
     "PIL": "Pillow", "pytesseract": "pytesseract",
 }
-# importati in modo lazy da app.py / sources.py: PyInstaller non li vede da solo
+# imported lazily by app.py / sources.py: PyInstaller does not see them by itself
 HIDDEN = ["docx", "openpyxl", "xlrd", "pypdf", "pytesseract", "PIL.Image",
           "pdfminer.high_level", "quaesitor.setup_tesseract", "tkinter", "tkinter.filedialog",
           # 1.6.0: Cognitor bundles and video transcription (the audio packages of
@@ -124,12 +124,12 @@ def main():
         "--name", name,
         "--noconfirm",
         "--clean",
-        # risorse dell'app dentro l'eseguibile (percorsi relativi: si gira da ROOT)
+        # app resources inside the executable (relative paths: it runs from ROOT)
         "--add-data", f"quaesitor/templates{SEP}quaesitor/templates",
         "--add-data", f"quaesitor/static{SEP}quaesitor/static",
         "--add-data", f"quaesitor/generated/ftm_schema.json{SEP}quaesitor/generated",
-        # la console mostra i log ed è il modo per fermare il server;
-        # --noconsole la nasconde (l'opzione conta solo su Windows)
+        # the console shows the logs and is the way to stop the server;
+        # --noconsole hides it (the option only matters on Windows)
         ("--windowed" if noconsole else "--console"),
     ]
     if os.path.isfile(ICON):
@@ -137,7 +137,7 @@ def main():
     else:
         print("(nota: quaesitor/static/icon.ico non trovato, l'eseguibile avrà l'icona predefinita)")
 
-    # motori di traslitterazione, inclusi solo se installati
+    # transliteration engines, included only if installed
     for pkg in ("icu", "anyascii"):
         try:
             importlib.import_module(pkg)
@@ -161,7 +161,7 @@ def main():
     if not os.path.isfile(out):
         sys.exit("Compilazione finita ma non trovo l'eseguibile in dist/")
 
-    # file legali e configurazione d'esempio accanto all'eseguibile
+    # legal files and example configuration next to the executable
     for fn in DIST_FILES:
         shutil.copy2(os.path.join(ROOT, fn), os.path.join(dist, fn))
 

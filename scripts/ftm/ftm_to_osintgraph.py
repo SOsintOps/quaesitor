@@ -1,21 +1,21 @@
 # -*- coding: utf-8 -*-
-"""Legge gli schemi YAML di Follow the Money (pacchetto followthemoney) e li
-proietta sull'ontologia di OsintGraph (ontology.py: TYPES).
+"""Reads the Follow the Money YAML schemata (followthemoney package) and
+projects them onto the OsintGraph ontology (ontology.py: TYPES).
 
-Uso:  python ftm_to_osintgraph.py <dir schema ftm> [--emit out.py]
+Usage: python ftm_to_osintgraph.py <ftm schema dir> [--emit out.py]
 
-Senza --emit stampa l'analisi: schemi concreti, quali corrispondono a tipi gia'
-presenti in OsintGraph, quali diventano tipi nuovi, quali sono relazioni
-(Interval) e quindi collegamenti, quante proprieta' non rappresentabili.
-Con --emit scrive un modulo Python con un dict FTM_TYPES nello stesso formato
-di ontology.TYPES, da fondere con TYPES.update(FTM_TYPES)."""
+Without --emit it prints the analysis: concrete schemata, which match types already
+present in OsintGraph, which become new types, which are relations
+(Interval) and therefore links, how many properties cannot be represented.
+With --emit it writes a Python module with an FTM_TYPES dict in the same format
+as ontology.TYPES, to be merged with TYPES.update(FTM_TYPES)."""
 # "Similis simili gaudet." (medieval proverb)
 # Like takes pleasure in like.
 import sys, os, re, json, yaml
 
 SCHEMA_DIR = sys.argv[1]
 EMIT = sys.argv[sys.argv.index("--emit") + 1] if "--emit" in sys.argv else None
-OWN = "--own" in sys.argv   # solo campi propri dello schema + featured
+OWN = "--own" in sys.argv   # only the schema's own fields + featured
 
 raw = {}
 for fn in sorted(os.listdir(SCHEMA_DIR)):
@@ -31,7 +31,7 @@ def ancestors(name, seen=None):
     return seen
 
 def all_props(name):
-    """proprieta' proprie + ereditate (le proprie vincono)."""
+    """own + inherited properties (the own ones win)."""
     out = {}
     for a in reversed(ancestors(name)):
         out.update(raw[a].get("properties", {}) or {})
@@ -43,10 +43,10 @@ def is_a(name, anc):
 
 concrete = [n for n, s in raw.items() if not s.get("abstract")]
 things = [n for n in concrete if not raw[n].get("edge")]
-intervals = [n for n in concrete if raw[n].get("edge")]   # archi: hanno source/target
+intervals = [n for n in concrete if raw[n].get("edge")]   # edges: they have source/target
 docs = [n for n in things if is_a(n, "Document")]
 
-# ---- corrispondenze con i tipi che OsintGraph ha gia' (built-in o ontology.py)
+# ---- matches with the types OsintGraph already has (built-in or ontology.py)
 EXISTING = {
     "Person": "name/target (built-in)", "Address": "place (built-in)",
     "Vehicle": "vehicle (built-in)", "Email": "email (built-in)",
@@ -59,7 +59,7 @@ EXISTING = {
     "Security": "valuable", "Asset": "valuable", "Vessel": "vehicle (built-in)",
     "Airplane": "vehicle (built-in)",
 }
-# tipi FtM che per OsintGraph sono contenitori di documenti (fonti), non nodi
+# FtM types that for OsintGraph are document containers (sources), not nodes
 SOURCES_LAYER = {"Document", "Folder", "Package", "Pages", "Page", "PlainText", "Table",
                  "Workbook", "Audio", "Video", "Article", "Message", "Documentation",
                  "Mention", "Analyzable", "Similar"}
@@ -120,10 +120,10 @@ if EMIT:
             kind = TYPE_MAP[t]
             opts = []
             if kind == "select":
-                kind = "text"          # le opzioni di gender/topic stanno in followthemoney/types
+                kind = "text"          # the gender/topic options are in followthemoney/types
             fields.append({"key": k, "label": p.get("label", k), "en": p.get("label", k),
                            "type": kind, "options": opts, "ph": p.get("description", "")[:60]})
-        # i campi "featured" di FtM in testa (sono quelli che FtM considera salienti)
+        # FtM's "featured" fields first (the ones FtM considers salient)
         feat = s.get("featured") or []
         fields.sort(key=lambda f: (f["key"] not in feat, feat.index(f["key"]) if f["key"] in feat else 0))
         caption = [c for c in (s.get("caption") or []) if c in props] or [fields[0]["key"]]

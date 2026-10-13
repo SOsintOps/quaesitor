@@ -24,18 +24,18 @@ from .normalize import collect_places, NAME_STOP, person_id, place_is_address
 from .records import collect, export_query, norm_ident, norm_platform, parse_records
 
 
-# ==================== SERVIZI E IDENTIFICATIVI ====================
-# servizi di messaggistica: l'account è il numero di telefono
+# ==================== SERVICES AND IDENTIFIERS ====================
+# messaging services: the account is the phone number
 MESSAGING = {
     "whatsapp", "viber", "imo", "botim", "telegram", "signal", "wechat",
     "line", "skype", "zangi", "tango", "kakaotalk", "threema", "icq", "snapchat",
 }
 
-# schede che descrivono il NUMERO (non un account): finiscono nel nodo telefono
+# cards that describe the NUMBER (not an account): they end up in the phone node
 PHONE_CARD_SCHEMAS = {"callerid"}
 PHONE_CARD_CATEGORIES = {"technical", "checker"}
 
-# prefisso dell'identifier -> servizio
+# identifier prefix -> service
 IDENT_SERVICE = {
     "gaiaid": "google", "gaia": "google", "googleid": "google",
     "snapchatid": "snapchat", "snapchat": "snapchat",
@@ -49,7 +49,7 @@ IDENT_SERVICE = {
     "yahooid": "yahoo", "threadsid": "threads", "spotifyid": "spotify",
 }
 
-# sigle usate nei dossier: 'FB 1234 (nick)', 'IG nick', 'TikTok @nick'
+# abbreviations used in dossiers: 'FB 1234 (nick)', 'IG nick', 'TikTok @nick'
 DOSSIER_SOCIAL = {
     "fb": "facebook", "facebook": "facebook", "ig": "instagram",
     "instagram": "instagram", "tw": "x", "x": "x", "twitter": "x",
@@ -64,7 +64,7 @@ OPAQUE_ID = re.compile(r"^(?:[0-9]{5,}|[0-9a-fA-F][0-9a-fA-F\-]{15,})$")
 
 
 def phone_key(value):
-    """Identificativo univoco di un numero: sole cifre."""
+    """Unique identifier of a number: digits only."""
     d = re.sub(r"\D", "", str(value or ""))
     return d or re.sub(r"\s+", "", str(value or "")).lower()
 
@@ -87,7 +87,7 @@ def parse_identifier(ident):
 
 
 def ident_label(val, fallback):
-    """Un identificativo opaco (UUID, id numerico) non è una buona etichetta."""
+    """An opaque identifier (UUID, numeric id) is not a good label."""
     v = str(val or "")
     if not v or OPAQUE_ID.match(v):
         return str(fallback or v)
@@ -110,7 +110,7 @@ def parse_dossier_social(s):
         note = mp.group(1).strip()
         rest = (rest[:mp.start()] + rest[mp.end():]).strip()
     rest = rest.strip().lstrip("@").strip()
-    if re.fullmatch(r"\d{5,}", rest):                 # id numerico + nick tra parentesi
+    if re.fullmatch(r"\d{5,}", rest):                 # numeric id + nick in brackets
         user = re.split(r"[–\-—]", note)[0].strip().lstrip("@") or None
         return svc, rest, user, note
     return svc, None, (rest or None), note
@@ -132,8 +132,8 @@ def parse_dossier_vehicle(s):
 
 def build_graph():
     nodes, edges = {}, {}
-    # quando è True, i nodi creati/toccati sono "dati di partenza": provengono
-    # dal file iniziale (dossier) del target. Il frontend li borda di rosso.
+    # when True, the nodes created/touched are "seed data": they come from the
+    # target's initial file (dossier). The frontend gives them a red border.
     _seed = [False]
 
     def add_node(nid, **attrs):
@@ -141,7 +141,7 @@ def build_graph():
         if nid in nodes:
             n = nodes[nid]
             if seed:
-                n["seed"] = True            # una volta seed, resta seed (OR)
+                n["seed"] = True            # once seed, always seed (OR)
             for s in attrs.get("sources", []):
                 if s and s not in n["sources"]:
                     n["sources"].append(s)
@@ -177,18 +177,18 @@ def build_graph():
             ident_map.setdefault(k, set()).add(nid)
 
     def map_acct(nid, svc, raw):
-        """Chiave di fusione di un account: piattaforma + valore normalizzato,
-        tenuti separati da '|'. Il valore deve essere significativo (>= 3 caratteri
-        utili): altrimenti la fusione è SALTATA. Evita che account diversi con
-        nick vuoto o non-latino collassino tutti sulla stessa chiave (il bug per
-        cui 4 utenti TikTok diversi finivano fusi su 'id:tiktok')."""
+        """Merge key of an account: platform + normalised value, separated by
+        '|'. The value must be meaningful (>= 3 useful characters): otherwise
+        the merge is SKIPPED. Stops different accounts with an empty or
+        non-Latin nick from all collapsing onto the same key (the bug by which
+        4 different TikTok users ended up merged on 'id:tiktok')."""
         svc = re.sub(r"[^a-z0-9]", "", str(svc or "").lower()) or "generic"
         v = re.sub(r"[^a-z0-9@._]", "", str(raw or "").strip().lower()).strip("._@")
         if len(v) < 3:
             return
         ident_map.setdefault(f"acct:{svc}|{v}", set()).add(nid)
 
-    # ---------- costruttori di nodi elementari ----------
+    # ---------- builders of elementary nodes ----------
     def node_phone(value, record=None, source=""):
         pid = "phone:" + phone_key(value)
         add_node(pid, label=str(value), ntype="phone", platform="phone",
@@ -211,15 +211,15 @@ def build_graph():
         return uid
 
     def node_person_name(value, source=""):
-        """Nodo 'nome' ricavato da come un'utenza è registrata nelle rubriche.
-        Scarta ciò che non è un nome: numeri, sigle, etichette di servizio."""
+        """'Name' node derived from how a phone line is saved in address books.
+        Discards what is not a name: numbers, abbreviations, service labels."""
         lab = re.sub(r"\s+", " ", str(value or "")).strip(" .,-–—")
         if not lab or len(lab) < 3 or len(lab) > 80:
             return None
-        if not WORD_RE.search(lab):                  # nessuna lettera: è un numero
+        if not WORD_RE.search(lab):                  # no letters: it is a number
             return None
         if re.sub(r"\D", "", lab) and len(re.sub(r"\D", "", lab)) >= 6:
-            return None                              # contiene un numero di telefono
+            return None                              # contains a phone number
         if lab.lower() in NAME_STOP:
             return None
         nid = person_id(lab)
@@ -228,14 +228,14 @@ def build_graph():
         return nid
 
     def node_place(info, source="", scope=""):
-        """Nodo luogo ricavato da una scheda: etichetta e/o coordinate.
-        Con le coordinate il nodo si apre sulla mappa con Alt+Click.
+        """Place node derived from a card: label and/or coordinates.
+        With coordinates the node opens on the map with Alt+Click.
 
-        Un luogo GENERICO (citta', regione, paese) resta chiuso dentro il suo
-        target: l'id porta il prefisso del target, cosi' "Tripoli" citata in
-        dieci fascicoli diventa dieci nodi distinti e non crea collegamenti fra
-        persone estranee. Solo un RECAPITO (indirizzo o coordinate) e' condiviso
-        e quindi puo' unire due schede."""
+        A GENERIC place (city, region, country) stays confined to its target:
+        the id carries the target's prefix, so "Tripoli" mentioned in ten case
+        files becomes ten distinct nodes and creates no links between unrelated
+        people. Only an ADDRESS (street address or coordinates) is shared and
+        can therefore join two cards."""
         lab = (info.get("label") or "").strip()
         lat, lon = info.get("lat"), info.get("lon")
         if not lab and not (lat and lon):
@@ -262,11 +262,11 @@ def build_graph():
         return vid
 
     def search_anchor(fn, tid):
-        """Nodo di ricerca a cui appendere un export: l'identificativo nel nome
-        del file (email, telefono o utenza). Resta agganciato al target, così la
-        gerarchia diventa  target -> identificativo cercato -> risultati trovati,
-        invece di collegare tutto direttamente al target.
-        Ritorna None se il file non è un export o la query non è interpretabile."""
+        """Search node to hang an export on: the identifier in the file name
+        (email, phone or user name). It stays attached to the target, so the
+        hierarchy becomes  target -> searched identifier -> results found,
+        instead of linking everything directly to the target.
+        Returns None if the file is not an export or the query cannot be parsed."""
         q = export_query(fn)
         if not q:
             return None
@@ -276,10 +276,10 @@ def build_graph():
             nid = node_phone(q, source="ricerca")
         else:
             nid = node_username(q, source="ricerca")
-        add_edge(tid, nid, "target")              # l'identificativo resta appeso al target
+        add_edge(tid, nid, "target")              # the identifier stays attached to the target
         return nid
 
-    # ---------- scheda "normale" (export di un servizio) ----------
+    # ---------- "normal" card (export of a service) ----------
     def handle_record(rec, tid, fn, target, on_target=False):
         platform = norm_platform(rec.get("collection"))
         label = rec.get("label") or (rec.get("names") or [""])[0] or platform
@@ -302,12 +302,12 @@ def build_graph():
         usernames = [str(u) for u in (rec.get("usernames") or []) if u]
         idents = [str(i) for i in (rec.get("identifiers") or []) if i]
 
-        # --- telefoni: un nodo per numero, i numeri della stessa scheda sono collegati
+        # --- phones: one node per number, the numbers of the same card are linked
         phone_ids = [node_phone(p, source=coll) for p in phones]
         for extra in phone_ids[1:]:
             add_edge(phone_ids[0], extra, "phone-link")
 
-        # --- email: le secondarie si collegano alla principale
+        # --- email: the secondary ones are linked to the main one
         email_ids = [node_email(e, source=coll) for e in emails]
         for extra in email_ids[1:]:
             add_edge(email_ids[0], extra, "email-alias")
@@ -315,45 +315,45 @@ def build_graph():
         # --- username
         user_ids = [node_username(u, platform, coll) for u in usernames]
 
-        # --- nodo/i principale/i della scheda
+        # --- main node(s) of the card
         primary = []
         if on_target:
             add_node(tid, image=img, sources=[coll or "dossier"], record=record)
             primary = [tid]
 
         elif idents:
-            # UN nodo per SERVIZIO: più identificativi dello stesso social sono
-            # lo stesso account (snapchatid:UUID + snapchat:nick), servizi
-            # diversi nella stessa scheda (instagram + threads) restano distinti
+            # ONE node per SERVICE: several identifiers of the same social network are
+            # the same account (snapchatid:UUID + snapchat:nick), different
+            # services in the same card (instagram + threads) stay distinct
             groups = {}
             for ident in idents:
                 svc, val = parse_identifier(ident)
                 groups.setdefault(svc or platform, []).append((ident, val))
 
             for svc, items in groups.items():
-                # id canonico: si preferisce l'identificativo leggibile a quello opaco
+                # canonical id: the readable identifier is preferred to the opaque one
                 items = sorted(items, key=lambda t: (bool(OPAQUE_ID.match(t[1] or "")), t[0]))
                 canon_ident, canon_val = items[0]
                 aid = "acct:" + canon_ident.strip().lower()
-                # profilo da un'API (Epieos): l'etichetta e' il nome del profilo,
-                # l'userid resta l'identita' e sta nella scheda
+                # profile from an API (Epieos): the label is the profile name,
+                # the userid stays the identity and is kept in the card
                 lab = str(label) if schema.startswith("epieos:") and label else ident_label(canon_val, label)
                 add_node(aid, label=lab, ntype="account",
                          platform=svc or platform, image=img,
                          sources=[coll], record=record)
-                # TUTTI gli identificativi del gruppo puntano a questo nodo: schede
-                # diverse che ne citano solo uno finiscono comunque sullo stesso nodo
+                # ALL the identifiers of the group point to this node: different
+                # cards that mention only one of them still end up on the same node
                 for ident, val in items:
                     map_acct(aid, svc, val)
-                for un in usernames:            # username univoco per piattaforma:
-                    map_acct(aid, svc, un)      # id diversi + stesso nick = stesso account
+                for un in usernames:            # user name unique per platform:
+                    map_acct(aid, svc, un)      # different ids + same nick = same account
                 primary.append(aid)
 
             for extra in primary[1:]:
                 add_edge(primary[0], extra, "alias")
 
         elif platform in MESSAGING and phones:
-            # messaggistica senza identifier: l'account È il numero -> whatsapp-<numero>
+            # messaging without identifier: the account IS the number -> whatsapp-<number>
             for ph, pid in zip(phones, phone_ids):
                 aid = f"acct:{platform}-{phone_key(ph)}"
                 lab = str(label) if label and label != ph else f"{platform} {ph}"
@@ -364,14 +364,14 @@ def build_graph():
 
         elif phones and (schema in PHONE_CARD_SCHEMAS or cat in PHONE_CARD_CATEGORIES
                          or not (emails or usernames)):
-            # aggregatore/lookup: la scheda descrive il numero, elenca i servizi trovati
+            # aggregator/lookup: the card describes the number, lists the services found
             for pid in phone_ids:
                 add_node(pid, sources=[coll], record=record)
             primary = list(phone_ids)
-            # i nomi con cui il numero è registrato diventano nodi a sé:
-            # ricorrono su più utenze e sono un ottimo punto di aggancio.
-            # Se sono in scrittura non latina, add_translit crea da solo il
-            # nodo con la forma latina, collegato all'originale.
+            # the names under which the number is saved become nodes of their own:
+            # they recur across several phone lines and are an excellent anchor.
+            # If they are in a non-Latin script, add_translit creates by itself
+            # the node with the Latin form, linked to the original.
             for nm in (rec.get("names") or []) + [rec.get("label")]:
                 nid = node_person_name(nm, coll)
                 if nid:
@@ -389,26 +389,26 @@ def build_graph():
                      image=img, sources=[coll], record=record)
             primary = [aid]
 
-        # --- luoghi citati nella scheda (città, indirizzi, coordinate)
+        # --- places mentioned in the card (cities, addresses, coordinates)
         place_ids, visti = [], set()
         for info in collect_places(rec):
             pid = node_place(info, coll, tid)
             if pid and pid not in visti:
                 visti.add(pid)
                 place_ids.append(pid)
-            if len(place_ids) >= 12:            # una scheda non ne cita mai di più
+            if len(place_ids) >= 12:            # a card never mentions more
                 break
 
-        # --- a quale nodo si aggancia la scheda?
-        # Il dossier va sul target; un export OSINT va sul NODO DI RICERCA che
-        # l'ha generato (l'identificativo nel nome del file), non sul target.
-        # Se la query non è interpretabile si ricade sul target (nessun orfano).
+        # --- which node does the card attach to?
+        # The dossier goes on the target; an OSINT export goes on the SEARCH NODE
+        # that produced it (the identifier in the file name), not on the target.
+        # If the query cannot be parsed it falls back to the target (no orphans).
         anchor = tid
         if not on_target:
             anchor = search_anchor(fn, tid) or tid
 
-        # --- violazioni di dati (hibp), siti con un account (holehe,
-        #     phonechecker), organizzazioni (linkedin): estensioni Epieos
+        # --- data breaches (hibp), sites with an account (holehe,
+        #     phonechecker), organisations (linkedin): Epieos extensions
         extra_ids = []
         for br in (rec.get("breaches") or []):
             name = re.sub(r"\s+", " ", str(br)).strip()
@@ -442,7 +442,7 @@ def build_graph():
                                                      "Ruolo": org.get("role") or "", "Periodo": org.get("period") or ""}})
             extra_ids.append((oid, org.get("role") or ("studente" if org.get("kind") == "school" else "organization")))
 
-        # --- collegamenti
+        # --- links
         for p in primary:
             add_edge(anchor, p, "target" if anchor == tid else "result")
             for x in phone_ids:
@@ -456,7 +456,7 @@ def build_graph():
             for x in place_ids:
                 add_edge(p, x, "place")
 
-        # --- blocchi in formato "dossier strutturato" (compatibilità)
+        # --- blocks in "structured dossier" format (compatibility)
         for soc in (rec.get("social") or []):
             if not isinstance(soc, dict):
                 continue
@@ -482,7 +482,7 @@ def build_graph():
                                    {"collection": "veicolo", "images": [], "links": [], "raw": veh})
                 add_edge(primary[0] if primary else anchor, vid, "vehicle")
 
-    # ---------- dossier investigativo (A22.json e simili) ----------
+    # ---------- investigative dossier (A22.json and similar) ----------
     def handle_dossier(rec, tid, fn):
         coll = rec.get("collection") or "dossier"
         add_node(tid, sources=[coll],
@@ -506,7 +506,7 @@ def build_graph():
 
         for voce in (rec.get("social") or []):
             if isinstance(voce, dict):
-                continue                              # gestito da handle_record
+                continue                              # handled by handle_record
             parsed = parse_dossier_social(voce)
             if not parsed:
                 continue
@@ -518,8 +518,8 @@ def build_graph():
             add_node(aid, label=user or sid_val, ntype="account", platform=svc,
                      sources=[coll], record=card(voce))
             map_acct(aid, svc, key)
-            if user:                            # stesso nick sullo stesso social =
-                map_acct(aid, svc, user)        # stesso account, anche con id diversi
+            if user:                            # same nick on the same social network =
+                map_acct(aid, svc, user)        # same account, even with different ids
             add_edge(tid, aid, "target")
             if user:
                 add_edge(aid, node_username(user, svc, coll), "username")
@@ -534,20 +534,20 @@ def build_graph():
             lab = f"{targa} {descr}".strip() + (f" ({paese})" if paese else "")
             add_edge(tid, node_vehicle(targa, lab, card(voce)), "vehicle")
 
-    # ---------- JSON importati da app terze (database) ----------
-    # Ogni file e' agganciato a un nodo (di norma il target, una persona): il
-    # nodo stesso lo crea apply_annotations dalla sua voce manuale, qui lo si
-    # dichiara solo perche' i collegamenti del file abbiano un estremo.
+    # ---------- JSON imported from third-party apps (database) ----------
+    # Each file is attached to a node (usually the target, a person): the node
+    # itself is created by apply_annotations from its manual entry; here it is
+    # declared only so that the file's links have an endpoint.
     n_files = 0
     for imp in store.iter_imports():
         n_files += 1
         tid, fn, dossier = imp["anchor"], imp["filename"], bool(imp["dossier"])
         add_node(tid, label=imp["anchor_label"], ntype=imp["anchor_ntype"],
                  platform=imp["anchor_platform"])
-        _seed[0] = dossier                 # i nodi di questo file sono dati di partenza
+        _seed[0] = dossier                 # the nodes of this file are seed data
         recs = parse_records(imp["content"])
         if len(recs) == 1 and epieos.is_epieos(recs[0]):
-            recs = epieos.to_records(recs[0])      # risposta dell'API Epieos
+            recs = epieos.to_records(recs[0])      # Epieos API response
         for rec in recs:
             if not isinstance(rec, dict):
                 continue
@@ -560,7 +560,7 @@ def build_graph():
         _seed[0] = False
     logging.info(f"JSON importati: {n_files} file")
 
-    # ---- FUSIONE per identificativo + ROMANIZZAZIONE ----
+    # ---- MERGE by identifier + ROMANISATION ----
     return add_translit(merge_nodes(nodes, edges, ident_map))
 
 
@@ -575,8 +575,8 @@ def _mixed_case(s):
 
 
 def merge_nodes(nodes, edges, ident_map):
-    """Nodi che condividono lo stesso identificativo diventano UN solo nodo,
-    che conserva tutte le schede (record) e le etichette alternative (alias)."""
+    """Nodes sharing the same identifier become ONE node, which keeps all the
+    cards (records) and the alternative labels (aliases)."""
     parent = {nid: nid for nid in nodes}
 
     def find(x):
@@ -602,8 +602,8 @@ def merge_nodes(nodes, edges, ident_map):
     alias = {}
     merged = {}
     for root, ids in groups.items():
-        # nodo rappresentante: tipo più informativo, etichetta più ricca,
-        # a parità si preferisce quella con maiuscole/minuscole corrette
+        # representative node: most informative type, richest label,
+        # on a tie the one with correct upper/lower case is preferred
         canon = sorted(ids, key=lambda i: (
             TYPE_RANK.get(nodes[i]["ntype"], 9),
             -len(_flat(nodes[i]["label"])),
@@ -630,7 +630,7 @@ def merge_nodes(nodes, edges, ident_map):
                 labels.append(lab)
         base["aliases"] = labels[1:]
         base["alias_ids"] = sorted(i for i in ids if i != canon)
-        base["seed"] = any(nodes[i].get("seed") for i in ids)   # seed se lo è uno qualsiasi
+        base["seed"] = any(nodes[i].get("seed") for i in ids)   # seed if any of them is
         base["merged"] = len(ids)
         base["cards"] = len(base["records"])
         merged[canon] = base

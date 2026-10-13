@@ -11,17 +11,17 @@
  */
 // "Omnia vincit amor." (Virgil, Eclogues)
 // Love conquers all.
-/* ================= INTERNAZIONALIZZAZIONE =================
-   Traduzioni dell'INTERFACCIA e delle intestazioni delle schede.
-   I CONTENUTI dei dati (nomi, etichette dei nodi, schede) non vengono tradotti.
+/* ================= INTERNATIONALISATION =================
+   Translations of the INTERFACE and of the card headings.
+   The data CONTENTS (names, node labels, cards) are not translated.
 
-   Uso:
-     t('btn.fit')                 -> testo tradotto
-     t('stat.visible', {v:1,t:2}) -> con segnaposto {v} {t}
-   Nell'HTML:
-     data-i18n="chiave"           -> testo dell'elemento
-     data-i18n-ph="chiave"        -> placeholder
-     data-i18n-title="chiave"     -> attributo title
+   Usage:
+     t('btn.fit')                 -> translated text
+     t('stat.visible', {v:1,t:2}) -> with placeholders {v} {t}
+   In the HTML:
+     data-i18n="key"              -> element text
+     data-i18n-ph="key"           -> placeholder
+     data-i18n-title="key"        -> title attribute
 */
 
 const LANGS = [
@@ -427,7 +427,7 @@ const I18N = {
     'translit.modeNodesOn': 'Traslitterazione: nodi latini separati.',
     'translit.modeNodesOff': 'Traslitterazione: attributo del nodo.',
     'card.roman': '🔤 Traslitterazione',
-    // dizionario di traslitterazione (finestra)
+    // transliteration dictionary (window)
     'btn.dict': '🔤 Dizionario traslitterazioni',
     'dict.title': '🔤 Dizionario di traslitterazione',
     'dict.hint': 'Parole non latine viste nel grafo (cinese, arabo, cirillico…): scrivi a mano la forma latina, o correggi quella automatica.',
@@ -909,7 +909,7 @@ const I18N = {
     'translit.modeNodesOn': 'Transliteration: separate Latin nodes.',
     'translit.modeNodesOff': 'Transliteration: node attribute.',
     'card.roman': '🔤 Transliteration',
-    // dizionario di traslitterazione (finestra)
+    // transliteration dictionary (window)
     'btn.dict': '🔤 Transliteration dictionary',
     'dict.title': '🔤 Transliteration dictionary',
     'dict.hint': 'Non-Latin words seen in the graph (Chinese, Arabic, Cyrillic…): type the Latin form by hand, or correct the automatic one.',
@@ -1391,7 +1391,7 @@ const I18N = {
     'translit.modeNodesOn': 'Translittération : nœuds latins séparés.',
     'translit.modeNodesOff': 'Translittération : attribut du nœud.',
     'card.roman': '🔤 Translittération',
-    // dizionario di traslitterazione (finestra)
+    // transliteration dictionary (window)
     'btn.dict': '🔤 Dictionnaire de translittération',
     'dict.title': '🔤 Dictionnaire de translittération',
     'dict.hint': 'Mots non latins vus dans le graphe (chinois, arabe, cyrillique…) : saisissez la forme latine à la main, ou corrigez la forme automatique.',
@@ -1873,7 +1873,7 @@ const I18N = {
     'translit.modeNodesOn': 'Umschrift: getrennte lateinische Knoten.',
     'translit.modeNodesOff': 'Umschrift: Attribut des Knotens.',
     'card.roman': '🔤 Umschrift',
-    // dizionario di traslitterazione (finestra)
+    // transliteration dictionary (window)
     'btn.dict': '🔤 Umschrift-Wörterbuch',
     'dict.title': '🔤 Umschrift-Wörterbuch',
     'dict.hint': 'Nichtlateinische Wörter aus dem Graphen (Chinesisch, Arabisch, Kyrillisch…): lateinische Form von Hand eingeben oder die automatische korrigieren.',
@@ -2355,7 +2355,7 @@ const I18N = {
     'translit.modeNodesOn': 'Transliteración: nodos latinos separados.',
     'translit.modeNodesOff': 'Transliteración: atributo del nodo.',
     'card.roman': '🔤 Transliteración',
-    // dizionario di traslitterazione (finestra)
+    // transliteration dictionary (window)
     'btn.dict': '🔤 Diccionario de transliteración',
     'dict.title': '🔤 Diccionario de transliteración',
     'dict.hint': 'Palabras no latinas vistas en el grafo (chino, árabe, cirílico…): escribe la forma latina a mano o corrige la automática.',
@@ -2837,7 +2837,7 @@ const I18N = {
     'translit.modeNodesOn': 'الكتابة اللاتينية: عقد لاتينية منفصلة.',
     'translit.modeNodesOff': 'الكتابة اللاتينية: خاصية للعقدة.',
     'card.roman': '🔤 الكتابة اللاتينية',
-    // dizionario di traslitterazione (finestra)
+    // transliteration dictionary (window)
     'btn.dict': '🔤 قاموس الكتابة اللاتينية',
     'dict.title': '🔤 قاموس الكتابة اللاتينية',
     'dict.hint': 'الكلمات غير اللاتينية الظاهرة في الرسم (صينية، عربية، سيريلية…): اكتب الصيغة اللاتينية يدويًا أو صحّح الصيغة التلقائية.',
@@ -2928,9 +2928,9 @@ const I18N = {
   }
 };
 
-/* ------------------------------------------------ collegamenti e modifica nodi
-   Chiavi aggiunte con le frecce direzionali, lo stile dei collegamenti e la
-   modifica dei valori dei nodi. Tenute qui insieme per tutte le lingue. */
+/* ------------------------------------------------------ links and node editing
+   Keys added with the direction arrows, the link style and the editing of
+   node values. Kept here together for all languages. */
 Object.assign(I18N.it, {
   'modal.edit': 'Modifica valori',
   'edge.title': '🔗 Modifica collegamento',
@@ -3185,7 +3185,7 @@ Object.assign(I18N.ar, {
 });
 
 
-/* forme della linea (tutte quelle di Cytoscape) e anteprima */
+/* line shapes (all of Cytoscape's) and preview */
 Object.assign(I18N.it, {
   'curve.bezier': 'Automatica (retta, curva se ci sono più collegamenti)',
   'curve.straight': 'Linea retta',
@@ -3290,7 +3290,7 @@ Object.assign(I18N.ar, {
 });
 
 
-/* nuovo nodo, importazione CSV/Excel, selezione a riquadro */
+/* new node, CSV/Excel import, box selection */
 Object.assign(I18N.it, {
  "btn.newNode": "Nuovo nodo",
  "btn.import": "Importa CSV/Excel",
@@ -3449,7 +3449,7 @@ Object.assign(I18N.ar, {
 });
 
 
-/* AI: creazione dei nodi dal testo e configurazione del chatbot */
+/* AI: node creation from text and chatbot configuration */
 Object.assign(I18N.it, {
  "grp.ai": "Intelligenza artificiale",
  "ai.active": "AI attiva",
@@ -3685,7 +3685,7 @@ Object.assign(I18N.ar, {
  "aicfg.saved": "تم حفظ إعدادات الذكاء الاصطناعي في chatbot.conf."
 });
 
-/* indirizzo in tre parti: citta' (valore), via e civico */
+/* three-part address: city (value), street and house number */
 Object.assign(I18N.it, {
   'add.topoLabel': 'Tipo',
   'add.addrLabel': 'Nome della via (facoltativo)',
@@ -3705,7 +3705,7 @@ if (I18N.de) Object.assign(I18N.de, { 'add.addrLabel': 'Straße (optional)', 'ad
 if (I18N.es) Object.assign(I18N.es, { 'add.addrLabel': 'Calle (opcional)', 'add.addrPh': 'p. ej. Calle del Puerto', 'add.civLabel': 'N.º', 'add.civPh': 'p. ej. 12' });
 if (I18N.ar) Object.assign(I18N.ar, { 'add.addrLabel': 'الشارع (اختياري)', 'add.addrPh': 'مثال: شارع الميناء', 'add.civLabel': 'الرقم', 'add.civPh': 'مثال: 12' });
 
-/* persona / target e importazione JSON da app terze */
+/* person / target and JSON import from third-party apps */
 Object.assign(I18N.it, {
   'add.optPerson': 'Persona / target (cognome, nome, data di nascita)',
   'add.surname': 'Cognome', 'add.surnamePh': 'es. Rossi',
@@ -3733,7 +3733,7 @@ Object.assign(I18N.en, {
   'add.ontoGroup': 'Investigative items',
 });
 
-/* casi (fascicoli) */
+/* cases (case files) */
 Object.assign(I18N.it, {
   'case.title': 'Caso', 'case.switchTip': 'Caso aperto: scegline un altro per cambiare',
   'case.new': 'Nuovo', 'case.edit': 'Modifica', 'case.merge': 'Unisci', 'case.delete': 'Elimina',
@@ -3763,8 +3763,8 @@ Object.assign(I18N.en, {
   'case.confirmMergeDel': 'After merging, the {n} original cases will be deleted. Continue?',
 });
 
-/* persona / target, veicolo, importazione JSON, AI, casi: francese, tedesco,
-   spagnolo, arabo */
+/* person / target, vehicle, JSON import, AI, cases: French, German,
+   Spanish, Arabic */
 Object.assign(I18N.fr, {
   'add.topoLabel': 'Type', 'add.optPerson': 'Personne / cible (nom, prénom, date de naissance)',
   'add.surname': 'Nom', 'add.surnamePh': 'ex. Dupont', 'add.firstname': 'Prénom', 'add.firstnamePh': 'ex. Jean',
@@ -3838,7 +3838,7 @@ Object.assign(I18N.ar, {
   'case.confirmMergeDel': 'بعد الدمج ستُحذف القضايا الأصلية وعددها {n}. هل تريد المتابعة؟',
 });
 
-/* stile di tutti i collegamenti */
+/* style of all links */
 Object.assign(I18N.it, { 'gstyle.title': 'Stile dei collegamenti', 'gstyle.shape': 'Forma', 'gstyle.keep': 'come impostati' });
 Object.assign(I18N.en, { 'gstyle.title': 'Connection style', 'gstyle.shape': 'Shape', 'gstyle.keep': 'as set' });
 Object.assign(I18N.fr, { 'gstyle.title': 'Style des liens', 'gstyle.shape': 'Forme', 'gstyle.keep': 'tels quels' });
@@ -3849,7 +3849,7 @@ Object.assign(I18N.ar, { 'gstyle.title': 'نمط الروابط', 'gstyle.shape'
 /* ---------------------------------------------------------------- runtime */
 
 
-/* nessun caso aperto (primo avvio o ultimo caso eliminato) */
+/* no case open (first start or last case deleted) */
 Object.assign(I18N.it, {
   'case.noneOpt': '— nessun caso —',
   'case.noneHint': 'Nessun caso aperto: crea un caso (o scegline uno) per iniziare a lavorare.',
@@ -3887,7 +3887,7 @@ Object.assign(I18N.ar, {
   'case.firstHint': 'لا توجد أي قضية بعد: أنشئ الأولى للبدء.'
 });
 
-/* download di Tesseract (OCR) dall'interfaccia */
+/* Tesseract (OCR) download from the interface */
 Object.assign(I18N.it, {
   'src.ocrInstall': 'Scarica Tesseract (OCR)',
   'src.ocrConfirm': 'Scaricare Tesseract OCR (circa 50 MB) da\n{url}\nnella cartella tools/tesseract del programma?',
@@ -3956,7 +3956,7 @@ Object.assign(I18N.ar, {
 });
 
 
-/* finestra delle licenze */
+/* licences window */
 Object.assign(I18N.it, {
   'lic.link': 'Licenze',
   'lic.title': 'Licenze',
@@ -4031,7 +4031,7 @@ Object.assign(I18N.ar, {
 });
 
 
-/* importazione guidata da CSV / Excel: passi, colonne e mappatura */
+/* guided CSV / Excel import: steps, columns and mapping */
 Object.assign(I18N.it, {
   'imp.step1': 'File',
   'imp.step2': 'Colonne',
@@ -4310,7 +4310,7 @@ Object.assign(I18N.ar, {
 });
 
 
-/* manuale d'uso */
+/* user manual */
 Object.assign(I18N.it, { 'help.manual': 'Manuale' });
 Object.assign(I18N.en, { 'help.manual': 'User manual' });
 Object.assign(I18N.fr, { 'help.manual': 'Manuel' });
@@ -4327,7 +4327,7 @@ let LANG = (() => {
   return I18N[nav] ? nav : 'it';
 })();
 
-/* Testo tradotto, con sostituzione dei segnaposto {chiave}. */
+/* Translated text, with substitution of the {key} placeholders. */
 function t(key, vars) {
   const dict = I18N[LANG] || I18N.it;
   let s = dict[key];
@@ -4340,9 +4340,9 @@ function t(key, vars) {
 
 const isRTL = () => RTL_LANGS.includes(LANG);
 
-/* Applica le traduzioni agli elementi statici marcati con data-i18n*. */
+/* Applies the translations to the static elements marked with data-i18n*. */
 
-/* Epieos: ricerca inversa di email e telefoni (API a pagamento) */
+/* Epieos: reverse lookup of emails and phone numbers (paid API) */
 Object.assign(I18N.it, {
  "grp.ep": "Epieos",
  "ep.cancel": "Annulla",
@@ -4839,10 +4839,10 @@ function applyI18n(root) {
   scope.querySelectorAll('[data-i18n-title]').forEach(el => {
     el.title = t(el.getAttribute('data-i18n-title'));
   });
-  // IMPORTANTE: il verso RTL si applica solo ai contenitori di testo, non a
-  // <html>. Mettendo dir=rtl sul documento si invertirebbe anche il layout: il
-  // pannello passerebbe a destra e le coordinate del grafo (Cytoscape) non
-  // corrisponderebbero più alla posizione del cursore.
+  // IMPORTANT: RTL direction applies only to the text containers, not to
+  // <html>. Setting dir=rtl on the document would also mirror the layout: the
+  // panel would move to the right and the graph coordinates (Cytoscape) would
+  // no longer match the cursor position.
   document.documentElement.lang = LANG;
   document.documentElement.dir = 'ltr';
   const rtl = isRTL();

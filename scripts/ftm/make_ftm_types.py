@@ -1,20 +1,20 @@
 # -*- coding: utf-8 -*-
-"""Genera da Follow the Money (pacchetto followthemoney, cartelle schema/ e
-translations/) due file per OsintGraph:
+"""Generates from Follow the Money (followthemoney package, folders schema/ and
+translations/) two files for OsintGraph:
 
-    ftm_schema.json     schemi, ereditarieta', proprieta' con tipo, archi
-                        (source/target/label), didascalie, etichette in
-                        en/fr/de/es/ar/ru: lo legge ftm.py a runtime per
-                        importare export FtM senza dipendere dal pacchetto
-    ontology_ftm.py     FTM_TYPES: gli schemi FtM senza equivalente in
-                        OsintGraph come tipi di ontology.py (campi propri e
-                        'featured'), con etichette italiane; FTM_I18N: le
-                        traduzioni (it -> en, fr, de, es, ar) per ontology_i18n
+    ftm_schema.json     schemata, inheritance, typed properties, edges
+                        (source/target/label), captions, labels in
+                        en/fr/de/es/ar/ru: ftm.py reads it at runtime to
+                        import FtM exports without depending on the package
+    ontology_ftm.py     FTM_TYPES: the FtM schemata without an equivalent in
+                        OsintGraph as ontology.py types (own fields and
+                        'featured'), with Italian labels; FTM_I18N: the
+                        translations (it -> en, fr, de, es, ar) for ontology_i18n
 
-Uso:  python scripts/ftm/make_ftm_types.py <dir pacchetto followthemoney> quaesitor/generated
+Usage: python scripts/ftm/make_ftm_types.py <followthemoney package dir> quaesitor/generated
 
-Richiede PyYAML. Le etichette italiane stanno nel dizionario IT qui sotto:
-FtM non ha una traduzione italiana. Un'etichetta senza voce resta in inglese.
+Requires PyYAML. The Italian labels are in the IT dictionary below:
+FtM has no Italian translation. A label without an entry stays in English.
 """
 # "Amicus certus in re incerta cernitur." (Ennius, quoted by Cicero in Laelius de Amicitia)
 # A sure friend is seen in an unsure matter.
@@ -26,7 +26,7 @@ SCHEMA_DIR = os.path.join(PKG, "schema")
 TR_DIR = os.path.join(PKG, "translations")
 LANGS = ("en", "fr", "de", "es", "ar", "ru")
 
-# ------------------------------------------------------- etichette italiane
+# --------------------------------------------------------- Italian labels
 IT = {
     "Above or below threshold": "Sopra o sotto soglia", "Amount": "Importo",
     "Amount of tax paid": "Imposte pagate", "Area": "Area", "Authority": "Autorità",
@@ -79,7 +79,7 @@ IT = {
     "Trading Country": "Paese di scambio", "Trip": "Viaggio",
     "UN SC identifier": "Identificativo ONU (Consiglio di sicurezza)",
     "USD Exchange Rate": "Cambio in USD", "ZIP code": "CAP",
-    # --- proprieta' degli altri schemi-nodo (fase 1: tutti gli schemi nativi)
+    # --- properties of the other node schemata (phase 1: all the native schemata)
     "Abbreviation": "Abbreviazione", "Account ID": "Id conto", "Account number": "Numero di conto",
     "Account type": "Tipo di conto", "Address": "Indirizzo", "Airplane": "Aeromobile",
     "Amount in EUR": "Importo in EUR", "Amount in USD": "Importo in USD", "Article": "Articolo",
@@ -151,7 +151,7 @@ IT = {
     "Follow the Money": "Follow the Money",
 }
 
-# --------------------------------------------------------------- cataloghi
+# --------------------------------------------------------------- catalogues
 def read_po(path):
     out = {}
     if not os.path.isfile(path):
@@ -167,7 +167,7 @@ PO = {l: read_po(os.path.join(TR_DIR, l, "LC_MESSAGES", "followthemoney.po")) fo
 def tr(en, lang):
     return en if lang == "en" else PO[lang].get(en, en)
 
-# ------------------------------------------------------------------ schemi
+# ---------------------------------------------------------------- schemata
 raw = {}
 for fn in sorted(os.listdir(SCHEMA_DIR)):
     if fn.endswith(".yaml"):
@@ -208,14 +208,14 @@ with open(os.path.join(OUT, "ftm_schema.json"), "w", encoding="utf-8") as f:
     json.dump(schema_json, f, ensure_ascii=False, separators=(",", ":"))
 print(f"ftm_schema.json: {len(schema_json)} schemi")
 
-# ------------------------------------- tipi senza equivalente in OsintGraph
-# schemi FtM che coincidono con i tipi built-in di OsintGraph (persona, luogo,
-# email, account, foto, testo, link, veicolo): restano built-in, con l'id FtM
-# e le proprieta' in piu' nella scheda. Tutti gli ALTRI schemi-nodo diventano
-# tipi nativi.
+# ------------------------------------- types without an equivalent in OsintGraph
+# FtM schemata that coincide with the OsintGraph built-in types (person, place,
+# email, account, photo, text, link, vehicle): they stay built-in, with the FtM id
+# and the extra properties in the record. All the OTHER node schemata become
+# native types.
 BUILTIN = {"Person", "Address", "Vehicle", "Email", "UserAccount", "Image", "Note", "HyperText"}
-# proprieta' generiche ereditate (Thing/Analyzable/Document): non campi del
-# modulo; all'import restano come campi liberi della scheda
+# generic inherited properties (Thing/Analyzable/Document): not form fields;
+# on import they stay as free fields of the record
 GENERIC_SKIP = {"summary", "description", "sourceUrl", "alias", "previousName", "weakAlias",
                 "keywords", "topics", "notes", "modifiedAt", "retrievedAt", "createdAt",
                 "publisher", "publisherUrl", "indexText", "wikidataId", "wikipediaUrl", "program",
@@ -239,7 +239,7 @@ def group_of(n):
         if n in ss:
             return g
     return "FtM · Documenti"
-# chiavi identificative alternative (senza id FtM): la prima presente nello schema
+# alternative identifying keys (without an FtM id): the first one present in the schema
 IDENT_PREF = {
     "Company": ["name"], "Organization": ["name"], "PublicBody": ["name"], "LegalEntity": ["name"],
     "BankAccount": ["iban", "accountNumber"], "CryptoWallet": ["publicKey"], "Security": ["isin", "ticker"],
@@ -275,9 +275,9 @@ def it(en):
     return IT.get(en, en)
 
 
-# chiavi gia' usate da ontology.py (tipi italiani) e dai tipi built-in: un tipo
-# FtM omonimo prende il prefisso 'ftm' (ftmbankaccount, ftmdocument, ftmevent,
-# ftmorganization) invece di sovrascrivere il tipo esistente
+# keys already used by ontology.py (Italian types) and by the built-in types: an FtM
+# type with the same name gets the 'ftm' prefix (ftmbankaccount, ftmdocument, ftmevent,
+# ftmorganization) instead of overwriting the existing type
 TAKEN = {"weapon", "explosive", "ammo", "drug", "cash", "cheque", "valuable", "bankaccount",
          "card", "crypto", "document", "findoc", "legaldoc", "device", "organization", "event",
          "property", "sighting", "target", "name", "person", "phone", "email", "username",
@@ -321,7 +321,7 @@ for n in sorted(new):
                        "options": [], "ph": ""})
     feat = s.get("featured") or []
     fields.sort(key=lambda f: (f["key"] not in feat, feat.index(f["key"]) if f["key"] in feat else 0))
-    # id FtM: campo nascosto (non nel modulo, si' nella scheda), identita' primaria
+    # FtM id: hidden field (not in the form, yes in the record), primary identity
     fields.append({"key": "ftmId", "label": it("FtM id"), "en": "FtM id", "type": "text",
                    "options": [], "ph": "", "hidden": True})
     keys = [f["key"] for f in fields if f["key"] != "ftmId"]
@@ -342,7 +342,7 @@ for n in sorted(new):
     }
 
 def py(obj):
-    """JSON leggibile ma valido come letterale Python (true/false/null)."""
+    """Readable JSON that is also valid as a Python literal (true/false/null)."""
     return re.sub(r'(?<=: )(true|false|null)\b',
                   lambda m: {"true": "True", "false": "False", "null": "None"}[m.group(1)],
                   json.dumps(obj, ensure_ascii=False, indent=1))
