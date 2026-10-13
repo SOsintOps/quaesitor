@@ -142,25 +142,10 @@
   "copyright": "Indian Type Foundry",
   "url": "https://www.fontshare.com/fonts/panchang",
   "role": {
-   "it": "Carattere del logo originale di OSInt Graph (Quaesitor ha un logo proprio, in Bodoni Moda)",
-   "en": "Typeface of the original OSInt Graph logo (Quaesitor has a logo of its own, set in Bodoni Moda)"
+   "it": "Carattere del logo originale di OSInt Graph (Quaesitor usa un wordmark provvisorio, font di sistema)",
+   "en": "Typeface of the original OSInt Graph logo (Quaesitor uses a provisional wordmark in a system font)"
   },
   "file": "panchang.txt",
-  "group": "assets",
-  "bundled": true
- },
- {
-  "id": "bodoni-moda",
-  "name": "Bodoni Moda (carattere del logo)",
-  "version": "",
-  "license": "SIL Open Font License 1.1 (solo contorni: il font non è distribuito)",
-  "copyright": "The Bodoni Moda Project Authors",
-  "url": "https://github.com/indestructible-type/Bodoni",
-  "role": {
-   "it": "Carattere della parola Quaesitor nel logo, convertita in tracciati",
-   "en": "Typeface of the word Quaesitor in the logo, converted to outlines"
-  },
-  "file": "bodoni-moda.txt",
   "group": "assets",
   "bundled": true
  },

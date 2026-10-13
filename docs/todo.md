@@ -10,6 +10,10 @@ This file collects ideas, requirements and potential improvements to be evaluate
 
 - **Docker:** a `Dockerfile` (python:3.12-slim, `tesseract-ocr` with the ita, eng, chi_sim, rus and ara language packs, the app bound to 127.0.0.1 behind the published port) and a `docker-compose.yml` with volumes for `data/`, `fonti/`, `chatbot.conf` and `services.conf`. Ollama stays outside the image (host or second service). The native folder picker is unavailable in a container; the manual path entry already covers it. The program has no authentication: never publish the port beyond localhost without a proxy with login. The venv plus the four `.bat` files remain the primary Windows installation. Decided on 2026-10-09, not started.
 
+### Name and Identity of the Fork
+
+- **Definitive logo:** the interface carries a provisional text wordmark and a "Q" icon since 1.5.0; a designed logo and icon are still wanted. The author's credits line, credits window and licences window stay as they are.
+
 ### Documentation
 
 - **Screenshots:** take Quaesitor's own screenshots for the built-in manual (the `IMG` map in `static/manual/manuale.html` lists the eighteen views, `fig()` renders them again once the files are back) and for the README.

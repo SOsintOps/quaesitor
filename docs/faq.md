@@ -75,7 +75,7 @@ GNU GPL v3 with additional terms under section 7, unchanged from upstream: see [
 The moment a modified copy leaves the team, four obligations apply:
 
 *   **Attribution:** keep the author attribution visible in the interface (credits line, credits window, licences window), in `NOTICE`, in `THIRD-PARTY-NOTICES.md` and in the source headers.
-*   **Name and logo:** use a different name, logo and icon. That is why the fork is called Quaesitor; Quaesitor ships its own logo and icon for this reason: a Q whose tail ends in a graph node.
+*   **Name and logo:** use a different name, logo and icon. That is why the fork is called Quaesitor; Quaesitor ships its own provisional wordmark and icon for this reason.
 *   **Origin:** mark the version as modified and do not misrepresent its origin.
 *   **Source:** distribute it under the same licence and make the source available to the recipients.
 

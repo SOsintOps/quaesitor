@@ -146,7 +146,7 @@ Issues and pull requests are welcome on the SOsintOps repository. Keep changes c
 
 OSInt Graph is developed and maintained by **Andrea Cumini**: the idea, the design, the code, the manual in six languages are his. His attribution in the interface (the credits line under the logo, the credits window and the licences window) and in the source headers stays, as the licence requires and as is right.
 
-The name "OSInt Graph", its logo and its "OG" icon identify the original program and belong to its author (NOTICE, point 3). They are not distributed with Quaesitor: Quaesitor has a logo and an icon of its own: a Q whose tail ends in a graph node, with the name set in Bodoni Moda. "Quaesitor" is the Latin name of the magistrate who conducted a criminal inquiry.
+The name "OSInt Graph", its logo and its "OG" icon identify the original program and belong to its author (NOTICE, point 3). They are not distributed with Quaesitor: the interface carries a provisional wordmark and icon of its own. "Quaesitor" is the Latin name of the magistrate who conducted a criminal inquiry.
 
 The Quaesitor fork is developed and maintained by Sitticus (SOsintOps, [osintops.com](https://osintops.com)). The link analysis guidelines are rewritten from the United Nations Office on Drugs and Crime, *Criminal Intelligence: Manual for Analysts* (United Nations, 2011).
 
