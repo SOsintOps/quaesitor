@@ -113,7 +113,7 @@ add("font-awesome", "Font Awesome Free", "6", "Icone CC BY 4.0, codice MIT",
     "Fonticons, Inc.", "https://fontawesome.com",
     "Icone di ripiego dei tipi di nodo e dell'interfaccia", "Fallback node type icons and interface icons",
     wr("font-awesome.txt", rd(os.path.join(ROOT, "static", "vendor", "fa", "LICENSE.txt"))), "assets")
-add("entity-icons", "Quaesitor node icons", "1.7.0", "GPL-3.0-or-later (as the program)",
+add("entity-icons", "Quaesitor node icons", "1.7.1", "GPL-3.0-or-later (as the program)",
     "Ramingo (SOsintOps)", "https://github.com/SOsintOps/quaesitor",
     "Icone a colori dei tipi di nodo, generate con ChatGPT e Gemini (static/icons/entities)",
     "Colour node type icons, generated with ChatGPT and Gemini (static/icons/entities)",

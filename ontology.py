@@ -415,14 +415,47 @@ DRUG_ICONS = {
     "Piante di cannabis": "cannabis", "Cannabinoidi sintetici": "cannabis",
     "Eroina": "syringe", "Fentanyl e derivati": "syringe", "Morfina": "syringe",
     "Oppio": "syringe", "Metadone": "syringe",
-    "Cocaina": "vial", "Crack": "vial", "Precursori chimici": "vial",
+    "Cocaina": "vial", "Crack": "vial", "Precursori chimici": "vial", "Ketamina": "vial",
+    "MDMA / Ecstasy": "prescription-bottle-medical", "Anfetamina": "prescription-bottle-medical",
+    "Metanfetamina": "prescription-bottle-medical", "Buprenorfina": "prescription-bottle-medical",
+    "Ossicodone / oppioidi farmaceutici": "prescription-bottle-medical",
+    "Benzodiazepine": "prescription-bottle-medical",
+    "Catinoni sintetici (mefedrone…)": "prescription-bottle-medical",
+    "Khat": "leaf", "Kratom": "leaf", "Mescalina": "leaf",
+    "GHB / GBL": "droplet", "Sostanza non identificata": "microscope",
 }
-DOC_ICONS = {"Passaporto": "passport"}
+DOC_ICONS = {"Passaporto": "passport", "Carta d'identità": "address-card",
+             "Patente di guida": "id-card-clip", "Permesso di soggiorno": "stamp",
+             "Codice fiscale / tessera sanitaria": "notes-medical", "Visto": "plane-departure",
+             "Documento di viaggio": "plane-departure", "Tessera di riconoscimento": "id-badge"}
 FINDOC_ICONS = {"Ricevuta / scontrino": "receipt", "Estratto conto": "receipt",
                 "Bonifico / disposizione di pagamento": "receipt", "Contratto": "file-contract",
-                "Contratto di locazione": "file-contract", "Atto di compravendita": "file-contract"}
-LEGALDOC_ICONS = {"Sentenza": "scale-balanced", "Decreto che dispone il giudizio": "scale-balanced"}
-DEVICE_ICONS = {"PC portatile": "laptop", "PC fisso": "laptop"}
+                "Contratto di locazione": "file-contract", "Atto di compravendita": "file-contract",
+                "Fattura": "file-invoice", "Polizza assicurativa": "file-shield",
+                "Bilancio / nota integrativa": "chart-column", "Libro contabile / registro": "book",
+                "Contabilità occulta / pizzino": "note-sticky",
+                "Documento di trasporto (DDT)": "truck-ramp-box",
+                "Visura camerale": "certificate", "Dichiarazione dei redditi": "certificate"}
+LEGALDOC_ICONS = {
+    "Sentenza": "scale-balanced", "Decreto che dispone il giudizio": "scale-balanced",
+    "Verbale di arresto / fermo": "handcuffs", "Ordinanza di custodia cautelare": "handcuffs",
+    "Mandato di arresto europeo": "handcuffs",
+    "Verbale di perquisizione": "magnifying-glass", "Decreto di perquisizione": "magnifying-glass",
+    "Verbale di sequestro": "magnifying-glass", "Decreto di sequestro": "magnifying-glass",
+    "Verbale di sommarie informazioni": "microphone", "Verbale di interrogatorio": "microphone",
+    "Decreto di intercettazione": "satellite-dish",
+    "Denuncia / querela": "file-pen", "Esposto": "file-pen",
+    "Informativa di reato": "shield", "Annotazione di polizia giudiziaria": "shield",
+    "Relazione di servizio": "shield",
+    "Avviso di garanzia": "clipboard-list", "Avviso di conclusione indagini (415-bis)": "clipboard-list",
+    "Richiesta di rinvio a giudizio": "clipboard-list",
+    "Rogatoria internazionale": "earth-europe",
+}
+DEVICE_ICONS = {"PC portatile": "laptop", "PC fisso": "desktop",
+                "Smartphone": "mobile-screen-button", "Cellulare": "mobile-screen-button",
+                "Tablet": "mobile-screen-button", "Hard disk / SSD": "hard-drive",
+                "Chiavetta USB / memory card": "usb", "Router / modem": "router",
+                "Dispositivo GPS": "location-crosshairs", "Criptofonino": "user-lock"}
 
 # icone dei tipi gia' esistenti (Font Awesome Free)
 BASE_ICONS = {

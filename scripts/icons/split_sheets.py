@@ -4,17 +4,18 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 """Cuts the icon sheets generated with ChatGPT / Gemini into single icons.
 
-    .venv\\Scripts\\python.exe scripts\\icons\\split_sheets.py ["icone grezze"]
+    .venv\\Scripts\\python.exe scripts\\icons\\split_sheets.py [<folder of the sheets>]
 
 Every sheet is a grid of icons on a white background. The script finds the icons as
 connected areas of non-white pixels (dilated, so that the parts of one icon stay
 together), orders them by row and column, makes the white background transparent with
 a flood fill from the border (the white inside an icon stays), and writes a square
-128x128 PNG per icon into <sheets>/_tagli/<sheet>/NNN.png, plus a numbered contact
+128x128 PNG per icon into <sheets>/../_tagli/<sheet>/NNN.png, plus a numbered contact
 sheet per source (<sheets>/_tagli/_contatto_<sheet>.png) used to label the icons.
 
 A development tool: it needs numpy and scipy (requirements-audio.txt), the program
-does not. The sheets stay out of git; scripts/icons/labels.json records what every
+does not. The sheets live in docs/evaluation/icons/sheets, in the development repository
+only (release_public.py leaves docs/evaluation/ out); scripts/icons/labels.json records what every
 cut shows, scripts/icons/mapping.json which cut becomes the icon of which node type.
 """
 # "Divide et impera." (attributed to Philip II of Macedon)
@@ -198,8 +199,8 @@ def contact(dest, cuts, path, per_row=12, cell=96):
 
 
 def main():
-    src = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "icone grezze")
-    out_root = os.path.join(src, "_tagli")
+    src = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "docs", "evaluation", "icons", "sheets")
+    out_root = os.path.join(os.path.dirname(os.path.abspath(src)), "_tagli")
     os.makedirs(out_root, exist_ok=True)
     report = {}
     for f in sorted(os.listdir(src)):

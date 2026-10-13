@@ -12,7 +12,7 @@ texts are in `static/licenses/` and can be read from the program itself
 | [cose-base](https://github.com/iVis-at-Bilkent/cose-base) | 2.2.0 | MIT | Copyright (c) i-Vis Research Group, Bilkent University | Automatic node layout (organic layout) |
 | [layout-base](https://github.com/iVis-at-Bilkent/layout-base) | 2.0.1 | MIT | Copyright (c) i-Vis Research Group, Bilkent University | Automatic node layout (organic layout) |
 | [Font Awesome Free](https://fontawesome.com) | 6 | Icone CC BY 4.0, codice MIT | Fonticons, Inc. | Fallback node type icons and interface icons |
-| [Quaesitor node icons](https://github.com/SOsintOps/quaesitor) | 1.7.0 | GPL-3.0-or-later (as the program) | Ramingo (SOsintOps) | Colour node type icons, generated with ChatGPT and Gemini (static/icons/entities) |
+| [Quaesitor node icons](https://github.com/SOsintOps/quaesitor) | 1.7.1 | GPL-3.0-or-later (as the program) | Ramingo (SOsintOps) | Colour node type icons, generated with ChatGPT and Gemini (static/icons/entities) |
 | [Simple Icons](https://simpleicons.org) |  | CC0 1.0 (pubblico dominio); i loghi restano marchi dei rispettivi titolari | Simple Icons contributors | Social platform logos (Facebook, Instagram, Telegram…) |
 | [Panchang (carattere del logo)](https://www.fontshare.com/fonts/panchang) |  | Fontshare Free Font License (solo contorni: il font non è distribuito) | Indian Type Foundry | Typeface of the original OSInt Graph logo (Quaesitor uses a provisional wordmark in a system font) |
 | [Flask](https://pypi.org/project/Flask/) | 3.1.3 | BSD-3-Clause |  | Application web server |

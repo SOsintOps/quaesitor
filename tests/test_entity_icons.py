@@ -20,7 +20,16 @@ def test_index_matches_files_and_known_types():
     files = {p.stem for p in DEST.glob("*.png")}
     assert set(keys) == files
     assert set(keys) <= _known()
-    assert {"name", "target", "phone", "email", "company", "vessel", "video", "weapon"} <= set(keys)
+    assert {"name", "target", "phone", "email", "company", "vessel", "video", "weapon", "article", "call"} <= set(keys)
+
+
+def test_every_sub_type_icon_is_installed():
+    keys = set(json.loads((DEST / "index.json").read_text(encoding="utf-8")))
+    for table in (onto.DRUG_ICONS, onto.DOC_ICONS, onto.FINDOC_ICONS, onto.LEGALDOC_ICONS, onto.DEVICE_ICONS):
+        assert set(table.values()) <= keys, set(table.values()) - keys
+    assert onto.icon_of("drug", {"sostanza": "MDMA / Ecstasy"}) == "prescription-bottle-medical"
+    assert onto.icon_of("device", {"tipo": "Router / modem"}) == "router"
+    assert onto.icon_of("device", {"tipo": "Altro"}) == onto.TYPES["device"]["icon"]
 
 
 def test_icons_are_square_with_transparent_corners():

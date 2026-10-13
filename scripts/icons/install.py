@@ -38,7 +38,7 @@ def known_keys():
 
 
 def main():
-    cuts = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "icone grezze", "_tagli")
+    cuts = sys.argv[1] if len(sys.argv) > 1 else os.path.join(ROOT, "docs", "evaluation", "icons", "_tagli")
     with open(os.path.join(HERE, "mapping.json"), encoding="utf-8") as f:
         mapping = {k: v for k, v in json.load(f).items() if not k.startswith("_")}
     unknown = sorted(set(mapping) - known_keys())

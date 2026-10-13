@@ -1,5 +1,5 @@
 {
- "_note": "What every cut shows, by sheet and position (row-major, 1-based), labelled by looking at the contact sheets. Sheets not listed here are cut but not labelled: their grids are uneven (3d-investigation-and-finance, glossy-3d-investigation-icon-atlas) or they hold only payment-card variants.",
+ "_note": "What every cut shows, by sheet and position (row-major, 1-based), labelled by looking at the contact sheets. '_sliver' marks a cut that carries a piece of a neighbouring icon, '_specks' one with stray marks: avoid them as node icons. comprehensive-forensic-and-finance-icon-library and glossy-3d-icon-collection-grid are labelled only where a cut is used; the payment-card sheets are not labelled.",
  "mystery-and-investigation-icon-grid": {
   "1": "person_fedora", "2": "target_crosshair_person", "3": "unknown_hooded_question", "4": "speaker_voice_waves",
   "5": "phone_masked", "6": "email_masked", "7": "username_at_fedora", "8": "social_bubble_spy",
@@ -29,5 +29,65 @@
   "31": "due_diligence_search", "32": "compliance_shield_checklist", "33": "bank_folder", "34": "court_gavel_documents", "35": "sealed_signed_document", "36": "apartment_keys",
   "37": "watch_diamond", "38": "painting_gloves", "39": "private_jet_certificate", "40": "yacht_certificate", "41": "safe_documents", "42": "tax_calculator_documents",
   "43": "insurance_document_shield", "44": "umbrella_coins", "45": "safe_keys", "46": "crypto_exchange", "47": "cash_to_bank", "48": "company_transfer"
+ },
+ "glossy-3d-investigation-icon-atlas": {
+  "1": "businessman", "2": "businesswoman", "3": "group_of_people", "4": "org_chart", "5": "person_search_magnifier", "6": "target_crosshair_person",
+  "7": "hooded_person", "8": "handshake", "9": "group_dark_suits", "10": "puzzle_pieces", "11": "magnifier_gold", "12": "two_people",
+  "13": "family_group", "14": "id_badge_clip", "15": "businessman_2", "16": "skyscraper_blue", "17": "office_building", "18": "factory_chimney_sliver",
+  "19": "factory", "20": "shop", "21": "bank_columns", "22": "ngo_building_heart", "23": "school_flag_building", "24": "courthouse_columns",
+  "25": "white_house", "26": "capitol", "27": "globe_flag", "28": "flags_row", "29": "un_flag", "30": "un_emblem",
+  "31": "gold_coins", "32": "banknote_stacks", "33": "bank_cards_blue", "34": "bank_cards_gold", "35": "wallet_cash", "36": "money_bag_dollar",
+  "37": "gold_bars", "38": "bitcoin_ether_coins", "39": "tether_coin", "40": "chart_growth", "41": "chart_decline", "42": "pie_chart_sliver",
+  "43": "report_chart_sliver", "44": "safe", "45": "piggy_bank", "46": "document_pen", "47": "certificate_seal", "48": "handshake_document_sliver",
+  "49": "handshake_contract", "50": "clipboard_checklist", "51": "invoice_calculator", "52": "spreadsheet_chart", "53": "folder_yellow", "54": "folder_shield",
+  "55": "binders_blue", "56": "binders_coloured", "57": "archive_box", "58": "printer", "59": "printer_2", "60": "document_search",
+  "61": "scales_justice", "62": "gavel", "63": "law_book", "64": "police_badge", "65": "handcuffs", "66": "prisoner_bars",
+  "67": "fingerprint_magnifier", "68": "fingerprint", "69": "warning_prohibition", "70": "siren", "71": "shield_blue", "72": "cctv_camera",
+  "73": "siren_sliver", "74": "clipboard_alert", "75": "container_ship", "76": "port_crane_ship", "77": "port_crane_sliver", "78": "container_red",
+  "79": "cardboard_boxes_pallet", "80": "forklift", "81": "truck", "82": "freight_train", "83": "airliner", "84": "private_jet_sliver",
+  "85": "airliner_2", "86": "helicopter", "87": "port_crane_ship_2", "88": "warehouse_sliver", "89": "map_route_pins", "90": "house",
+  "91": "apartment_block", "92": "office_low", "93": "land_plot", "94": "map_pin", "95": "map_folded", "96": "construction_site",
+  "97": "excavator", "98": "wind_turbines", "99": "solar_panels_sliver", "100": "power_plant", "101": "mine_coal", "102": "forest_sliver",
+  "103": "island_sliver", "104": "radio_tower", "105": "sports_car", "106": "suv", "107": "cars_motorbike", "108": "motorbike_yacht_sliver",
+  "109": "yacht_sliver", "110": "sailboat_sliver", "111": "watch_diamond", "112": "painting_gold_frame", "113": "painting_vase", "114": "silver_bars",
+  "115": "handbag", "116": "wine_bottle_glass", "117": "statue_bust", "118": "jet_engine_sliver", "119": "metal_ore", "120": "laptop",
+  "121": "smartphone", "122": "desktop_monitor", "123": "server_rack", "124": "database_sliver", "125": "cloud", "126": "network_globe_sliver",
+  "127": "network_switch", "128": "wifi", "129": "satellite", "130": "satellite_dish", "131": "sim_cards", "132": "usb_stick",
+  "133": "hard_disk_sliver", "134": "terminal_code", "135": "passport_red_sliver", "136": "passport_blue", "137": "id_card_blue", "138": "id_card_pink",
+  "139": "visa_card_globe", "140": "boarding_ticket", "141": "globe_network_sliver", "142": "health_card_dna", "143": "microscope_specks", "144": "flask_blue",
+  "145": "syringe_vial", "146": "pill_bottles", "147": "virus", "148": "cannabis_leaf_sliver", "149": "radioactive", "150": "water_drop_sliver",
+  "151": "leaf_specks", "152": "recycling", "153": "tree", "154": "fish", "155": "cow", "156": "wheat_sliver",
+  "157": "logs_ore", "158": "gold_nuggets", "159": "oil_barrel", "160": "toxic_barrel", "161": "water_drop", "162": "power_plant_cooling_towers",
+  "163": "power_pylons", "164": "recycling_bin"
+ },
+ "3d-investigation-and-finance-icon-grid": {
+  "1": "pc_tower", "2": "server_rack", "3": "database", "4": "cloud_globe", "5": "router_small_sliver", "6": "router",
+  "7": "firewall", "8": "shield_padlock", "9": "ethernet_port", "10": "fiber_optic", "11": "laptop_globe", "12": "smartphone",
+  "13": "folder", "14": "document_blank", "15": "pdf_excel_files", "16": "word_document", "17": "zip_folder", "18": "hard_disk_usb_stick",
+  "19": "sd_card", "20": "email_envelope_at", "21": "document_magnifier", "22": "fingerprint", "23": "certificate_seal", "24": "shield_check",
+  "25": "www_globe", "26": "dark_server", "27": "link_ip_pin", "28": "map_pin", "29": "satellite", "30": "radio_tower",
+  "31": "cctv_camera", "32": "browser_globe", "33": "email_hooded_sliver", "34": "tor_onion", "35": "bitcoin", "36": "ethereum",
+  "37": "skyscraper", "38": "office_building", "39": "factory", "40": "people_dark_suits", "41": "org_chart_pie", "42": "document_stack",
+  "43": "id_badge_sliver", "44": "handshake_sliver", "45": "meeting_sliver", "46": "gavel", "47": "bank_sliver", "48": "bank",
+  "49": "banknotes", "50": "gold_coins", "51": "bank_card", "52": "transfer_arrows", "53": "money_bag_chart_sliver", "54": "hand_coin_sliver",
+  "55": "contract_pen", "56": "banknote_certificate", "57": "safe", "58": "calculator_money_bag", "59": "currency_exchange", "60": "globe_currencies",
+  "61": "container_red", "62": "containers_sliver", "63": "ship_sliver", "64": "airliner_sliver", "65": "truck_train_sliver", "66": "boxes_pallet_sliver",
+  "67": "forklift", "68": "checklist", "69": "customs_officer_box", "70": "port_crane_ship", "71": "warehouse_barcode", "72": "hand_truck",
+  "73": "airliner", "74": "yacht_sliver", "75": "yacht_sliver_2", "76": "car", "77": "motorbike", "78": "house_sliver",
+  "79": "buildings_row", "80": "land_pin", "81": "map_pin_folded", "82": "globe_plane", "83": "passport_keys", "84": "painting",
+  "85": "scales_justice", "86": "documents_seal", "87": "law_book_badge", "88": "handcuffs", "89": "prisoner_bars", "90": "bank_folder",
+  "91": "prisoner_bars_2", "92": "stamp_prohibition", "93": "clipboard_alert", "94": "prohibition_checklist", "95": "warning_triangle", "96": "siren",
+  "97": "newspaper", "98": "camera", "99": "microphone_camcorder", "100": "satellite_map", "101": "city_map", "102": "pen_box",
+  "103": "cloud_download_sliver", "104": "binoculars_sliver", "105": "megaphone", "106": "chat_bubbles", "107": "document_network", "108": "hourglass"
+ },
+ "comprehensive-forensic-and-finance-icon-library": {
+  "10": "driving_licence_car", "11": "globe_pin", "15": "phone_handset", "25": "sticky_note", "27": "desktop_monitor", "128": "document_shield"
+ },
+ "glossy-3d-icon-collection-grid": {
+  "10": "phone_gps_pin", "13": "satellite_dish", "32": "microphone", "33": "newspaper_news", "38": "document_pen", "43": "police_badge",
+  "118": "leaf", "120": "water_drop"
+ },
+ "microscope-and-secure-smartphone-icons": {
+  "1": "microscope", "2": "secure_smartphone_padlock_shield"
  }
 }
