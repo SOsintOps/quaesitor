@@ -38,6 +38,11 @@ Frequently asked questions about Quaesitor — the project, the licence, install
 * [Does the video transcription send the audio anywhere?](#does-the-video-transcription-send-the-audio-anywhere)
 * [Does it talk to Cognitor?](#does-it-talk-to-cognitor)
 * [Where do the node icons come from?](#where-do-the-node-icons-come-from)
+* [Where do I put the 4 x 4 grade of a link?](#where-do-i-put-the-4-x-4-grade-of-a-link)
+* [Why the 4 x 4 and not the Admiralty 6 x 6?](#why-the-4-x-4-and-not-the-admiralty-6-x-6)
+* [Solid or dashed links?](#solid-or-dashed-links)
+* [Is the graph my report?](#is-the-graph-my-report)
+* [Can chats, Telegram channels and username searches become nodes?](#can-chats-telegram-channels-and-username-searches-become-nodes)
 * [Where do I report a problem or ask a question?](#where-do-i-report-a-problem-or-ask-a-question)
 * [Where is the rest of the documentation?](#where-is-the-rest-of-the-documentation)
 * [Are there related SOsintOps projects?](#are-there-related-sosintops-projects)
@@ -227,6 +232,28 @@ Through a file, since 1.6.0. Cognitor (face recognition with cases and a co-appe
 
 Since 1.7.0 the node types have colour icons. They were generated in October 2026 with ChatGPT and Gemini, from a prompt written by the maintainer of the fork: a colour evolution of a set of flat "incognito" glyphs (hoods, fedoras, masks, dark glasses), one icon per node type, no text. The generators returned nine sheets of icons on a white background, and a tenth, two icons (a microscope and an encrypted phone), was generated for 1.7.1 in the same glossy style. `scripts/icons/split_sheets.py` cuts them into single icons, `scripts/icons/labels.json` records what each cut shows, `scripts/icons/mapping.json` assigns a cut to each node type and `scripts/icons/install.py` copies the chosen ones to `static/icons/entities/`. The sheets themselves are not in the repository. Since 1.7.1 every node type has one, `article` and `call` included, and so do most sub-types: the substance of a drug (pills, leaf, droplet...), the kind of identity document, financial document, judicial act and device each pick a more specific icon, listed in the icon tables of `ontology.py`; a sub-type without one ("Altro" and a few others) shows the icon of its type. Font Awesome glyphs remain only as fallback, and a social profile keeps the logo of its platform. To change an icon, point its key in `mapping.json` to another cut, or generate a new sheet with the same prompt, cut it and run `install.py` again. The icons are original images of this fork, distributed under the same licence as the program.
 
+## Method & Analysis
+
+### Where do I put the 4 x 4 grade of a link?
+
+In the link label or in a field of the card, as the [Link Analysis Guidelines](link-analysis.md#doing-it-in-quaesitor) suggest: write the code (`A1`, `B2`, `C3`) so that the grade travels with the line and appears in the PDF export. Be aware that Quaesitor has no dedicated grade field yet: the program does not check the code, does not filter or colour links by it and does not derive the line style from it. The grade is your judgement, written by hand; keep the label and the line style consistent with it.
+
+### Why the 4 x 4 and not the Admiralty 6 x 6?
+
+Because the method of this fork is the UNODC [*Criminal Intelligence: Manual for Analysts*](https://www.unodc.org/documents/organized-crime/Law-Enforcement/Criminal_Intelligence_for_Analysts.pdf), and the 4 x 4 is the system it recommends: source `A`, `B`, `C` or `X`, information `1` to `4`. It asks a question you can answer for every item (did the source know it personally? is it corroborated?), and its confirmed grades are the ones that decide whether a line is drawn solid. The 6 x 6 (Admiralty) system is not a finer version of the same scale: it grades how plausible the information is, not how close the source was to it, so an item graded on the 6 x 6 must be re-graded, not translated number for number. The conversion is in the Field Notes, [Converting from the 6 x 6 (Admiralty) System](https://github.com/SOsintOps/intelligence-field-notes/blob/main/docs/source-evaluation.md#converting-from-the-6-x-6-admiralty-system); the one SOsintOps tool that keeps the 6 x 6 on purpose, [Elementary CTI](https://github.com/SOsintOps/elementary-CTI), and why, is explained [in the same page](https://github.com/SOsintOps/intelligence-field-notes/blob/main/docs/source-evaluation.md#one-exception-machine-graded-cti-feeds).
+
+### Solid or dashed links?
+
+Solid only for a **confirmed** link, that is one whose information is graded `A1`, `A2`, `B1` or `B2`; dashed for every other grade, and dashed with a label starting with "hypothesis" for a link you infer rather than observe, with the reasoning in the link's notes. A solid line on a `C3` states as fact what is hearsay. When the chart suggests more than one explanation, test them against each other before drawing any of them solid: analysis of competing hypotheses is in the Field Notes, [Analytic Techniques](https://github.com/SOsintOps/intelligence-field-notes/blob/main/docs/analytic-techniques.md), and [Il Conclave](https://github.com/SOsintOps/il-conclave), a skill for Claude Code (in Italian), runs ACH and a premortem as forced procedures on a question you give it.
+
+### Is the graph my report?
+
+No. The report is the product; the graph and the cards, exported to PDF, are its annexes. The report starts with the bottom line, keeps the findings (sourced and graded) apart from the judgements, and states the gaps: the structure is in the Field Notes, [Report Writing](https://github.com/SOsintOps/intelligence-field-notes/blob/main/docs/report-writing.md). [Argos](https://github.com/SOsintOps/Argos) and [Speculator](https://github.com/SOsintOps/Speculator-Project) ship report templates built on that page in their `templates/` folders, a plain Markdown one and Word templates for full and executive reports. For further reading on the craft, the SOsintOps fork of [awesome-intelligence-writing](https://github.com/SOsintOps/awesome-intelligence-writing) collects guides on intelligence writing; for the handling markings (TLP) and the other classification schemes used in intelligence tooling, see the classification module of [Codex Machinae](https://github.com/SOsintOps/codex-machinae).
+
+### Can chats, Telegram channels and username searches become nodes?
+
+Yes, through the import. [TGchat-analytics](https://github.com/SOsintOps/TGchat-analytics) (statistical reports on exported chats, Telegram HTML exports included) and [TelEgrapherX](https://github.com/SOsintOps/TelEgrapherX) (collection and analysis of Telegram groups and channels) tell you who talks to whom and how often; the participants become person or account nodes and the exchanges become links, through the CSV and Excel wizard. The SOsintOps fork of [Maigret](https://github.com/SOsintOps/maigret) searches a username across many sites and saves its reports in several formats, CSV and JSON among them; the accounts it finds become account nodes, through the CSV wizard or the import of JSON exports of OSINT tools. Grade what you import like any other information: a tool's output is a lead, not a confirmed link. For Italian cases, [Acta Diurna](https://github.com/SOsintOps/acta-diurna), a dashboard (in Italian) of news on law-enforcement operations in Italy, is a source of the events and offences that Quaesitor's investigative node types (offences, weapons, drugs, cash, judicial acts such as arrest and seizure reports) are made for.
+
 ## Help & Documentation
 
 ### Where do I report a problem or ask a question?
@@ -235,7 +262,7 @@ In the issues of the SOsintOps repository. Not to the original author: the chang
 
 ### Where is the rest of the documentation?
 
-The README section *Documentation* lists every page. The analytic standards, the 5W1H method and OPSEC are in the [Guidelines](guidelines.md); the method behind the graph is in the [Link Analysis Guidelines](link-analysis.md), rewritten from the UNODC manual for analysts; the node types are in [Graph Entities](ontology.md); the releases are in the [Version History](versionhistory.md) and what is planned in [Ideas & Roadmap](todo.md). The common method of the SOsintOps tools (analytic standards, source evaluation, estimative language, report writing) is in the [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes), copied for offline reading in [`field-notes`](field-notes/README.md).
+The README section *Documentation* lists every page. The analytic standards, the 5W1H method and OPSEC are in the [Guidelines](guidelines.md); the method behind the graph is in the [Link Analysis Guidelines](link-analysis.md), rewritten from the UNODC [*Criminal Intelligence: Manual for Analysts*](https://www.unodc.org/documents/organized-crime/Law-Enforcement/Criminal_Intelligence_for_Analysts.pdf); the node types are in [Graph Entities](ontology.md); the releases are in the [Version History](versionhistory.md) and what is planned in [Ideas & Roadmap](todo.md). The common method of the SOsintOps tools (analytic standards, source evaluation, estimative language, report writing) is in the [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes), copied for offline reading in [`field-notes`](field-notes/README.md).
 
 ### Are there related SOsintOps projects?
 
@@ -246,4 +273,7 @@ Yes:
 * **[Exploratores](https://github.com/SOsintOps/Exploratores)**: the browser toolkit for the searches whose results become nodes.
 * **[Aethelburg](https://github.com/SOsintOps/Aethelburg-project)**: an analyser of UK company registers, for the ownership chains drawn with Follow the Money relations.
 * **[Elementary CTI](https://github.com/SOsintOps/elementary-CTI)**: a ransomware threat-intelligence aggregator.
+* **[Acta Diurna](https://github.com/SOsintOps/acta-diurna)**: a dashboard (in Italian) of news on law-enforcement operations in Italy, a source for Italian cases.
+* **[Il Conclave](https://github.com/SOsintOps/il-conclave)** and **[Codex Machinae](https://github.com/SOsintOps/codex-machinae)**: analytic procedures (ACH, premortem) run by an AI, and a playbook for building software with AI collaborators.
+* **[TGchat-analytics](https://github.com/SOsintOps/TGchat-analytics)**, **[TelEgrapherX](https://github.com/SOsintOps/TelEgrapherX)** and **[Maigret](https://github.com/SOsintOps/maigret)**: forks for chat exports, Telegram channels and username searches, whose results can be imported as nodes.
 * **[Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes)**: the method all of them share.

@@ -10,6 +10,16 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 
 ---
 
+## 1.7.3 — 2026
+
+- **Fixed:** [Link Analysis Guidelines](link-analysis.md) no longer say that the 6 x 6 (Admiralty) system "converts easily": the two systems differ by more than the number of grades, and information graded on the 6 x 6 must be re-graded on the 4 x 4 questions, as the [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes/blob/main/docs/source-evaluation.md#converting-from-the-6-x-6-admiralty-system) explain. *Further Reading* links the UNODC manual for front-line law enforcement.
+- **Fixed:** [Guidelines](guidelines.md): tradecraft standard 5 is *customer relevance*, as in ICD 203, and the *Timely* standard speaks of customers; the likelihood table matches the Field Notes and recommends the first row; ICD 203 and the UNODC manual are linked at their first mention; British spelling (*judgement*).
+- **Fixed:** The English section of the built-in manual spells the noun *licence*.
+- **Docs:** FAQ: new group *Method & Analysis* (where the 4 x 4 grade of a link goes, why the 4 x 4 and not the 6 x 6, solid or dashed links, why the graph is not the report, how chats, Telegram channels and username searches become nodes), with links to the related SOsintOps projects; the related-projects list names more of them. `docs/field-notes/` updated to the Field Notes 0.1.2.
+- **Changed:** The 1.5.0 entry no longer names the development repository.
+
+---
+
 ## 1.7.2 — 2026
 
 - **Docs:** [Guidelines](guidelines.md) and [Link Analysis Guidelines](link-analysis.md) aligned with the [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes), the notes on analytic standards, source evaluation, estimative language and report writing now shared by all the SOsintOps tools: the likelihood table says to use one row only, a *Writing the Report* section joins the graph to the written product, and every text in *Further Reading* is linked. `docs/field-notes/` carries an offline copy of the notes.
@@ -71,7 +81,7 @@ What is queued and under consideration is in [Ideas & Roadmap](todo.md): Docker 
 First public release.
 
 - **New:** The interface carries the fork's own name, a provisional text wordmark and a "Q" icon (window title, left panel, favicon, executable name `Quaesitor.exe`, built-in manual, licences window), as `NOTICE` point 3 requires of a distributed modified version. The credits line, the credits window, the licences window and the source headers keep the attribution of Andrea Cumini unchanged; a "Quaesitor fork: SOsintOps" link sits next to the credits line.
-- **Changed:** Development moves to the private repository `quaesitor-sviluppo`; the public repository `quaesitor` carries the upstream history and one commit per release, without internal working notes.
+- **Changed:** Development moves to a separate, private development repository; the public repository `quaesitor` carries the upstream history and one commit per release, without internal working notes.
 - **Docs:** README, FAQ and roadmap no longer point to pages kept in the development repository.
 
 ---

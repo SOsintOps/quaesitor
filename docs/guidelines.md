@@ -3,14 +3,14 @@
 Analytic standards, the 5W1H method, and OPSEC best practices for the investigations kept in Quaesitor. The method specific to the graph itself (source grading, association matrix, link chart) is in the [Link Analysis Guidelines](link-analysis.md); this page covers what comes before and around it. Both apply to Quaesitor the common method of the SOsintOps tools, the [Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes): personal notes, shared for convenience and with no claim to be exhaustive. A copy for offline reading is in [`docs/field-notes/`](field-notes/README.md).
 
 ## Core Analytic Standards
-Adherence to the five Core Analytic Standards is mandatory for all intelligence products. These standards ensure the rigour and integrity of the analysis.
+Adherence to the five Core Analytic Standards of [ICD 203](https://www.dni.gov/files/documents/ICD/ICD-203.pdf), the US Intelligence Community Directive on analytic standards, is mandatory for all intelligence products. These standards ensure the rigour and integrity of the analysis.
 
 ### The Five Analytic Standards
 **Objective:** Analysts must perform their functions with objectivity, be aware of their own assumptions, and employ reasoning techniques to mitigate bias.
 
 **Independent of political consideration:** Analytic assessments must not be distorted by advocacy of a particular audience, agenda, or policy viewpoint.
 
-**Timely:** Analysis must be disseminated in time for it to be actionable by stakeholders.
+**Timely:** Analysis must be disseminated in time for it to be actionable by customers.
 
 **Based on all available sources of intelligence information:** Analysis should be informed by all relevant available information and address critical information gaps.
 
@@ -18,25 +18,25 @@ Adherence to the five Core Analytic Standards is mandatory for all intelligence 
 
 ### The Nine Analytic Tradecraft Standards
 1.  Properly describes quality and credibility of underlying sources, data, and methodologies. In Quaesitor, the 4 x 4 grade of every link and card (see the [Link Analysis Guidelines](link-analysis.md)) is where this standard is met or missed.
-2.  Properly expresses and explains uncertainties associated with major analytic judgments. For expressions of likelihood, an analytic product must use standardised sets of terms:
+2.  Properly expresses and explains uncertainties associated with major analytic judgements. For expressions of likelihood, ICD 203 gives two equivalent rows of terms:
 
-| Almost No Chance | Very Unlikely | Unlikely | Roughly Even Chance | Likely | Very Likely | Almost Certain(ly) |
+| Almost no chance | Very unlikely | Unlikely | Roughly even chance | Likely | Very likely | Almost certain(ly) |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| Remote | Highly Improbable | Improbable | Roughly Even Odds | Probable | Highly Probable | Nearly Certain |
+| Remote | Highly improbable | Improbable (improbably) | Roughly even odds | Probable (probably) | Highly probable | Nearly certain |
 | 01-05% | 05-20% | 20-45% | 45-55% | 55-80% | 80-95% | 95-99% |
 
-Choose one row and keep to it (the SOsintOps templates use the first), and never put a confidence level and a likelihood term in the same sentence: see [Estimative Language](field-notes/estimative-language.md).
+Choose one row and use only that row: use the **first row**, as the Field Notes and the SOsintOps templates do (almost no chance, very unlikely, unlikely, roughly even chance, likely, very likely, almost certain). Never mix terms from the two rows, and never put a confidence level and a likelihood term in the same sentence: see [Estimative Language](field-notes/estimative-language.md).
 
-3.  Properly distinguishes between underlying intelligence information and analysts' assumptions and judgments. A solid link is information; a dashed link labelled "hypothesis" is a judgment. Never draw the second as the first.
+3.  Properly distinguishes between underlying intelligence information and analysts' assumptions and judgements. A solid link is information; a dashed link labelled "hypothesis" is a judgement. Never draw the second as the first.
 4.  Incorporates analysis of alternatives by systematically evaluating differing hypotheses.
-5.  Demonstrates stakeholder relevance and addresses implications for action.
+5.  Demonstrates customer relevance and addresses implications for action.
 6.  Uses clear and logical argumentation with a clear main message supported by coherent reasoning.
-7.  Explicitly explains change to or consistency of analytic judgments compared to previous analysis. Saved views, dated and numbered, keep the earlier state of the chart for this comparison.
-8.  Makes accurate judgments and assessments based on available information and known gaps.
+7.  Explicitly explains change to or consistency of analytic judgements compared to previous analysis. Saved views, dated and numbered, keep the earlier state of the chart for this comparison.
+8.  Makes accurate judgements and assessments based on available information and known gaps.
 9.  Incorporates effective visual information where appropriate to clarify the analytic message. The graph is that visual information; it is an addition to the written report, never its replacement.
 
 ## The 5W1H Analytical Method
-The 5W1H method (Who, What, When, Where, Why, How) is a cognitive tool that imposes order on chaotic data streams, enhances analytical clarity, and provides a structured pathway for transforming raw open-source information into finished intelligence. It serves as a safeguard against common analytical pitfalls and cognitive biases, such as confirmation bias and tunnel vision. The UNODC manual asks the same six questions of every hypothesis a link chart suggests.
+The 5W1H method (Who, What, When, Where, Why, How) is a cognitive tool that imposes order on chaotic data streams, enhances analytical clarity, and provides a structured pathway for transforming raw open-source information into finished intelligence. It serves as a safeguard against common analytical pitfalls and cognitive biases, such as confirmation bias and tunnel vision. The UNODC [*Criminal Intelligence: Manual for Analysts*](https://www.unodc.org/documents/organized-crime/Law-Enforcement/Criminal_Intelligence_for_Analysts.pdf) asks the same six questions of every hypothesis a link chart suggests.
 
 ### The Six Components
 #### Who: Identifying Actors and Networks
