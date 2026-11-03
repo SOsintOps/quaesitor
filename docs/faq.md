@@ -282,10 +282,4 @@ Yes:
 
 * **[Argos](https://github.com/SOsintOps/Argos)** and **[Speculator](https://github.com/SOsintOps/Speculator-Project)**: the OSINT workstations for Ubuntu Budgie and Debian that install and start Quaesitor, and carry the report templates the graph is an annex to.
 * **[Wukong](https://github.com/SOsintOps/Wukong)**: the China-focused workstation, for the Chinese names the transliteration dictionary handles.
-* **[Exploratores](https://github.com/SOsintOps/Exploratores)**: the browser toolkit for the searches whose results become nodes.
-* **[Aethelburg](https://github.com/SOsintOps/Aethelburg-project)**: an analyser of UK company registers, for the ownership chains drawn with Follow the Money relations.
-* **[Elementary CTI](https://github.com/SOsintOps/elementary-CTI)**: a ransomware threat-intelligence aggregator.
-* **[Acta Diurna](https://github.com/SOsintOps/acta-diurna)**: a dashboard (in Italian) of news on law-enforcement operations in Italy, a source for Italian cases.
-* **[Il Conclave](https://github.com/SOsintOps/il-conclave)** and **[Codex Machinae](https://github.com/SOsintOps/codex-machinae)**: analytic procedures (ACH, premortem) run by an AI, and a playbook for building software with AI collaborators.
-* **[TGchat-analytics](https://github.com/SOsintOps/TGchat-analytics)**, **[TelEgrapherX](https://github.com/SOsintOps/TelEgrapherX)** and **[Maigret](https://github.com/SOsintOps/maigret)**: forks for chat exports, Telegram channels and username searches, whose results can be imported as nodes.
 * **[Intelligence Field Notes](https://github.com/SOsintOps/intelligence-field-notes)**: the method all of them share.
